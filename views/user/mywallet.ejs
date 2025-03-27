@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>My Wallet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .wallet-container {
+            max-width: 1000px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        .wallet-card {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .wallet-card::before {
+            content: "";
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            top: -50px;
+            right: -50px;
+        }
+
+        .wallet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .wallet-balance {
+            font-size: 36px;
+            font-weight: bold;
+        }
+
+        .wallet-label {
+            font-size: 16px;
+            color: #d1d1d1;
+        }
+
+        .wallet-actions {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-add {
+            background: #28a745;
+            color: #fff;
+        }
+
+        .btn-add:hover {
+            background: #218838;
+        }
+
+        .btn-history {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .btn-history:hover {
+            background: #e0a800;
+        }
+
+        .transaction-history {
+            margin-top: 40px;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .transaction-history h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .transaction {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .transaction:last-child {
+            border-bottom: none;
+        }
+
+        .transaction-description {
+            font-weight: 500;
+            color: #555;
+        }
+
+        .transaction-amount {
+            font-weight: bold;
+        }
+
+        .transaction-amount.credit {
+            color: #28a745;
+        }
+
+        .transaction-amount.debit {
+            color: #dc3545;
+        }
+
+        @media (max-width: 768px) {
+            .wallet-card {
+                padding: 20px;
+            }
+
+            .wallet-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .wallet-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+        /* Add these modal styles inside your existing <style> tag */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 400px;
+            max-width: 90%;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .modal h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            border-color: #2a5298;
+            outline: none;
+        }
+
+        .modal .btn-add {
+            width: 100%;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    
+
+    <div class="wallet-container">
+        <div class="wallet-card">
+            <div class="wallet-header">
+                <div>
+                    <div class="wallet-label">Available Balance</div>
+                    <div class="wallet-balance">
+                        ₹<%= user?.wallet || '0.00' %>
+                    </div>
+                </div>
+                <div class="wallet-actions">
+                    <button class="btn btn-add" onclick="openAddMoneyModal()">Add Money</button>
+                    <button class="btn btn-history" onclick="toggleHistory()">View History</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="transaction-history" id="transactionHistory">
+            <h3>Transaction History</h3>
+            <% if (transactions && transactions.length > 0) { %>
+                <% transactions.forEach(transaction => { %>
+                    <div class="transaction">
+                        <div class="transaction-info">
+                            <div class="transaction-description"><%= transaction.description %></div>
+                            <div class="transaction-date">
+                                <%= new Date(transaction.createdAt).toLocaleDateString('en-IN', {
+                                    day: '2-digit',
+                                    month: 'short',
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                }) %>
+                            </div>
+                        </div>
+                        <div class="transaction-amount <%= transaction.type %>">
+                            <%= transaction.type === 'credit' ? '+' : '-' %>₹<%= transaction.amount.toFixed(2) %>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <div class="no-transactions">
+                    <p>No transactions found</p>
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- Add Money Modal -->
+    <div id="addMoneyModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddMoneyModal()">&times;</span>
+            <h2>Add Money to Wallet</h2>
+            <form id="addMoneyForm" onsubmit="handleAddMoney(event)">
+                <div class="form-group">
+                    <label for="amount">Enter Amount (₹)</label>
+                    <input type="number" 
+                           id="amount" 
+                           min="1" 
+                           step="1" 
+                           required 
+                           placeholder="Enter amount">
+                </div>
+                <button type="submit" class="btn btn-add">Add Money</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openAddMoneyModal() {
+            const modal = document.getElementById('addMoneyModal');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+
+        function closeAddMoneyModal() {
+            const modal = document.getElementById('addMoneyModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto'; // Restore scrolling
+            document.getElementById('addMoneyForm').reset(); // Reset form
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('addMoneyModal');
+            if (event.target === modal) {
+                closeAddMoneyModal();
+            }
+        }
+
+        // Close modal on escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape") {
+                closeAddMoneyModal();
+            }
+        })
+
+        // Initialize modal state
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('addMoneyModal');
+            modal.style.display = 'none';
+        })
+
+        async function handleAddMoney(event) {
+            event.preventDefault();
+            const amount = document.getElementById('amount').value;
+
+            try {
+                const response = await fetch('/wallet/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ amount })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: 'Money added to wallet successfully'
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: data.message || 'Failed to add money'
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'Something went wrong'
+                });
+            }
+        }
+    </script>
+
+    
+</body>
+
+</html>

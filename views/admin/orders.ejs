@@ -1,0 +1,89 @@
+<%- include("../../views/partials/admin/header") %>
+
+<style>
+    .order-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+    }
+    .order-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+    .order-img {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+    .view-btn {
+        background: #007bff;
+        color: white;
+        padding: 8px 15px;
+        border-radius: 5px;
+        text-decoration: none;
+    }
+    .view-btn:hover {
+        background: #0056b3;
+    }
+    /* Add these new status badge styles */
+    .badge.pending { background-color: #ffc107; }
+    .badge.processing { background-color: #0d6efd; }
+    .badge.shipped { background-color: #0dcaf0; }
+    .badge.delivered { background-color: #198754; }
+    .badge.cancelled { background-color: #dc3545; }
+    .badge.return-request { background-color: #6c757d; }
+    .badge.returned { background-color: #6610f2; }
+</style>
+
+<div class="container mt-5">
+    <h2 class="mb-4">All Orders</h2>
+
+    <% orders.forEach(order => { %>
+        <div class="order-card row align-items-center">
+            <div class="col-md-2 text-center">
+                <% const firstItem = order.orderItems[0]; %>
+                <% if (firstItem && firstItem.product.image) { %>
+                    <img src="<%= firstItem.product.image %>" 
+                         alt="<%= firstItem.product.name %>" 
+                         class="order-img">
+                <% } else { %>
+                    <img src="/uploads/default.jpg" 
+                         alt="No Image Available" 
+                         class="order-img">
+                <% } %>
+            </div>
+
+            <div class="col-md-3">
+                <h5><%= order.orderItems[0]?.product.name || 'No Product Name' %></h5>
+                <small>Order ID: <%= order.orderId %></small>
+                <p class="mb-0">
+                    <small>Ordered: <%= new Date(order.createdOn).toLocaleDateString() %></small>
+                </p>
+            </div>
+
+            <div class="col-md-3">
+                <span>Status: 
+                    <span class="badge <%= order.status.toLowerCase().replace(' ', '-') %>">
+                        <%= order.status %>
+                    </span>
+                </span>
+                <p class="mb-0">
+                    <small>Total: ₹<%= order.totalAmount.toFixed(2) %></small>
+                </p>
+            </div>
+
+            <div class="col-md-2 text-end">
+                <a href="/admin/order-details/<%= order.orderId %>" class="view-btn">
+                    View Details
+                </a>
+            </div>
+        </div>
+    <% }) %>
+
+</div>
+
+

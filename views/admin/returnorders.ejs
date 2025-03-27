@@ -1,0 +1,150 @@
+<%- include("../../views/partials/admin/header") %>
+<style>
+    .returns-table-container {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        margin: 40px 20px; /* Increased top and bottom margin */
+    }
+
+    /* Add a wrapper class for additional spacing control */
+    .returns-section {
+        padding-top: 30px;
+        margin-top: 30px;
+    }
+
+    .returns-table {
+        width: 100%;
+        border-collapse: collapse;
+        white-space: nowrap;
+    }
+
+    .returns-table th {
+        background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+        color: #2d3436;
+        font-weight: 600;
+        padding: 15px;
+        text-align: left;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .returns-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #dee2e6;
+        color: #4a4a4a;
+    }
+
+    .returns-table tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-success {
+        background: #28a745;
+        color: white;
+    }
+
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    @media (max-width: 768px) {
+        .returns-table-container {
+            margin: 10px;
+            overflow-x: auto;
+        }
+    }
+</style>
+
+<!-- Wrap the table container in the new section div -->
+<div class="returns-section">
+    <div class="returns-table-container">
+        <table class="returns-table">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Product</th>
+                    <th>Return Reason</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% returnOrders.forEach(order => { %>
+                    <% order.orderItems.forEach(item => { %>
+                        <% if(item.returnRequest && item.returnStatus === 'Pending') { %>
+                            <tr>
+                                <td><%= order.orderId %></td>
+                                <td>
+                                    <div><%= order.userId.name %></div>
+                                    <small style="color: #6c757d;"><%= order.userId.email %></small>
+                                </td>
+                                <td><%= item.product.name %></td>
+                                <td><%= item.returnReason %></td>
+                                <td>
+                                    <span class="status-badge" style="
+                                        background: <%= 
+                                            item.returnStatus === 'Pending' ? '#fff3cd' : 
+                                            item.returnStatus === 'Accepted' ? '#d4edda' :
+                                            item.returnStatus === 'Returned' ? '#cce5ff' : '#f8d7da'
+                                        %>;
+                                        color: <%= 
+                                            item.returnStatus === 'Pending' ? '#856404' : 
+                                            item.returnStatus === 'Accepted' ? '#155724' :
+                                            item.returnStatus === 'Returned' ? '#004085' : '#721c24'
+                                        %>;">
+                                        <%= item.returnStatus %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <% if(item.returnStatus === 'Pending') { %>
+                                        <div class="action-buttons">
+                                            <form action="/admin/returns/accept/<%= order._id %>/<%= item._id %>" method="POST" style="display: inline;">
+                                                <button type="submit" class="btn btn-success">Accept</button>
+                                            </form>
+                                            <form action="/admin/returns/reject/<%= order._id %>/<%= item._id %>" method="POST" style="display: inline;">
+                                                <button type="submit" class="btn btn-danger">Reject</button>
+                                            </form>
+                                        </div>
+                                    <% } else if(item.returnStatus === 'Accepted') { %>
+                                        <form action="/admin/returns/complete/<%= order._id %>/<%= item._id %>" method="POST">
+                                            <button type="submit" class="btn btn-primary">Mark as Returned</button>
+                                        </form>
+                                    <% } %>
+                                </td>
+                            </tr>
+                        <% } %>
+                    <% }) %>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+</div>

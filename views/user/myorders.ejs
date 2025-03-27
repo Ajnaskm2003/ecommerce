@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f8f9fa;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 260px;
+            min-height: 100vh;
+            background: #ffffff;
+            padding: 20px;
+            box-shadow: 3px 0 15px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            left: 0;
+            top: 0;
+        }
+
+        .sidebar h2 {
+            font-size: 1.6em;
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 600;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sidebar ul li {
+            margin: 15px 0;
+        }
+
+        .sidebar ul li a {
+            text-decoration: none;
+            color: #333;
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease-in-out;
+            background: #f1f1f1;
+            box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .sidebar ul li a:hover {
+            background: #007bff;
+            color: #ffffff;
+            transform: translateX(5px);
+        }
+
+        .sidebar ul li a .icon {
+            margin-right: 12px;
+            font-size: 1.2em;
+            color: #007bff;
+            transition: color 0.3s ease;
+        }
+
+        .sidebar ul li a:hover .icon {
+            color: #ffffff;
+        }
+
+        .content {
+            margin-left: 260px;
+            padding: 40px 40px;
+            width: calc(100% - 260px);
+        }
+
+        h2.page-title {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .order-card {
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: 120px 1fr auto;
+            gap: 25px;
+            align-items: center;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+            width: 95%;
+        }
+
+        .order-image {
+            position: relative;
+            width: 100px;
+            height: 100px;
+        }
+
+        .product-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
+        .more-items {
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            background: #007bff;
+            color: white;
+            padding: 1px 6px;
+            border-radius: 10px;
+            font-size: 0.7em;
+        }
+
+        .order-info {
+            flex: 1;
+        }
+
+        .order-info p {
+            margin: 3px 0;
+            color: #555;
+            font-size: 0.9em;
+        }
+
+        .badge {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            color: white;
+            font-weight: 500;
+            display: inline-block;
+            margin-left: 5px;
+        }
+
+        .badge.Pending {
+            background-color: #ffc107;
+            color: #000;
+        }
+
+        .badge.Processing {
+            background-color: #17a2b8;
+        }
+
+        .badge.Shipped {
+            background-color: #007bff;
+        }
+
+        .badge.Delivered {
+            background-color: #28a745;
+        }
+
+        .badge.Cancelled {
+            background-color: #dc3545;
+        }
+
+        .badge.ReturnRequest {
+            background-color: #6c757d;
+        }
+
+        .badge.Returned {
+            background-color: #6610f2;
+        }
+
+        .details-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-align: center;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .details-btn:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .order-actions {
+            display: flex;
+            align-items: center;
+            padding-right: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 220px;
+            }
+
+            .content {
+                margin-left: 220px;
+                padding: 30px 20px;
+                width: calc(100% - 220px);
+            }
+
+            .order-card {
+                grid-template-columns: 100px 1fr;
+                max-width: 100%;
+                padding: 20px;
+            }
+
+            .order-image {
+                width: 80px;
+                height: 80px;
+            }
+
+            .order-actions {
+                grid-column: 1 / -1;
+                padding: 10px 0 0 0;
+            }
+
+            .details-btn {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .order-card {
+                grid-template-columns: 60px 1fr;
+                padding: 12px;
+            }
+
+            .order-image {
+                width: 60px;
+                height: 60px;
+            }
+
+            .order-actions {
+                grid-column: 1 / -1;
+                text-align: center;
+            }
+
+            .details-btn {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
+                box-shadow: none;
+                border-radius: 0;
+            }
+
+            .content {
+                margin-left: 0;
+                padding: 20px 15px;
+                width: 100%;
+            }
+
+            .order-card {
+                padding: 15px;
+                width: 100%;
+            }
+        }
+
+        .product-name {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        .product-details {
+            color: #666;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>My Account</h2>
+        <ul>
+            <li><a href="/userProfile"><span class="icon"><i class="fas fa-globe"></i></span> Overview</a></li>
+            <li><a href="/orders"><span class="icon"><i class="fas fa-box"></i></span> My Orders</a></li>
+            <li><a href="#"><span class="icon"><i class="fas fa-wallet"></i></span> My Wallet</a></li>
+            <li><a href="/my-address"><span class="icon"><i class="fas fa-home"></i></span> My Address</a></li>
+            <li><a href="/myInfo"><span class="icon"><i class="fas fa-user"></i></span> My Profile</a></li>
+            <li><a href="#"><span class="icon"><i class="fas fa-sign-out-alt"></i></span> Logout</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+        <h2 class="page-title">My Orders</h2>
+
+        <% if (error) { %>
+            <div class="error-message" style="text-align: center; color: #dc3545; padding: 20px;">
+                <p>Sorry, there was an error loading your orders. Please try again later.</p>
+            </div>
+        <% } else if (orders && orders.length > 0) { %>
+            <% orders.forEach(order => { %>
+                <div class="order-card">
+                    <div class="order-image">
+                        <% if (order.items && order.items.length > 0) { %>
+                            <img src="<%= order.items[0].image %>" 
+                                 alt="<%= order.items[0].name %>" 
+                                 class="product-image"
+                                 onerror="this.src='/images/default-product.jpg'">
+                            <% if (order.items.length > 1) { %>
+                                <span class="more-items">+<%= order.items.length - 1 %> more</span>
+                            <% } %>
+                        <% } %>
+                    </div>
+                    <div class="order-info">
+                        <div class="product-name">
+                            <%= order.items && order.items[0] ? order.items[0].name : 'Product Unavailable' %>
+                        </div>
+                        <div class="product-details">
+                            <p><strong>Order ID:</strong> <%= order.orderId %></p>
+                            <p><strong>Date:</strong> <%= new Date(order.createdOn).toLocaleDateString() %></p>
+                            <p><strong>Quantity:</strong> <%= order.items && order.items[0] ? order.items[0].quantity : 0 %></p>
+                            <p><strong>Total:</strong> ₹<%= order.totalAmount ? order.totalAmount.toFixed(2) : '0.00' %></p>
+                            <p>
+                                <strong>Status:</strong>
+                                <span class="badge <%= order.status %>"><%= order.status %></span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="order-actions">
+                        <a href="/order-details/<%= order._id %>" class="details-btn">View Details</a>
+                    </div>
+                </div>
+            <% }) %>
+        <% } else { %>
+            <p style="text-align: center; color: #777; padding: 20px;">
+                You don't have any orders yet.
+            </p>
+        <% } %>
+    </div>
+
+</body>
+
+</html>

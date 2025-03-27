@@ -1206,7 +1206,7 @@ h1, h2, h3, h4, h5, h6 {
 /* banner area css
 ============================================================================================ */
 .banner-area {
-  background: url(../img/banner/banner-bg.jpg) center no-repeat;
+  background: url(/img/bannermy.jpeg) center no-repeat;
   background-size: cover;
   position: relative; }
   @media (max-width: 768px) {
@@ -3148,32 +3148,45 @@ label {
     .sorting .nice-select .list {
       border-radius: 0px; }
 
-.pagination {
-  margin-top: 10px;
-  border-left: 1px solid #eee;
-  border-radius: 0px; }
-  .pagination a {
-    width: 40px;
-    line-height: 40px;
-    text-align: center;
-    display: inline-block;
-    background: #fff; }
-    .pagination a.active {
-      color: #fff; }
-    .pagination a:hover {
-      color: #fff; }
-  .pagination .dot-dot {
-    width: auto;
-    background: transparent;
-    border-top: 0px;
-    border-bottom: 0px;
-    color: #cccccc;
-    padding: 0 5px; }
-    .pagination .dot-dot:hover {
-      background: transparent;
-      border: 0px;
-      border-right: 1px solid #eee;
-      color: #cccccc; }
+      .pagination {
+        margin-top: 10px;
+        border-left: 1px solid #eee;
+        border-radius: 0px;
+      }
+      
+      .pagination a {
+        width: 30px; /* Smaller button size */
+        line-height: 30px; /* Smaller button size */
+        text-align: center;
+        display: inline-block;
+        background: #fff;
+        margin: 0 5px; /* Added space between buttons */
+      }
+      
+      .pagination a.active {
+        color: #000; /* Changed color to black */
+      }
+      
+      .pagination a:hover {
+        color: #000; /* Changed color to black */
+      }
+      
+      .pagination .dot-dot {
+        width: auto;
+        background: transparent;
+        border-top: 0px;
+        border-bottom: 0px;
+        color: #cccccc;
+        padding: 0 5px;
+      }
+      
+      .pagination .dot-dot:hover {
+        background: transparent;
+        border: 0px;
+        border-right: 1px solid #eee;
+        color: #cccccc;
+      }
+      
 
 .single-organic-product-list {
   padding: 30px 0;

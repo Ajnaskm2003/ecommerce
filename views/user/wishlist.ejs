@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Wishlist</title>
+    <link rel="stylesheet" href="/styles.css"> <!-- Link to your CSS file -->
+
+    <style>
+        /* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: #f8f9fa;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 800px;
+    width: 90%;
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    border: 1px solid #e0e0e0;
+}
+
+h1 {
+    font-size: 2.2rem;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 700;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+.wishlist-item {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border-radius: 15px;
+    padding: 15px;
+    margin: 15px 0;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.wishlist-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.wishlist-item-image {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 15px;
+    margin-right: 20px;
+    border: 2px solid #e0e0e0;
+}
+
+.wishlist-item-info {
+    text-align: left;
+}
+
+.wishlist-item-info h3 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.wishlist-item-info p {
+    font-size: 0.95rem;
+    color: #666;
+}
+
+.remove-btn {
+    background: #ff4b2b;
+    border: none;
+    padding: 10px 15px;
+    color: #fff;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border-radius: 8px;
+    margin-top: 10px;
+    transition: transform 0.2s, background 0.3s;
+}
+
+.remove-btn:hover {
+    background: #e63946;
+    transform: scale(1.1);
+}
+
+hr {
+    border: none;
+    height: 1px;
+    background: #e0e0e0;
+    margin: 30px 0;
+}
+
+h2 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+input[type="text"] {
+    padding: 10px;
+    width: 70%;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    outline: none;
+    margin-bottom: 10px;
+    background: #f9f9f9;
+}
+
+button {
+    background: #007bff;
+    border: none;
+    padding: 10px 20px;
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: transform 0.2s, background 0.3s;
+}
+
+button:hover {
+    background: #0056b3;
+    transform: scale(1.1);
+}
+
+a {
+    display: block;
+    margin-top: 20px;
+    color: #007bff;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: #0056b3;
+}
+
+
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Your Wishlist</h1>
+
+        <% if (wishlist && wishlist.items.length > 0) { %>
+            <ul>
+                <% wishlist.items.forEach(item => { %>
+                    <li>
+                        <div class="wishlist-item" >
+                            <a href="/product?id=<%= item.productId.id %>">
+                            <img src="<%= item.productId.productImage[0] %>" alt="<%= item.productId.name %>" class="wishlist-item-image">
+                            <div class="wishlist-item-info">
+                                <h3><%= item.productId.productName %></h3>
+                                <p><%= item.productId.description %></p>
+                                <p><strong>Price:</strong> $<%= item.productId.salePrice %></p>
+                                <form action="/wishlist/remove" method="POST">
+                                    <input type="hidden" name="productId" value="<%= item.productId._id %>">
+                                    <button type="submit" class="remove-btn">Remove from Wishlist</button>
+                                </form>
+                            </div>
+                        </a>
+                        </div>
+                    </li>
+                <% }) %>
+            </ul>
+        <% } else { %>
+            <p>Your wishlist is empty.</p>
+        <% } %>
+
+        <hr>
+
+        
+
+        <a href="/">Back to Home</a>
+    </div>
+
+    <script src="/script.js"></script> <!-- Link to your JavaScript file if needed -->
+</body>
+</html>

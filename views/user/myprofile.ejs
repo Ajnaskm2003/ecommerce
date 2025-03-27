@@ -1,0 +1,609 @@
+
+<%-include("../../views/partials/user/profileHeader")%>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            display: flex;
+            height: 100vh;
+            background: white;
+            color: #333;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: #f4f4f4;
+            padding: 20px;
+            height: 100vh;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sidebar ul li a {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #333;
+            padding: 12px;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+
+        .sidebar ul li a:hover {
+            background: #ddd;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .profile-container {
+            width: 1000px;
+            padding: 40px;
+            background: #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            position: relative;
+            right: -50px;
+        }
+
+        .profile-img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: block;
+            margin: 0 auto 15px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: 0.3s ease-in-out;
+        }
+
+        .profile-img:hover {
+            transform: scale(1.05);
+        }
+
+        .upload-btn {
+            display: block;
+            text-align: center;
+            font-size: 0.9em;
+            color: #007bff;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .upload-btn:hover {
+            text-decoration: underline;
+        }
+
+        .form-group {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            width: 100%;
+        }
+
+        label {
+            font-weight: 600;
+            width: 150px;
+            margin-right: 20px;
+            font-size: 14px;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            height: 42px;
+            max-width: 400px;
+        }
+
+        .email-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .email-group input {
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .edit-btn {
+            padding: 8px 16px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            height: 35px;
+            min-width: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+        }
+
+        .edit-btn:hover {
+            background: #218838;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: flex-start;
+            gap: 15px;
+            margin-top: 25px;
+            padding: 0 20px;
+        }
+
+        .change-pass-btn {
+            padding: 8px 16px;
+            background: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            height: 35px;
+            min-width: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+        }
+
+        .change-pass-btn:hover {
+            background: #cc0000;
+        }
+
+        .save-btn {
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            height: 35px;
+            min-width: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+        }
+
+        .save-btn:hover {
+            background: #0056b3;
+        }
+
+        .password-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .password-section h3 {
+            margin-bottom: 15px;
+        }
+
+        .password-section .form-group {
+            margin: 15px 0;
+        }
+
+        .password-section input {
+            max-width: 400px;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        /* Modal Background */
+        .modal {
+            display: none; /* Changed from display: flex */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+        }
+
+        /* Add this for when modal is active */
+        .modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Modal Content */
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            width: 400px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        /* Close Button */
+        .close {
+            position: absolute;
+            top: 12px;
+            right: 15px;
+            font-size: 22px;
+            cursor: pointer;
+            color: #333;
+            transition: color 0.3s;
+        }
+
+        .close:hover {
+            color: #ff4d4d;
+        }
+
+        /* Modal Heading */
+        .modal-content h2 {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 22px;
+            color: #333;
+        }
+
+        /* Input Fields */
+        .modal-content input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 8px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+
+        .modal-content input:focus {
+            border: 1px solid #007bff;
+            outline: none;
+        }
+
+        /* OTP Section */
+        #otpSection {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        /* Stylish OTP Button (Reduced Size) */
+        button {
+            width: 90%;  /* Reduced width */
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 10px;  /* Reduced padding */
+            border: none;
+            border-radius: 6px;  /* Slightly smaller corners */
+            cursor: pointer;
+            font-size: 15px;  /* Slightly smaller font */
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: 0.3s;
+            display: block;
+            margin: 12px auto 0;  /* Adjusted margin */
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #0056b3, #004099);
+            transform: scale(1.04);  /* Slightly reduced hover effect */
+            box-shadow: 0 4px 12px rgba(0, 91, 187, 0.35);
+        }
+
+        .modal-content button {
+            width: auto;
+            min-width: 120px;
+            height: 35px;
+            padding: 8px 15px;
+            font-size: 13px;
+            margin: 10px auto;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    
+
+    <div class="main-content">
+        <div class="profile-container">
+            
+            <form action="/updateInfo" method="post" id="profileForm" >
+
+                <img src="<%=data.image%>" alt="Profile Picture" class="profile-img" id="profilePreview">
+                <input type="file" id="imageUpload" name="image" accept="image/*" style="display: none;">
+                <span class="upload-btn" onclick="document.getElementById('imageUpload').click();">Change Profile Picture</span>
+
+
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" placeholder="Enter Full Name" value="<%=data.name%>" name="name" id="name">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <div class="email-group">
+                        <input type="email" placeholder="Enter Email" value="<%=data.email%>" readonly>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="text" placeholder="Enter Phone Number" value="<%=data.phone%>" name="phone" id="phone" >
+                </div>
+                <div class="button-group">
+                    <button class="change-pass-btn" id="changePassBtn" type="button">Change Password</button>
+                    <button class="edit-btn" type="button" onclick="openModal()">
+                        <i class="fas fa-edit"></i> Edit Email
+                    </button>
+                    <button class="save-btn" type="submit">Save Changes</button>
+                </div>
+            </form>
+
+
+            <div id="changePasswordSection" class="password-section" style="display: none;">
+                <h3>Change Password</h3>
+                <form id="passwordForm">
+                    <div class="form-group">
+                        <label>Current Password</label>
+                        <input type="password" id="currentPassword" placeholder="Enter Current Password" >
+                    </div>
+                    <div class="form-group">
+                        <label>New Password</label>
+                        <input type="password" id="newPassword" placeholder="Enter New Password" >
+                    </div>
+                    <button type="submit" class="save-btn">Update Password</button>
+                </form>
+            </div>
+
+            
+             <!-- Email Update Modal -->
+            <div id="emailUpdateModal" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closeModal()">&times;</span>
+                    <h2>Change Email</h2>
+                    
+                    <label for="newEmail">Enter New Email:</label>
+                    <input type="email" id="newEmail" >
+            
+                    <button onclick="sendOtp()">Send OTP</button>
+            
+                    <div id="otpSection" style="display: none;">
+                        <label for="otpInput">Enter OTP:</label>
+                        <input type="text" id="otpInput" >
+                        <button onclick="verifyOtp()">Verify & Update</button>
+                    </div>
+                </div>
+            </div>
+
+
+            
+
+
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
+
+    <script>
+        // ✅ Live Preview of Selected Image
+        document.getElementById("imageUpload").addEventListener("change", function (event) {
+            const reader = new FileReader();
+            reader.onload = function () {
+                document.getElementById("profilePreview").src = reader.result;
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        });
+    
+        // ✅ Handle Form Submission with Fetch API
+        document.getElementById("profileForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            const response = await fetch("/updateInfo", {
+                method: "POST",
+                body: formData
+            });
+    
+            const result = await response.json();
+    
+            if (response.ok) {
+                Swal.fire({
+                    title: "Success!",
+                    text: result.message,
+                    icon: "success",
+                    confirmButtonText: "OK"
+                }).then(() => {
+                    location.reload();
+                });
+            } else {
+                Swal.fire({
+                    title: "Error!",
+                    text: result.message,
+                    icon: "error",
+                    confirmButtonText: "Try Again"
+                });
+            }
+        });
+
+
+
+
+
+        // Show password change section
+        document.getElementById("changePassBtn").addEventListener("click", function () {
+    document.getElementById("changePasswordSection").style.display = "block";
+});
+
+    // Handle password change submission
+    document.getElementById("passwordForm").addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        const currentPassword = document.getElementById("currentPassword").value;
+        const newPassword = document.getElementById("newPassword").value;
+
+        const response = await fetch("/changePassword", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ currentPassword, newPassword }),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            Swal.fire({
+                title: "Success!",
+                text: "Password updated successfully.",
+                icon: "success",
+                confirmButtonText: "OK"
+            }).then(() => {
+                location.reload();
+            });
+        } else {
+            Swal.fire({
+                title: "Error!",
+                text: result.message,
+                icon: "error",
+                confirmButtonText: "Try Again"
+            });
+        }
+    });
+
+
+
+
+
+
+
+
+    function openModal() {
+    const modal = document.getElementById("emailUpdateModal");
+    modal.classList.add('active');
+}
+
+function closeModal() {
+    const modal = document.getElementById("emailUpdateModal");
+    modal.classList.remove('active');
+    // Reset form fields when closing
+    document.getElementById("newEmail").value = '';
+    document.getElementById("otpInput").value = '';
+    document.getElementById("otpSection").style.display = "none";
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById("emailUpdateModal");
+    if (event.target == modal) {
+        closeModal();
+    }
+}
+
+// Add event listener for ESC key
+document.addEventListener('keydown', function(event) {
+    if (event.key === "Escape") {
+        closeModal();
+    }
+});
+
+
+function sendOtp() {
+    const email = document.getElementById("newEmail").value;
+
+    if (!email) {
+        Swal.fire("Error", "Please enter an email", "error");
+        return;
+    }
+
+    fetch("/send-email-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire("Success", "OTP sent to your email", "success");
+            document.getElementById("otpSection").style.display = "block";
+        } else {
+            Swal.fire("Error", data.message, "error");
+        }
+    });
+}
+
+function verifyOtp() {
+    const email = document.getElementById("newEmail").value;
+    const otp = document.getElementById("otpInput").value;
+
+    fetch("/verify-email-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp }),
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire("Success", "Email updated successfully", "success").then(() => {
+                window.location.reload();
+            });
+        } else {
+            Swal.fire("Error", data.message, "error");
+        }
+    });
+}
+
+    </script>
+
+</body>
+
+</html>

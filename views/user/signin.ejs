@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Sign In - Emporium</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+      body {
+        font-family: 'Poppins', sans-serif;
+        display: flex;
+        height: 100vh;
+        align-items: center;
+        justify-content: center;
+        background-color: #f7f9fc;
+      }
+
+      .signin-container {
+        display: flex;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+
+      .left-section {
+        background: url('/img/backgr1.jpeg') no-repeat center center/cover;
+        width: 300px;
+        height: 400px;
+        position: relative;
+      }
+
+      .left-section .logo {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 20px;
+        border-radius: 10px;
+      }
+
+      .logo img {
+        width: 100px;
+        height: 100px;
+      }
+
+      .form-section {
+        padding: 40px;
+        width: 400px;
+        height: 400px;
+      }
+
+      .form-section h2 {
+        font-weight: 700;
+        font-size: 24px;
+        text-align: center;
+        margin-bottom: 20px;
+        color: #333;
+      }
+
+      .form-control {
+        height: 40px;
+        border-radius: 8px;
+        padding-left: 12px;
+      }
+
+      .btn-primary {
+        height: 40px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 14px;
+        background-color: #007bff;
+      }
+
+      .google-btn img {
+        width: 20px;
+        margin-right: 8px;
+        vertical-align: middle;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="signin-container">
+      <div class="left-section">
+        <div class="logo">
+          <img src="/img/logo.jpg" alt="Emporium The Shoe Store">
+        </div>
+      </div>
+      <div class="form-section">
+        <h2>Sign In to Emporium</h2>
+        <form action="/signin" method="POST">
+          <div class="mb-3">
+            <input type="text" name="email" class="form-control" placeholder="email" required>
+          </div>
+          <div class="mb-3">
+            <input type="password" name="password" class="form-control" placeholder="Password" required>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Sign In</button>
+        </form>
+        <div class="text-center mt-3">
+          <a href="/auth/google" class="btn btn-outline-secondary google-btn w-100">
+            <img src="https://img.icons8.com/color/48/000000/google-logo.png" alt="Google">
+          </a>
+
+          <a href="/signup">signup</a>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

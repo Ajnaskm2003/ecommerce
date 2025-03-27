@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zxx" class="no-js">
+
+<head>
+    <!-- Mobile Specific Meta -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Favicon-->
+    <link rel="shortcut icon" href="img/fav.png">
+    <!-- Author Meta -->
+    <meta name="author" content="CodePixar">
+    <!-- Meta Description -->
+    <meta name="description" content="">
+    <!-- Meta Keyword -->
+    <meta name="keywords" content="">
+
+    <!-- meta character set -->
+    <meta charset="UTF-8">
+    <!-- Site Title -->
+    <title>Karma Shop</title>
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/linearicons.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/themify-icons.css">
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <link rel="stylesheet" href="css/owl.carousel.css">
+    <link rel="stylesheet" href="css/nice-select.css">
+    <link rel="stylesheet" href="css/nouislider.min.css">
+    <link rel="stylesheet" href="css/ion.rangeSlider.css" />
+    <link rel="stylesheet" href="css/ion.rangeSlider.skinFlat.css" />
+    <link rel="stylesheet" href="css/magnific-popup.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+    <style>
+        .emplogo {
+            width: 120px;
+            height: auto;
+        }
+        .header_area {
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        .header_area.sticky-header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .main_menu .navbar {
+            padding: 15px 0;
+        }
+        .navbar-brand img {
+            transition: transform 0.3s ease;
+        }
+        .navbar-brand img:hover {
+            transform: scale(1.1);
+        }
+        .navbar-nav .nav-item {
+            margin: 0 15px;
+        }
+        .navbar-nav .nav-link {
+            font-size: 1.1em;
+            color: #333;
+            transition: color 0.3s ease;
+        }
+        .navbar-nav .nav-link:hover {
+            color: #e74c3c;
+        }
+        .navbar-nav .nav-item.active .nav-link {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .navbar-right .nav-item {
+            margin-left: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .navbar-right .cart span,
+        .navbar-right .wishlist span {
+            font-size: 1.5em;
+            color: #333;
+            transition: color 0.3s ease;
+        }
+        .navbar-right .cart span:hover,
+        .navbar-right .wishlist span:hover {
+            color: #e74c3c;
+        }
+        .navbar-right .search button {
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            color: #333;
+            transition: color 0.3s ease;
+        }
+        .navbar-right .search button:hover {
+            color: #e74c3c;
+        }
+        .search_input {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            z-index: 999;
+        }
+        .search_input.show {
+            display: block;
+        }
+        .search_input form {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .search_input input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        .search_input button {
+            background-color: #e74c3c;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .search_input button:hover {
+            background-color: #c0392b;
+        }
+        .search_input .lnr-cross {
+            font-size: 1.5em;
+            color: #333;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        .search_input .lnr-cross:hover {
+            color: #e74c3c;
+        }
+        .user-profile {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Start Header Area -->
+    <header class="header_area sticky-header">
+        <div class="main_menu">
+            <nav class="navbar navbar-expand-lg navbar-light main_box">
+                <div class="container">
+                    <!-- Brand and toggle get grouped for better mobile display -->
+                    <a class="navbar-brand logo_h" href="index.html"><img class="emplogo" src="/img/emplogo.png" alt=""></a>
+                    <!-- Collect the nav links, forms, and other content for toggling -->
+                    <div class="collapse navbar-collapse offset" id="navbarSupportedContent">
+                        <ul class="nav navbar-nav menu_nav ml-auto">
+                            <li class="nav-item active"><a class="nav-link" href="/">HOME</a></li>
+                            <li class="nav-item submenu dropdown">
+                                <a href="/shop" class="nav-link dropdown-toggle" role="button" aria-haspopup="true" aria-expanded="false">SHOP</a>
+                            </li>
+                            <li class="nav-item submenu dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" aria-haspopup="true" aria-expanded="false">ABOUT</a>
+                            </li>
+                            <li class="nav-item"><a class="nav-link" href="contact.html">CONTACT</a></li>
+                            <% if (typeof user !== 'undefined' && user) { %>
+                                <li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+                            <% } else { %>
+                                <li class="nav-item"><a class="nav-link" href="/signup">Sign Up</a></li>
+                            <% } %>
+                        </ul>
+                        <ul class="nav navbar-nav navbar-right">
+                            <li class="nav-item"><a href="/cart" class="cart"><span class="ti-bag"></span></a></li>
+                            <li class="nav-item"><a href="/wishlist" class="wishlist"><span class="ti-heart"></span></a></li> <!-- Wishlist Icon -->
+                            <li class="nav-item">
+                                <button class="search"><span class="lnr lnr-magnifier" id="search"></span></button>
+                            </li>
+                            <li class="nav-item">
+                                <a href="/userProfile"><img class="user-profile" src="/img/logo prf.jpg" alt="User Profile"></a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        </div>
+        <div class="search_input" id="search_input_box">
+            <div class="container">
+                <form class="d-flex justify-content-between">
+                    <input type="text" class="form-control" id="search_input" placeholder="Search Here">
+                    <button type="submit" class="btn">Search</button>
+                    <span class="lnr lnr-cross" id="close_search" title="Close Search"></span>
+                </form>
+            </div>
+        </div>
+    </header>
+    <!-- End Header Area -->
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#search').click(function() {
+                $('#search_input_box').toggleClass('show');
+            });
+            $('#close_search').click(function() {
+                $('#search_input_box').removeClass('show');
+            });
+        });
+    </script>
+</body>
+
+</html>

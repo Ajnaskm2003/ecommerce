@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Details</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 30px auto;
+            background: #fff;
+            padding: 30px;
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
+            border-radius: 15px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h2 {
+            font-size: 2em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .order-section {
+            margin-bottom: 25px;
+        }
+
+        .order-info {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .info-block {
+            width: 48%;
+            margin-bottom: 15px;
+        }
+
+        .info-block h4 {
+            color: #555;
+            font-weight: 500;
+        }
+
+        .order-items {
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+
+        .item {
+            display: flex;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .item img {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-right: 20px;
+        }
+
+        .item-details h5 {
+            font-size: 1.1em;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .item-details p {
+            margin: 3px 0;
+            color: #555;
+            font-size: 0.95em;
+        }
+
+        .status-tracker {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            position: relative;
+        }
+
+        .status-tracker::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: #ccc;
+            z-index: 0;
+        }
+
+        .status-step {
+            position: relative;
+            text-align: center;
+            flex: 1;
+            z-index: 1;
+        }
+
+        .status-step .circle {
+            width: 40px;
+            height: 40px;
+            background: #ccc;
+            border-radius: 50%;
+            margin: 0 auto 8px;
+            line-height: 40px;
+            color: #fff;
+            font-weight: 600;
+            transition: all 0.4s ease;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .status-step.active .circle {
+            background: #28a745;
+        }
+
+        .status-step p {
+            font-size: 0.9em;
+            color: #333;
+        }
+
+        .cancel-btn {
+            display: block;
+            width: 200px;
+            margin: 40px auto 0;
+            padding: 12px;
+            background: #dc3545;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: 0.3s;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+        }
+
+        .cancel-btn:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .info-block {
+                width: 100%;
+            }
+
+            .item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .item img {
+                margin-bottom: 10px;
+            }
+        }
+
+        /* Add these styles in your <style> section */
+        .action-buttons {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid #eee;
+        }
+
+        .action-button {
+            display: inline-block;
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            margin: 0 10px;
+        }
+
+        .cancel-button {
+            background: linear-gradient(45deg, #ff6b6b, #ff4757);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
+        }
+
+        .cancel-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 71, 87, 0.6);
+        }
+
+        .return-button {
+            background: linear-gradient(45deg, #ffd32a, #ffa502);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+        }
+
+        .return-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 193, 7, 0.6);
+        }
+
+        /* Replace the existing modal styles in your <style> section */
+        .return-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .return-modal.show {
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: linear-gradient(to bottom, #ffffff, #f8f9fa);
+            padding: 40px;
+            border-radius: 24px;
+            width: 550px;
+            max-width: 90%;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            transform: scale(0.95);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .return-modal.show .modal-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 36px;
+            height: 36px;
+            background: #f1f2f6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .close-modal:hover {
+            background: #ff4757;
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .modal-header h3 {
+            color: #2d3436;
+            margin: 0 0 12px 0;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .modal-header p {
+            color: #636e72;
+            margin: 0;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .return-form {
+            padding: 0 10px;
+        }
+
+        .return-form textarea {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 16px;
+            font-size: 1rem;
+            margin-bottom: 25px;
+            min-height: 150px;
+            resize: vertical;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+            color: #2d3436;
+            font-family: inherit;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .return-form textarea:focus {
+            outline: none;
+            border-color: #ffa502;
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(255, 165, 2, 0.1);
+        }
+
+        .return-form textarea::placeholder {
+            color: #a0a0a0;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 16px;
+            margin-top: 10px;
+        }
+
+        .modal-button {
+            flex: 1;
+            padding: 16px 24px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .submit-return {
+            background: linear-gradient(45deg, #ffa502, #ffd32a);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 165, 2, 0.3);
+        }
+
+        .submit-return:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 165, 2, 0.4);
+        }
+
+        .cancel-return {
+            background: #f1f2f6;
+            color: #2d3436;
+            border: 1px solid #e9ecef;
+        }
+
+        .cancel-return:hover {
+            background: #dfe4ea;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 576px) {
+            .modal-content {
+                padding: 25px;
+                margin: 15px;
+            }
+
+            .modal-header h3 {
+                font-size: 1.5rem;
+            }
+
+            .modal-buttons {
+                flex-direction: column;
+            }
+
+            .modal-button {
+                width: 100%;
+                padding: 14px;
+            }
+        }
+
+        /* Add these styles in your <style> section */
+        .return-status {
+            display: inline-block;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .return-status i {
+            margin-right: 8px;
+        }
+
+        .return-status.pending {
+            background: linear-gradient(45deg, #ffd32a, #ffa502);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+        }
+
+        .return-status.accepted {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: white;
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+        }
+
+        .return-status.returned {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .return-status.rejected {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+        }
+
+        .return-status:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h2>Order #<%= order.orderId %></h2>
+        </div>
+        <div class="order-section">
+            <div class="order-info">
+                <div class="info-block">
+                    <h4><strong>Order Date:</strong> <%= order.createdOn.toDateString() %></h4>
+                    <h4><strong>Payment:</strong> <%= order.paymentMethod %></h4>
+                    <h4><strong>Total Amount:</strong> ₹<%= order.totalAmount %></h4>
+                </div>
+                <div class="info-block">
+                    <h4><strong>Shipping Address:</strong></h4>
+                    <p><%= order.address.fullname %>, <%= order.address.street %>, <%= order.address.city %>, <%= order.address.state %> - <%= order.address.zipCode %></p>
+                    <p><strong>Phone:</strong> <%= order.address.phone %></p>
+                </div>
+            </div>
+        </div>
+        <div class="order-items">
+            <% order.orderItems.forEach(item => { %>
+                <div class="item">
+                    <img src="<%= item.product.productImage[0] %>" alt="Product">
+                    <div class="item-details">
+                        <h5><%= item.product.name %></h5>
+                        <p>Size: <%= item.size %></p>
+                        <p>Quantity: <%= item.quantity %></p>
+                        <p>Price: ₹<%= item.price %></p>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+        <!-- STATUS TRACKER -->
+        <div class="status-tracker">
+            <div class="status-step <%= order.status === 'Pending' || order.status !== 'Cancelled' ? 'active' : '' %>">
+                <div class="circle"><i class="fas fa-hourglass-start"></i></div>
+                <p>Pending</p>
+            </div>
+            <div class="status-step <%= order.status === 'Processing' || ['Shipped', 'Delivered'].includes(order.status) ? 'active' : '' %>">
+                <div class="circle"><i class="fas fa-cogs"></i></div>
+                <p>Processing</p>
+            </div>
+            <div class="status-step <%= ['Shipped', 'Delivered'].includes(order.status) ? 'active' : '' %>">
+                <div class="circle"><i class="fas fa-truck"></i></div>
+                <p>Shipped</p>
+            </div>
+            <div class="status-step <%= order.status === 'Delivered' ? 'active' : '' %>">
+                <div class="circle"><i class="fas fa-check-circle"></i></div>
+                <p>Delivered</p>
+            </div>
+        </div>
+        <!-- Update the action-buttons section -->
+        <div class="action-buttons">
+            <% if(order.status === 'Pending' || order.status === 'Processing') { %>
+                <a href="/cancel-order/<%= order._id %>" class="action-button cancel-button">
+                    <i class="fas fa-times-circle"></i> Cancel Order
+                </a>
+            <% } else if(order.status === 'Delivered') { %>
+                <% const returnItem = order.orderItems[0]; %>
+                <% if(!returnItem.returnRequest) { %>
+                    <button class="action-button return-button" onclick="openReturnModal('<%= order._id %>', '<%= returnItem._id %>')">
+                        <i class="fas fa-undo"></i> Return Order
+                    </button>
+                <% } else { %>
+                    <span class="return-status <%= returnItem.returnStatus?.toLowerCase() %>">
+                        <i class="fas <%= 
+                            returnItem.returnStatus === 'Pending' ? 'fa-clock' : 
+                            returnItem.returnStatus === 'Accepted' ? 'fa-check-circle' : 
+                            returnItem.returnStatus === 'Returned' ? 'fa-box-check' : 'fa-times-circle' 
+                        %>"></i>
+                        <%= returnItem.returnStatus === 'Pending' ? 'Return Requested' :
+                            returnItem.returnStatus === 'Accepted' ? 'Return Accepted' :
+                            returnItem.returnStatus === 'Returned' ? 'Order Returned' : 'Return Rejected'
+                        %>
+                    </span>
+                <% } %>
+            <% } %>
+        </div>
+        <!-- Update the return modal -->
+        <div id="returnModal" class="return-modal">
+            <div class="modal-content">
+                <span class="close-modal" onclick="closeReturnModal()">&times;</span>
+                <div class="modal-header">
+                    <h3>Request Return</h3>
+                    <p>Please tell us why you want to return this item</p>
+                </div>
+                <div class="return-form">
+                    <form action="/submit-return" method="POST" onsubmit="return submitReturn(event)">
+                        <!-- Moved inside the form -->
+                        <input type="hidden" name="orderId" id="orderId">
+                        <input type="hidden" name="itemId" id="itemId">
+                        <textarea 
+                            name="returnReason"
+                            id="returnReason"
+                            placeholder="Please provide detailed reason for return..."
+                            maxlength="500"
+                            required
+                        ></textarea>
+                        <div class="modal-buttons">
+                            <button type="button" class="modal-button cancel-return" onclick="closeReturnModal()">Cancel</button>
+                            <button type="submit" class="modal-button submit-return">Submit Return</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    <!-- Add SweetAlert2 CDN first -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Then add your scripts -->
+    <script>
+        function openReturnModal(orderId, itemId) {
+            const modal = document.getElementById('returnModal');
+            document.getElementById('orderId').value = orderId;     
+            document.getElementById('itemId').value = itemId;
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('show'), 10);
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeReturnModal() {
+            const modal = document.getElementById('returnModal');
+            modal.classList.remove('show');
+            setTimeout(() => {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                document.getElementById('returnReason').value = '';
+            }, 300);
+        }
+
+        async function submitReturn() {
+            try {
+                const orderId = document.getElementById('orderId').value;
+                const itemId = document.getElementById('itemId').value;
+                const reason = document.getElementById('returnReason').value.trim();
+
+                console.log(orderId)
+
+                // Validation check for empty reason
+                if (!reason) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Required Field',
+                        text: 'Please provide a reason for return',
+                        confirmButtonColor: '#ffa502',
+                        showConfirmButton: true,
+                        confirmButtonText: 'OK'
+                    });
+                    return;
+                }
+
+                // Show loading state
+                Swal.fire({
+                    title: 'Processing...',
+                    text: 'Submitting your return request',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                const response = await fetch('/user/return-request', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ orderId, itemId, reason })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    closeReturnModal();
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: 'Return request submitted successfully',
+                        confirmButtonColor: '#28a745',
+                        timer: 2000,
+                        timerProgressBar: true
+                    });
+                    window.location.reload();
+                } else {
+                    throw new Error(data.message || 'Failed to submit return request');
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: error.message || 'Something went wrong',
+                    confirmButtonColor: '#dc3545'
+                });
+            }
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('returnModal');
+            
+            // Close modal when clicking outside
+            window.onclick = function(event) {
+                if (event.target === modal) {
+                    closeReturnModal();
+                }
+            };
+
+            // Close modal on escape key
+            document.addEventListener('keydown', function(event) {
+                if (event.key === "Escape") {
+                    closeReturnModal();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

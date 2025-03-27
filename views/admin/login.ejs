@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: url('/img/bckgnd.png') no-repeat center center/cover;
+    }
+
+    .login-container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      width: 350px;
+    }
+
+    .login-container h2 {
+      color: #fff;
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
+
+    .flash-message {
+      margin-bottom: 15px;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    .flash-error {
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+    }
+
+    .input-group {
+      position: relative;
+      margin: 15px 0;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 12px 40px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      outline: none;
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+    }
+
+    .input-group input::placeholder {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .input-group i {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .login-container button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(45deg, #000000, #ffffff);
+      border: none;
+      color: white;
+      font-size: 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .login-container button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0);
+    }
+
+    .login-container button:active {
+      transform: scale(0.98);
+    }
+  </style>
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div class="login-container">
+    <h2>Admin Login</h2>
+
+    <!-- Flash Messages (If any) -->
+    <% if (errorMessage) { %>
+      <div class="flash-message flash-error"><%= errorMessage %></div>
+    <% } %>
+
+    <form action="/admin/login" method="POST">
+      <div class="input-group">
+        <i class="fas fa-user"></i>
+        <input type="email" name="email" placeholder="Email" required />
+      </div>
+      <div class="input-group">
+        <i class="fas fa-lock"></i>
+        <input type="password" name="password" placeholder="Password" required />
+      </div>
+      <button type="submit">Login</button>
+    </form>
+  </div>
+</body>
+</html>

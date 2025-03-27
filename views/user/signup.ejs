@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sign Up - Emporium</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      height: 100vh;
+      align-items: center;
+      justify-content: center;
+      background-color: #f7f9fc;
+    }
+
+    .signup-container {
+      display: flex;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .left-section {
+      background: url('/img/backgr1.jpeg') no-repeat center center/cover;
+      width: 300px;
+      height: 450px;
+      position: relative;
+    }
+
+    .left-section .logo {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+    .logo img {
+      width: 100px;
+      height: 100px;
+    }
+
+    .form-section {
+      padding: 40px;
+      width: 400px;
+      height: 450px;
+    }
+
+    .form-section h2 {
+      font-weight: 700;
+      font-size: 24px;
+      margin-bottom: 20px;
+      text-align: center;
+      color: #333;
+    }
+
+    .form-control {
+      height: 40px;
+      border-radius: 8px;
+      padding-left: 12px;
+      font-size: 14px;
+      transition: 0.3s;
+    }
+
+    .form-control:focus {
+      box-shadow: 0px 0px 6px rgba(0, 123, 255, 0.2);
+      border-color: #007bff;
+    }
+
+    .btn-primary {
+      height: 40px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      background-color: #007bff;
+      border-color: #007bff;
+    }
+
+    .btn-primary:hover {
+      background-color: #0056b3;
+      border-color: #0056b3;
+    }
+
+    .google-btn {
+      height: 40px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      transition: 0.3s;
+    }
+
+    .google-btn img {
+      width: 18px;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    .google-btn:hover {
+      background-color: #f0f0f0;
+    }
+
+    .text-center p a {
+      font-weight: 500;
+      color: #007bff;
+      text-decoration: none;
+      transition: 0.3s;
+    }
+
+    .text-center p a:hover {
+      text-decoration: underline;
+    }
+
+    .error-message {
+      color: #ff0000; /* Red color for error messages */
+      font-size: 12px;
+      margin-top: 5px;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="signup-container">
+    <div class="left-section">
+      <div class="logo">
+        <img src="/img/logo.jpg" alt="Emporium The Shoe Store">
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h2>Join Emporium</h2>
+      <form id="registerForm" action="/signup" method="POST">
+        <div class="row mb-2">
+          <div class="col">
+            <input type="text" name="name" class="form-control" id="userName" placeholder="Enter Name" >
+            <span id="userNameError" class="error-message"></span>
+          </div>
+        </div>
+        <div class="mb-2">
+          <input type="email" name="email" class="form-control" id="userEmail" placeholder="Email Address" >
+          <span id="userEmailError" class="error-message"></span>
+        </div>
+        <div class="row mb-2">
+          <div class="col">
+            <input type="password" name="password" class="form-control" id="userPassword" placeholder="Password" >
+            <span id="userPasswordError" class="error-message"></span>
+          </div>
+          <div class="col">
+            <input type="password" name="confirmPassword" class="form-control" id="confirmUserPassword" placeholder="Confirm Password" >
+            <span id="confirmUserPasswordError" class="error-message"></span>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Create Account</button>
+      </form>
+
+      <div class="text-center mt-2">
+        <a href="/auth/google" class="btn btn-outline-secondary google-btn w-100">
+          <img src="https://img.icons8.com/color/48/000000/google-logo.png" alt="Google"> Sign Up with Google
+        </a>
+      </div>
+
+      <div class="text-center mt-3">
+        <p>Already registered? <a href="/signin">Log in here</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const form = document.getElementById("registerForm");
+
+      form.addEventListener("submit", function(event) {
+        // Clear previous error messages
+        document.getElementById("userNameError").textContent = "";
+        document.getElementById("userEmailError").textContent = "";
+        document.getElementById("userPasswordError").textContent = "";
+        document.getElementById("confirmUserPasswordError").textContent = "";
+
+        let hasErrors = false;
+        let name = document.getElementById("userName").value.trim();
+        let email = document.getElementById("userEmail").value.trim();
+        let password = document.getElementById("userPassword").value;
+        let confirmPassword = document.getElementById("confirmUserPassword").value;
+
+        if (!name) {
+          document.getElementById("userNameError").textContent = "Name is required.";
+          hasErrors = true;
+        }
+        if (!email) {
+          document.getElementById("userEmailError").textContent = "Email is required.";
+          hasErrors = true;
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          document.getElementById("userEmailError").textContent = "Invalid email format.";
+          hasErrors = true;
+        }
+        if (!password) {
+          document.getElementById("userPasswordError").textContent = "Password is required.";
+          hasErrors = true;
+        } else if (password.length < 6) {
+          document.getElementById("userPasswordError").textContent = "Password must be at least 6 characters long.";
+          hasErrors = true;
+        }
+        if (password !== confirmPassword) {
+          document.getElementById("confirmUserPasswordError").textContent = "Passwords do not match.";
+          hasErrors = true;
+        }
+
+        if (hasErrors) {
+          event.preventDefault();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Emporium</title>
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" type="image/x-icon" href="#">
+    <link href="/admin-assets/css/main.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10.16.6/dist/sweetalert2.min.css">
+    <script src="https://kit.fontawesome.com/16d4885483.js" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #ffffff;
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+    height: 50px; /* Adjust this value to your desired height */
+    background: linear-gradient(135deg, #4b6cb7, #182848);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-bottom-left-radius: 15px;
+    border-bottom-right-radius: 15px;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center; /* Center items vertically */
+}
+
+        .navbar-aside {
+            background-color: #ffffff;
+            color: #333333;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            border-top-right-radius: 15px;
+            border-bottom-right-radius: 15px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 250px;
+            z-index: 1001;
+            transition: transform 0.3s ease;
+        }
+        .navbar-aside.minimized {
+            transform: translateX(-200px);
+        }
+        .menu-item a.menu-link {
+            color: #333333;
+            padding: 15px 20px;
+            display: block;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .menu-item a.menu-link:hover,
+        .menu-item a.menu-link.active {
+            background-color: #f0f0f0;
+            color: #4b6cb7;
+            border-left: 4px solid #4b6cb7;
+        }
+        .dropdown-menu {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .dropdown-item:hover {
+            background-color: #f0f0f0;
+            color: #4b6cb7;
+        }
+        .main-header {
+    padding: 10px; /* Reduce padding */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+        .aside-top img {
+            width: 150px;
+            transition: transform 0.3s ease;
+        }
+        .aside-top img:hover {
+            transform: scale(1.1);
+        }
+        .btn-aside-minimize {
+            background: none;
+            border: none;
+            color: #333333;
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+        .btn-aside-minimize:hover {
+            color: #4b6cb7;
+        }
+        .btn-mobile {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+        .btn-mobile:hover {
+            color: #e74c3c;
+        }
+        .nav .dropdown-toggle img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+        }
+        .nav .dropdown-menu {
+            min-width: 200px;
+        }
+        .main-wrap {
+            margin-left: 250px;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+        .main-wrap.minimized {
+            margin-left: 50px;
+        }
+        .logout-button {
+            background-color: #ffffff;
+            border: none;
+            color: #4b6cb7;
+            padding: 15px 20px;
+            display: block;
+            text-align: left;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .logout-button:hover {
+            background-color: #f0f0f0;
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="screen-overlay"></div>
+    <aside class="navbar-aside" id="offcanvas_aside">
+        <div class="aside-top">
+            <a href="#" class="brand-wrap">
+                <img src="/img/emplogo.png" class="logo" alt="Emporium Dashboard">
+            </a>
+            <div>
+                <button class="btn btn-icon btn-aside-minimize"> <i class="text-muted material-icons md-menu_open"></i> </button>
+            </div>
+        </div>
+        <nav>
+            <ul class="menu-aside">
+                <li class="menu-item"><a class="menu-link" href="/admin"><i class="icon material-icons md-home"></i>Dashboard</a></li>
+                <li class="menu-item"><a class="menu-link" href="/admin/customers"><i class="icon material-icons md-person"></i>Customers</a></li>
+                <li class="menu-item"><a class="menu-link" href="/admin/category"><i class="icon material-icons md-category"></i>Category</a></li>
+                <li class="menu-item"><a class="menu-link" href="/admin/returnOrders"><i class="icon material-icons md-stars"></i>Returns and Refunds</a></li>
+                <li class="menu-item"><a class="menu-link" href="/admin/products"><i class="icon material-icons md-shopping_bag"></i>Products</a></li>
+                <li class="menu-item"><a class="menu-link" href="/admin/coupon"><i class="icon material-icons md-class"></i>Coupon</a></li>
+                <li class="menu-item"><a class="menu-link" href="/admin/banner"><i class="icon material-icons md-photo_size_select_actual"></i>Banner</a></li>
+                <li class="menu-item"><a class="menu-link" href="/admin/orders"><i class="icon material-icons md-shopping_cart"></i>Orders</a></li>
+                <li class="menu-item"><button class="logout-button" onclick="window.location.href='/admin/logout'"><i class="icon material-icons md-exit_to_app"></i>Logout</button></li>
+            </ul>
+        </nav>
+    </aside>
+    <main class="main-wrap">
+        <header class="main-header navbar">
+            <div class="col-search"></div>
+            <div class="col-nav">
+                <button class="btn btn-icon btn-mobile me-auto" data-trigger="#offcanvas_aside"><i class="material-icons md-apps"></i></button>
+                <ul class="nav">
+                    <li class="dropdown nav-item">
+                        <a class="dropdown-toggle" data-bs-toggle="dropdown" href="#" id="dropdownAccount" aria-expanded="false"> <img class="img-xs rounded-circle" src="/admin-assets/imgs/people/avatar2.jpg" alt="User"></a>
+                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownAccount">
+                            <div class="dropdown-divider"></div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </header>
+
+    <script>
+        $(document).ready(function() {
+            $('.btn-aside-minimize').click(function() {
+                $('.navbar-aside').toggleClass('minimized');
+                $('.main-wrap').toggleClass('minimized');
+            });
+        });
+    </script>
+</body>
+</html>

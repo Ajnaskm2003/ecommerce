@@ -1,0 +1,160 @@
+<style>
+
+
+.cart-container {
+    width: 80%;
+    margin: auto;
+    padding: 20px;
+    text-align: center;
+}
+
+.cart-items {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.cart-item {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.cart-item-image {
+    width: 100px;
+    height: auto;
+    margin-right: 20px;
+}
+
+.cart-item-details {
+    flex: 1;
+    text-align: left;
+}
+
+.qty-btn {
+    padding: 5px 10px;
+    margin: 0 5px;
+    border: 1px solid #000;
+    cursor: pointer;
+}
+
+.qty-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.remove-btn {
+    background: red;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.cart-summary {
+    margin-top: 20px;
+    font-size: 1.2em;
+}
+
+.checkout-btn {
+    background: green;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    font-size: 1em;
+    cursor: pointer;
+}
+
+.empty-cart-message {
+    font-size: 1.2em;
+    color: #888;
+}
+
+</style>
+
+
+<div class="cart-container">
+    <h2>My Cart</h2>
+
+    <% if (cart.items.length > 0) { %>
+        <div class="cart-items">
+            <% cart.items.forEach(item => { %>
+                <div class="cart-item">
+                    <img src="<%= item.productId.productImage[0] %>" alt="Product Image" class="cart-item-image">
+                    <div class="cart-item-details">
+                        <h3><%= item.productId.productName %></h3>
+                        <p>Size: <%= item.size %></p>
+                        <p>Price: ₹<%= item.price %></p>
+                        <p>
+                            Quantity:
+                            <button onclick="updateQuantity('<%= item._id %>', 'decrement')" class="qty-btn">-</button>
+                            <span class="quantity"><%= item.quantity %></span>
+                            <button 
+                                onclick="updateQuantity('<%= item._id %>', 'increment')" 
+                                class="qty-btn" 
+                                <% if (item.quantity >= item.productId.sizes[item.size]) { %> disabled <% } %>
+                            >+</button>
+                        </p>
+                        <button onclick="removeFromCart('<%= item._id %>')" class="remove-btn">Remove</button>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+        <div class="cart-summary">
+            <h3>Total: ₹<%= cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0) %></h3>
+            <a href="/checkout"><button class="checkout-btn">Proceed to Checkout</button></a>
+        </div>
+    <% } else { %>
+        <p class="empty-cart-message">Your cart is empty</p>
+    <% } %>
+</div>
+
+<script>
+    function updateQuantity(itemId, action) {
+        fetch(`/cart/${action}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ cartItemId: itemId })
+        }).then(response => response.json())
+          .then(data => location.reload());
+    }
+
+    function removeFromCart(itemId) {
+        fetch(`/cart/remove`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ cartItemId: itemId })
+        }).then(response => response.json())
+          .then(data => location.reload());
+    }
+</script>
+
+<%- include("../../views/partials/user/footer") %>
+
+
+<script>
+
+function updateQuantity(itemId, action) {
+    fetch(`/cart/${action}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cartItemId: itemId })
+    }).then(response => response.json())
+      .then(data => location.reload());
+}
+
+function removeFromCart(itemId) {
+    fetch(`/cart/remove`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cartItemId: itemId })
+    }).then(response => response.json())
+      .then(data => location.reload());
+}
+
+</script>
+
+
