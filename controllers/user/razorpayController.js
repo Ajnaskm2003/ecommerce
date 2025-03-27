@@ -2,6 +2,7 @@ const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const Order = require('../../models/orderSchema');
 const Cart = require('../../models/cartSchema');
+const Address = require('../../models/addressSchema');
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET
@@ -13,11 +14,35 @@ const createOrder = async (req, res) => {
         const userId = req.session.user.id;
         console.log("userId:", userId);
 
+        // Fix: Query address correctly using userId and address._id
+        const addressDoc = await Address.findOne({ 
+            userId: userId,
+            'address._id': addressId 
+        });
+
+        if (!addressDoc) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Address not found" 
+            });
+        }
+
+        // Get the specific address from the address array
+        const selectedAddress = addressDoc.address.find(
+            addr => addr._id.toString() === addressId
+        );
+
+        if (!selectedAddress) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Selected address not found" 
+            });
+        }
+
         // ✅ Fetch Cart with Fully Populated Product Data
         const cart = await Cart.findOne({ userId }).populate({
             path: "items.productId",
-          //  model: "Product",  Ensure correct model reference
-            select: "name price images stock" // Select required fields
+            select: "name price images stock"
         });
 
         if (!cart || cart.items.length === 0) {
@@ -28,14 +53,14 @@ const createOrder = async (req, res) => {
 
         // ✅ Razorpay Order Options
         const options = {
-            amount: totalAmount * 100, // Convert to paise
+            amount: totalAmount * 100,
             currency: "INR",
             receipt: "order_rcptid_" + Math.random().toString(36).substr(2, 9)
         };
 
         const razorpayOrder = await razorpay.orders.create(options);
 
-        // ✅ Create Order in Database
+        // ✅ Create Order in Database with correct address
         const order = new Order({
             userId,
             orderItems: cart.items.map(item => ({
@@ -50,7 +75,14 @@ const createOrder = async (req, res) => {
             paymentMethod: "Online Payment",
             razorpayOrderId: razorpayOrder.id,
             paymentStatus: "Pending",
-            address: addressId,
+            address: {
+                fullname: selectedAddress.fullname,
+                street: selectedAddress.street,
+                city: selectedAddress.city,
+                state: selectedAddress.state,
+                zipCode: selectedAddress.zipCode,
+                phone: selectedAddress.phone
+            },
             status: "Pending"
         });
 
@@ -71,9 +103,6 @@ const createOrder = async (req, res) => {
         res.status(500).json({ success: false, message: "Order creation failed" });
     }
 };
-
-
-
 
 const verifyPayment = async (req, res) => {
     try {

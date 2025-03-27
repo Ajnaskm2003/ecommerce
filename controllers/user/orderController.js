@@ -7,6 +7,8 @@ const getUserOrders = async (req, res) => {
             return res.redirect('/signin');
         }
 
+        
+
         // Fetch orders with populated product details
         const orders = await Order.find({ userId })
             .populate({
@@ -35,7 +37,6 @@ const getUserOrders = async (req, res) => {
             };
         });
 
-        console.log('Formatted Orders:', formattedOrders); // Debug log
 
         res.render('myorders', { 
             orders: formattedOrders,
