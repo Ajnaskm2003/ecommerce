@@ -16,7 +16,7 @@ const createOrder = async (req, res) => {
         // ✅ Fetch Cart with Fully Populated Product Data
         const cart = await Cart.findOne({ userId }).populate({
             path: "items.productId",
-            model: "Product", // Ensure correct model reference
+          //  model: "Product",  Ensure correct model reference
             select: "name price images stock" // Select required fields
         });
 
@@ -38,11 +38,12 @@ const createOrder = async (req, res) => {
         // ✅ Create Order in Database
         const order = new Order({
             userId,
-            items: cart.items.map(item => ({
-                product: item.productId._id, // Ensure ID is correctly referenced
+            orderItems: cart.items.map(item => ({
+                product: item.productId._id,
                 size: item.size,
                 quantity: item.quantity,
-                price: item.price
+                price: item.price,
+                status: 'Pending'
             })),
             totalPrice: totalAmount,
             totalAmount,

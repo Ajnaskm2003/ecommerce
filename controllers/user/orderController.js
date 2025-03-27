@@ -11,45 +11,44 @@ const getUserOrders = async (req, res) => {
         const orders = await Order.find({ userId })
             .populate({
                 path: 'orderItems.product',
-                select: 'productName productImage price'
+                select: 'productName productImage price' 
             })
             .sort({ createdOn: -1 });
 
         // Format orders for rendering
         const formattedOrders = orders.map(order => {
-            // Ensure orderItems exists and has items
-            const orderItems = order.orderItems || [];
-            const firstItem = orderItems[0] || {};
-            const product = firstItem.product || {};
-
             return {
                 _id: order._id,
                 orderId: order.orderId,
                 createdOn: order.createdOn,
                 totalAmount: order.totalAmount,
                 status: order.status,
-                items: orderItems.map(item => ({
-                    name: item.product ? item.product.productName : 'Product Unavailable',
-                    image: item.product && item.product.productImage ? 
-                           item.product.productImage[0] : '/images/default-product.jpg',
+                paymentStatus: order.paymentStatus,
+                items: order.orderItems.map(item => ({
+                    name: item.product?.productName || 'Product Unavailable',
+                    image: item.product?.productImage?.[0] || '/images/default-product.jpg',
                     quantity: item.quantity,
                     price: item.price,
-                    size: item.size || 'N/A'
+                    size: item.size,
+                    status: item.status
                 }))
             };
         });
 
-        // Render the page with formatted orders
+        console.log('Formatted Orders:', formattedOrders); // Debug log
+
         res.render('myorders', { 
             orders: formattedOrders,
-            error: false
+            error: false,
+            user: req.session.user
         });
 
     } catch (error) {
         console.error("Error fetching user orders:", error);
         res.render('myorders', { 
             orders: [],
-            error: true
+            error: true,
+            user: req.session.user
         });
     }
 };
