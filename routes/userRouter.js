@@ -12,10 +12,17 @@ const checkoutController = require('../controllers/user/checkoutController');
 const orderController = require("../controllers/user/orderController");
 const walletController = require("../controllers/user/walletController");
 const razorpayController = require("../controllers/user/razorpayController");
+const couponController = require("../controllers/user/couponController");
 const upload = require('../middlewares/multer');
 const multer = require('multer');
 
-
+// Add this middleware at the top
+const cacheControl = (req, res, next) => {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    next();
+};
 
 
 
@@ -24,8 +31,8 @@ router.get("/signup",Auth.isLogin,userController.loadSignup);
 router.post("/signup", userController.signup);
 router.get('/verifyotp',Auth.isLogin,userController.loadOtpPage);
 router.post('/verifyotp',userController.verifyOtp);
-router.get("/signin",Auth.isLogin, userController.loadSignin);
-router.post('/signin', userController.signin);
+router.get("/signin", cacheControl,Auth.isLogin, userController.loadSignin);
+router.post('/signin', cacheControl, userController.signin);
 router.get('/',userController.loadHomepage);
 
 router.get('/auth/google',passport.authenticate('google',{scope:['profile','email']}));
@@ -51,7 +58,11 @@ router.get(
   
 
 router.post('/resend-otp',userController.resendOtp)
-router.get('/logout',userController.logout);
+router.get('/logout', cacheControl, (req, res) => {
+    req.session.destroy();
+    sessionStorage.removeItem('isLoggedIn');
+    res.redirect('/signin');
+});
 
 
 
@@ -85,10 +96,10 @@ router.post("/cart/add", cartController.addToCart);
 router.post("/cart/increment", cartController.incrementCartItem);
 router.post("/cart/decrement", cartController.decrementCartItem);
 router.post("/cart/remove", cartController.decrementOrRemoveCartItem);
-router.get("/cart",Auth.checkSession, cartController.getCart);
+router.get("/cart", Auth.checkSession, Auth.checkOrderPlaced, Auth.checkCartAccess, cartController.getCart);
 
 
-router.get("/checkout", checkoutController.getCheckoutPage);
+router.get("/checkout", Auth.checkSession, Auth.checkOrderPlaced, Auth.checkCartAccess, checkoutController.getCheckoutPage);
 router.post("/order/place", checkoutController.placeOrder);
 router.post("/address/add",checkoutController.addAddress);
 router.post("/place",checkoutController.placedOrder);
@@ -105,6 +116,7 @@ router.get('/wallet',Auth.checkSession,walletController.getWalletPage);
 router.post('/create-order',razorpayController.createOrder);
 router.post('/verify-payment',razorpayController.verifyPayment);
 
+router.post('/apply-coupon', couponController.applyCoupon);
 
 
 

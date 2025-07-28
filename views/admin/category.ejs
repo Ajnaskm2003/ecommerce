@@ -2,168 +2,359 @@
 <head>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css"/>
   <style>
-    .col-md-3 {
-      padding: 20px;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      margin: 10px;
+    :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3f37c9;
+        --success-color: #4caf50;
+        --danger-color: #f72585;
+        --warning-color: #ff9e00;
+        --info-color: #4cc9f0;
+        --light-bg: #f8f9fa;
+        --card-shadow: 0 8px 24px rgba(149, 157, 165, 0.1);
+        --transition: all 0.3s ease;
     }
 
-    .form-label {
-      margin-bottom: 8px;
+    .content-main {
+        padding: 2rem;
+        background: var(--light-bg);
+        min-height: 100vh;
     }
 
-    .form-control {
-      width: 100%;
-      padding: 8px;
-      margin-bottom: 10px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      box-sizing: border-box;
+    .content-header {
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
 
-    .d-grid {
-      margin-top: 20px;
+    .content-title {
+        color: #2d3748;
+        font-size: 1.75rem;
+        font-weight: 700;
+        position: relative;
+    }
+
+    .content-title::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 0;
+        width: 60px;
+        height: 4px;
+        background: var(--primary-color);
+        border-radius: 2px;
+    }
+
+    .search-container {
+        margin-bottom: 2rem;
+    }
+
+    .search-input {
+        max-width: 500px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    .search-input input {
+        width: 100%;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        border: 2px solid #e2e8f0;
+        background: white;
+        font-size: 1rem;
+        transition: var(--transition);
+    }
+
+    .search-input input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.1);
+        outline: none;
+    }
+
+    .card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        border: none;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .table {
+        margin: 0;
+    }
+
+    .table thead th {
+        background: #f8fafc;
+        padding: 1rem;
+        font-weight: 600;
+        color: #475569;
+        border: none;
+        white-space: nowrap;
+    }
+
+    .table tbody tr {
+        transition: var(--transition);
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .table tbody tr:hover {
+        background: #f8fafc;
+        transform: translateY(-2px);
+    }
+
+    .table td {
+        padding: 1rem;
+        vertical-align: middle;
+        color: #334155;
+    }
+
+    .badge {
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        border-radius: 50px;
+        font-size: 0.875rem;
+    }
+
+    .badge.alert-success {
+        background: #ecfdf5;
+        color: #047857;
+    }
+
+    .badge.alert-danger {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+
+    .btn {
+        padding: 0.625rem 1.25rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: none;
     }
 
     .btn-primary {
-      background-color: #007bff;
-      color: #fff;
-      border: 1px solid #007bff;
-      border-radius: 5px;
-      padding: 10px 20px;
-      cursor: pointer;
+        background: var(--primary-color);
+        color: white;
     }
 
     .btn-primary:hover {
-      background-color: #0056b3;
-      border-color: #0056b3;
+        background: var(--secondary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(67, 97, 238, 0.15);
+    }
+
+    .btn-danger {
+        background: var(--danger-color);
+        color: white;
+    }
+
+    .btn-success {
+        background: var(--success-color);
+        color: white;
+    }
+
+    .add-category-form {
+        background: white;
+        padding: 2rem;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
+        margin-top: 2rem;
+    }
+
+    .add-category-form h3 {
+        color: #2d3748;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        color: #4a5568;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        border: 2px solid #e2e8f0;
+        transition: var(--transition);
+        font-size: 0.95rem;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.1);
     }
 
     .pagination-container {
-      text-align: center;
+        margin-top: 2rem;
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
     }
 
-    .pagination {
-      display: inline-block;
-    }
-
-    .pagination a,
-    .pagination .current-page {
-      display: inline-block;
-      padding: 5px 10px;
-      margin: 0 2px;
-      border: 1px solid #ddd;
-      text-decoration: none;
-      color: #333;
+    .pagination a, .pagination .current-page {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        background: white;
+        color: #475569;
+        text-decoration: none;
+        transition: var(--transition);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        min-width: 40px;
+        text-align: center;
     }
 
     .pagination a:hover {
-      background-color: #f5f5f5;
+        background: var(--primary-color);
+        color: white;
+        transform: translateY(-2px);
     }
 
-    .error-message {
-      color: red;
+    .pagination .current-page {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .modal-content {
+        border-radius: 16px;
+        border: none;
+        box-shadow: var(--card-shadow);
+    }
+
+    .modal-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    .modal-footer {
+        padding: 1.5rem;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    @media (max-width: 768px) {
+        .content-main {
+            padding: 1rem;
+        }
+
+        .table {
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+        }
     }
   </style>
 </head>
 <body>
   <section class="content-main">
     <div class="content-header">
-      <div>
-        <h2 class="content-title card-title">Category</h2>
+      <h2 class="content-title">Categories Management</h2>
+    </div>
+
+    <div class="search-container">
+      <form action="/admin/category/" method="get" class="search-input">
+        <input type="text" class="form-control" placeholder="Search categories..." name="search"/>
+      </form>
+    </div>
+
+    <div class="card categories-table">
+      <div class="card-body">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Description</th>
+              <th>Offer Price</th>
+              <th>Offer</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <%cat.reverse().forEach((category,index)=>{%>
+            <tr>
+              <td class="text-start"><%=category.name%></td>
+              <td class="text-start"><%=category.description%></td>
+              <td>
+                <% if (category.categoryOffer) { %>
+                  <%= category.categoryOffer %>%
+                <% } else { %>
+                  0%
+                <% } %>
+              </td>
+              <td class="text-start">
+                <button class="btn btn-primary btn-sm" 
+                          onclick="openOfferModal('<%= category._id %>')">
+                    Add Offer
+                  </button>
+                  <% if (category.categoryOffer) { %>
+                    <button class="btn btn-danger btn-sm mt-2" 
+                            onclick="removeCategoryOffer('<%= category._id %>')">
+                      Remove Offer
+                    </button>
+                  <% } %>
+              </td>
+              <td class="text-start">
+                <%if(category.isListed){%>
+                <span class="badge rounded-pill alert-success" style="width: 60px">Listed</span>
+                <%}else{%>
+                <span class="badge rounded-pill alert-danger" style="width: 60px">Unlisted</span>
+                <%}%>
+              </td>
+              <td class="text-start">
+                <%if(category.isListed){%>
+                <button class="btn btn-danger" style="width: 70px">
+                  <a href="/admin/listCategory?id=<%=category._id%>" class="text-white">Unlist</a>
+                </button>
+                <%}else{%>
+                <button class="btn btn-success" style="width: 70px">
+                  <a href="/admin/unlistCategory?id=<%=category._id%>" class="text-white">List</a>
+                </button>
+                <%}%>
+                <a href="/admin/editCategory?id=<%=category._id%>" class="btn btn-info text-white">Edit</a>
+              </td>
+            </tr>
+            <%})%>
+          </tbody>
+        </table>
       </div>
     </div>
-    <header class="card-header text-center mb-20">
-      <form action="/admin/category/" method="get" class="d-inline">
-        <div class="input-group input-group-sm border border-1 border-grey rounded-pill" style="width: 500px; margin-left: 230px">
-          <input type="text" class="form-control border-0 rounded-pill mt-3" placeholder="Search categories" name="search"/>
-          <button class="btn" type="submit">Search</button>
+
+    <div class="add-category-form">
+      <h3 class="mb-4">Add New Category</h3>
+      <form method="post" action="/admin/addCategory" onsubmit="return handleFormSubmit(event)">
+        <div class="row">
+          <div class="col-md-6 mb-4">
+            <label class="form-label">Category Name</label>
+            <input type="text" name="name" placeholder="Enter category name" class="form-control" id="product_name" required/>
+            <div id="name-error" class="error-message"></div>
+          </div>
+          <div class="col-md-6 mb-4">
+            <label class="form-label">Description</label>
+            <textarea placeholder="Enter category description" name="description" class="form-control" id="descriptionId" required></textarea>
+            <div id="description-error" class="error-message"></div>
+          </div>
+        </div>
+        <div class="text-end">
+          <button class="btn btn-primary" type="submit">
+            Add Category
+          </button>
         </div>
       </form>
-    </header>
-    <div class="card">
-      <div class="card-body">
-        <div class="row">
-          <div class="col-md-3">
-            <form method="post" action="/admin/addCategory" onsubmit="return handleFormSubmit(event)">
-              <div class="mb-4">
-                <label for="product_name" class="form-label">Name</label>
-                <input type="text" name="name" placeholder="Type here" class="form-control" id="product_name" required/>
-                <div id="name-error" class="error-message"></div>
-              </div>
-              <div class="mb-4">
-                <label class="form-label">Description</label>
-                <textarea placeholder="Type here" name="description" class="form-control" id="descriptionId" required></textarea>
-                <div id="description-error" class="error-message"></div>
-              </div>
-              <div class="d-grid">
-                <button class="btn btn-primary" type="submit">
-                  Create category
-                </button>
-              </div>
-            </form>
-          </div>
-          <div class="col-md-8 ml-10">
-            <div class="table-responsive">
-              <table class="table table-hover">
-                <thead>
-                  <tr>
-                    <th class="text-center"></th>
-                    <th>Name</th>
-                    <th>Description</th>
-                    <th>Offer Price</th>
-                    <th>Offer</th>
-                    <th>Status</th>
-                    <th>List/Unlist</th>
-                    <th class="text-start">Edit</th>
-                  </tr>
-                </thead>
-                <tbody>
-                    <%cat.reverse().forEach((category,index)=>{%>
-                  <tr>
-                    <td></td>
-                    <td class="text-start"><%=category.name%></td>
-                    <td class="text-start"><%=category.description%></td>
-                    <td>
-                    </td>
-                    <td class="text-start">
-                      <button class="btn btn-info" style="width: 100px">
-                        <a href="#" class="text-white">Add Offer</a>
-                      </button>
-                      <button class="btn btn-info"style="width: 100px">
-                        <a href="#" class="text-white">Remove</a>
-                      </button>
-                    </td>
-                    <td class="text-start">
-                      <%if(category.isListed){%>
-                      <span class="badge rounded-pill alert-success" style="width: 60px">Listed</span>
-                      <%}else{%>
-                      <span class="badge rounded-pill alert-danger" style="width: 60px">Unlisted</span>
-                      <%}%>
-                    </td>
-                    <td class="text-start">
-                      <%if(category.isListed){%>
-                      <button class="btn btn-danger" style="width: 70px">
-                        <a href="/admin/listCategory?id=<%=category._id%>" class="text-white">Unlist</a>
-                      </button>
-                      <%}else{%>
-                      <button class="btn btn-success" style="width: 70px">
-                        <a href="/admin/unlistCategory?id=<%=category._id%>" class="text-white">List</a>
-                      </button>
-                      <%}%>
-                    </td>
-                    <td class="text-start">
-                      <a href="/admin/editCategory?id=<%=category._id%>" class="btn btn-info text-white">Edit</a>
-                    </td>
-                  </tr>
-                  <%})%>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
     <div class="pagination-container">
@@ -290,10 +481,180 @@
         })
     }
 
+    async function addCategoryOffer(event, categoryId) {
+      event.preventDefault();
+      const percentage = event.target.percentage.value;
+
+      try {
+        const response = await fetch('/admin/addCategoryOffer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ categoryId, percentage }),
+        });
+
+        const data = await response.json();
+        if (data.status) {
+          alert('Offer added successfully');
+          location.reload();
+        } else {
+          alert(data.message);
+        }
+      } catch (error) {
+        console.error('Error adding offer:', error);
+        alert('Failed to add offer');
+      }
+    }
 
 
+    async function removeCategoryOffer(categoryId) {
+    const result = await Swal.fire({
+        title: 'Remove Offer?',
+        text: 'Are you sure you want to remove this offer?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, remove it!'
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+        const response = await fetch('/admin/removeCategoryOffer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ categoryId }),
+        });
+
+        const data = await response.json();
+        
+        if (data.status) {
+            await Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: 'Offer removed successfully',
+                timer: 1500,
+                showConfirmButton: false
+            });
+            location.reload();
+        } else {
+            throw new Error(data.message || 'Failed to remove offer');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message || 'Failed to remove offer',
+            confirmButtonColor: '#3085d6'
+        });
+    }
+}
+
+function openOfferModal(categoryId) {
+    document.getElementById('categoryId').value = categoryId;
+    document.getElementById('offerPercentage').value = '';
+    const modal = new bootstrap.Modal(document.getElementById('addOfferModal'));
+    modal.show();
+}
+
+
+async function submitOffer() {
+    try {
+        const categoryId = document.getElementById('categoryId').value;
+        const percentage = parseInt(document.getElementById('offerPercentage').value);
+
+        // Validate percentage
+        if (isNaN(percentage) || percentage < 0 || percentage > 90) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid Percentage',
+                text: 'Please enter a valid percentage between 0 and 90',
+                confirmButtonColor: '#3085d6'
+            });
+            return;
+        }
+
+        // Show loading
+        Swal.fire({
+            title: 'Processing...',
+            text: 'Adding category offer',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        const response = await fetch('/admin/addCategoryOffer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                categoryId, 
+                percentage 
+            }),
+        });
+
+        const data = await response.json();
+
+        // Close the modal
+        bootstrap.Modal.getInstance(document.getElementById('addOfferModal')).hide();
+
+        if (data.status) {
+            await Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: 'Offer added successfully',
+                timer: 1500,
+                showConfirmButton: false
+            });
+            location.reload();
+        } else {
+            throw new Error(data.message || 'Failed to add offer');
+        }
+
+    } catch (error) {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message || 'Failed to add offer',
+            confirmButtonColor: '#3085d6'
+        });
+    }
+}
 
   </script>
+
+<div class="modal fade" id="addOfferModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Category Offer</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="offerForm">
+          <input type="hidden" id="categoryId">
+          <div class="mb-3">
+            <label for="offerPercentage" class="form-label">Offer Percentage</label>
+            <input type="number" 
+                   class="form-control" 
+                   id="offerPercentage" 
+                   min="0" 
+                   max="90" 
+                   required>
+            <div class="form-text">Enter a value between 0 and 90</div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="submitOffer()">Add Offer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <%- include("../../views/partials/admin/footer") %>
 </body>
 

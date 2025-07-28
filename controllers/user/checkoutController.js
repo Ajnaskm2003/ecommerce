@@ -40,7 +40,8 @@ const getCheckoutPage = async (req, res) => {
                 quantity: item.quantity,
                 price: item.price,  
                 image: item.productId.productImage.length > 0 ? item.productId.productImage[0] : "/default-image.jpg", 
-                totalPrice: item.quantity * item.price
+                totalPrice: item.quantity * item.price,
+                
             }));
             
             totalAmount = cartItems.reduce((sum, item) => sum + item.totalPrice, 0);
@@ -52,7 +53,8 @@ const getCheckoutPage = async (req, res) => {
         res.render("checkout", {
             cartItems,
             userAddresses,
-            totalAmount
+            totalAmount,
+            
         });
     } catch (error) {
         console.error("Error in getCheckoutPage:", error);
@@ -170,13 +172,14 @@ const placedOrder = async (req, res) => {
     console.log("controller reached!");
 
     try {
-        const { addressId, paymentMethod } = req.body;
+        const { addressId, paymentMethod, coupon, totalAmount, discount } = req.body;
         const userId = req.session.user.id;
 
         if (!userId) {
             return res.status(401).json({ success: false, message: "User not authenticated" });
         }
 
+    
         const addressDoc = await Address.findOne({ userId: userId, "address._id": addressId });
         if (!addressDoc) {
             return res.status(400).json({ success: false, message: "Address not found" });
@@ -187,6 +190,7 @@ const placedOrder = async (req, res) => {
             return res.status(400).json({ success: false, message: "Address not found inside array" });
         }
 
+        
         const cart = await Cart.findOne({ userId: userId }).populate('items.productId');
         if (!cart || cart.items.length === 0) {
             return res.status(400).json({ success: false, message: "Cart is empty" });
@@ -195,11 +199,17 @@ const placedOrder = async (req, res) => {
         const placedOrders = [];
 
         
+        const cartTotal = cart.items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+        
+        
+        const discountPerRupee = discount ? discount / cartTotal : 0;
+
         for (let item of cart.items) {
             const product = item.productId;
             const selectedSize = item.size;
             const orderedQty = item.quantity;
 
+            
             if (product.sizes[selectedSize] < orderedQty) {
                 return res.status(400).json({
                     success: false,
@@ -207,12 +217,17 @@ const placedOrder = async (req, res) => {
                 });
             }
 
+            
             product.sizes[selectedSize] -= orderedQty;
             product.quantity -= orderedQty;
             await product.save();
 
-            const totalPrice = item.quantity * item.price;
+            
+            const itemTotal = item.quantity * item.price;
+            const itemDiscount = Math.round(itemTotal * discountPerRupee * 100) / 100;
+            const finalAmount = itemTotal - itemDiscount;
 
+            
             const newOrder = new Order({
                 userId,
                 orderItems: [{
@@ -221,8 +236,9 @@ const placedOrder = async (req, res) => {
                     quantity: item.quantity,
                     price: item.price
                 }],
-                totalPrice: totalPrice,
-                totalAmount: totalPrice,
+                totalPrice: itemTotal,           
+                discount: itemDiscount,          
+                totalAmount: finalAmount,        
                 paymentMethod,
                 address: {
                     fullname: selectedAddress.fullname,
@@ -232,7 +248,8 @@ const placedOrder = async (req, res) => {
                     zipCode: selectedAddress.zipCode,
                     phone: selectedAddress.phone
                 },
-                status: "Pending"
+                status: "Pending",
+                couponApplied: !!coupon
             });
 
             await newOrder.save();
@@ -243,7 +260,15 @@ const placedOrder = async (req, res) => {
         cart.items = [];
         await cart.save();
 
-        res.json({ success: true, orders: placedOrders.map(order => order._id) });
+        
+        req.session.orderPlaced = true;
+        delete req.session.cartAccess;
+
+        res.json({ 
+            success: true, 
+            orders: placedOrders.map(order => order._id),
+            message: "Orders placed successfully"
+        });
 
     } catch (error) {
         console.error("Order placement error:", error);

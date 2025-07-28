@@ -120,7 +120,9 @@
             <tr>
                 <td><%= product.productName %></td>
                 <td><%= product.brand %></td>
-                <td><%= product.category.name %></td>
+                <td>
+                    <%= product.category ? product.category.name : 'Uncategorized' %>
+                </td>
                 <td>$<%= product.salePrice %></td>
                 <td><%= product.quantity %></td>
                 <td>

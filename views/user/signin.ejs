@@ -105,5 +105,35 @@
         </div>
       </div>
     </div>
+
+    <script>
+    // Prevent back button navigation
+    window.history.pushState(null, '', window.location.href);
+    window.onpopstate = function() {
+        window.history.pushState(null, '', window.location.href);
+    };
+
+    // Handle page loads and refreshes
+    window.onpageshow = function(event) {
+        if (event.persisted) {
+            window.location.reload();
+        }
+    };
+
+    // Clear form on page load
+    window.onload = function() {
+        document.querySelector('form').reset();
+        
+        // Check session storage for login state
+        if (sessionStorage.getItem('isLoggedIn')) {
+            window.location.href = '/';
+        }
+    };
+
+    // Update form submission
+    document.querySelector('form').addEventListener('submit', function() {
+        sessionStorage.setItem('isLoggedIn', 'true');
+    });
+  </script>
   </body>
 </html>

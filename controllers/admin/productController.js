@@ -39,6 +39,26 @@ const getProdutPage = async (req,res) =>{
     }
 }
 
+const getProducts = async (req, res) => {
+    try {
+        // Populate the category field when fetching products
+        const products = await Product.find()
+            .populate('category')
+            .sort({ createdOn: -1 });
+
+        res.render('admin/product', {
+            products,
+            msg: req.query.msg || ''
+        });
+    } catch (error) {
+        console.error('Error fetching products:', error);
+        res.status(500).render('admin/product', {
+            products: [],
+            msg: 'Error loading products'
+        });
+    }
+};
+
 const addProducts = async (req, res) => {
     try {
         const { productName, description, brand, category, regularPrice, salePrice, quantity, sizes } = req.body;
@@ -369,6 +389,7 @@ const unblockProduct = async (req, res) => {
 module.exports = {
   getProductAddPage ,
   getProdutPage ,
+  getProducts,
   addProducts,
   getEditProduct,
   editProduct,

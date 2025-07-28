@@ -12,9 +12,8 @@ const createOrder = async (req, res) => {
     try {
         const { totalAmount, addressId } = req.body;
         const userId = req.session.user.id;
-        console.log("userId:", userId);
 
-        // Fix: Query address correctly using userId and address._id
+        7// Validate address
         const addressDoc = await Address.findOne({ 
             userId: userId,
             'address._id': addressId 
@@ -27,7 +26,6 @@ const createOrder = async (req, res) => {
             });
         }
 
-        // Get the specific address from the address array
         const selectedAddress = addressDoc.address.find(
             addr => addr._id.toString() === addressId
         );
@@ -39,19 +37,17 @@ const createOrder = async (req, res) => {
             });
         }
 
-        // ✅ Fetch Cart with Fully Populated Product Data
-        const cart = await Cart.findOne({ userId }).populate({
-            path: "items.productId",
-            select: "name price images stock"
-        });
+        // Get cart items with product details
+        const cart = await Cart.findOne({ userId }).populate('items.productId');
 
         if (!cart || cart.items.length === 0) {
-            return res.status(400).json({ success: false, message: "Cart is empty" });
+            return res.status(400).json({ 
+                success: false, 
+                message: "Cart is empty" 
+            });
         }
 
-        console.log("🛒 Cart Data:", cart);
-
-        // ✅ Razorpay Order Options
+        // Create Razorpay order
         const options = {
             amount: totalAmount * 100,
             currency: "INR",
@@ -60,53 +56,71 @@ const createOrder = async (req, res) => {
 
         const razorpayOrder = await razorpay.orders.create(options);
 
-        // ✅ Create Order in Database with correct address
-        const order = new Order({
-            userId,
-            orderItems: cart.items.map(item => ({
-                product: item.productId._id,
-                size: item.size,
-                quantity: item.quantity,
-                price: item.price,
-                status: 'Pending'
-            })),
-            totalPrice: totalAmount,
-            totalAmount,
-            paymentMethod: "Online Payment",
-            razorpayOrderId: razorpayOrder.id,
-            paymentStatus: "Pending",
-            address: {
-                fullname: selectedAddress.fullname,
-                street: selectedAddress.street,
-                city: selectedAddress.city,
-                state: selectedAddress.state,
-                zipCode: selectedAddress.zipCode,
-                phone: selectedAddress.phone
-            },
-            status: "Pending"
-        });
+        // Create separate orders for each cart item
+        const orders = [];
 
-        console.log("📦 New Order:", order);
+        for (const item of cart.items) {
+            // Calculate individual item total
+            const itemTotal = item.quantity * item.price;
 
-        await order.save();
+            // Create new order for each item
+            const newOrder = new Order({
+                userId,
+                orderItems: [{
+                    product: item.productId._id,
+                    size: item.size,
+                    quantity: item.quantity,
+                    price: item.price,
+                    status: 'Pending'
+                }],
+                totalPrice: itemTotal,
+                totalAmount: itemTotal,
+                paymentMethod: "Online Payment",
+                razorpayOrderId: razorpayOrder.id,
+                paymentStatus: "Pending",
+                address: {
+                    fullname: selectedAddress.fullname,
+                    street: selectedAddress.street,
+                    city: selectedAddress.city,
+                    state: selectedAddress.state,
+                    zipCode: selectedAddress.zipCode,
+                    phone: selectedAddress.phone
+                },
+                status: "Pending"
+            });
+
+            const savedOrder = await newOrder.save();
+            orders.push(savedOrder);
+        }
+
+        // Clear the cart after creating orders
+        await Cart.findByIdAndDelete(cart._id);
 
         res.json({
             success: true,
             orderId: razorpayOrder.id,
-            dbOrderId: order._id,
+            orderIds: orders.map(order => order._id),
             amount: razorpayOrder.amount,
             currency: razorpayOrder.currency
         });
 
     } catch (error) {
         console.error("❌ Error Creating Order:", error);
-        res.status(500).json({ success: false, message: "Order creation failed" });
+        res.status(500).json({ 
+            success: false, 
+            message: "Order creation failed" 
+        });
     }
 };
 
 const verifyPayment = async (req, res) => {
     try {
-        const { razorpay_order_id, razorpay_payment_id, razorpay_signature, dbOrderId } = req.body;
+        const { 
+            razorpay_order_id, 
+            razorpay_payment_id, 
+            razorpay_signature,
+            orderIds  // Array of order IDs
+        } = req.body;
 
         const generatedSignature = crypto
             .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
@@ -114,35 +128,44 @@ const verifyPayment = async (req, res) => {
             .digest("hex");
 
         if (generatedSignature === razorpay_signature) {
-            // Update the order in your database
-            const updatedOrder = await Order.findByIdAndUpdate(
-                dbOrderId,
-                {
-                    razorpayPaymentId: razorpay_payment_id,
-                    razorpaySignature: razorpay_signature,
-                    paymentStatus: "Paid",
-                    invoiceDate: new Date()
-                },
-                { new: true }
-            );
+            // Update all orders associated with this payment
+            await Promise.all(orderIds.map(orderId => 
+                Order.findByIdAndUpdate(
+                    orderId,
+                    {
+                        razorpayPaymentId: razorpay_payment_id,
+                        razorpaySignature: razorpay_signature,
+                        paymentStatus: "Paid",
+                        invoiceDate: new Date()
+                    }
+                )
+            ));
 
             res.json({ 
                 success: true, 
                 message: "Payment verified successfully",
-                orderId: razorpay_order_id // Your custom order ID
+                orderIds: orderIds // Return all order IDs
             });
         } else {
-            // Mark the order as failed if verification fails
-            await Order.findByIdAndUpdate(dbOrderId, {
-                paymentStatus: "Failed"
-            });
+            // Mark all orders as failed if verification fails
+            await Promise.all(orderIds.map(orderId => 
+                Order.findByIdAndUpdate(orderId, {
+                    paymentStatus: "Failed"
+                })
+            ));
             
-            res.status(400).json({ success: false, message: "Payment verification failed" });
+            res.status(400).json({ 
+                success: false, 
+                message: "Payment verification failed" 
+            });
         }
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: "Internal Server Error" });
+        console.error("Payment verification error:", error);
+        res.status(500).json({ 
+            success: false, 
+            message: "Internal Server Error" 
+        });
     }
 };
 

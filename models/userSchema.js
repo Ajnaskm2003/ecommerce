@@ -80,7 +80,10 @@ const userSchema = new Schema({
             type: Date,
             default: Date.now,
         }
-    }]
+    }],
+    usedCoupons: [{ 
+        type: String 
+    }],
 });
 
 const User = mongoose.model("User", userSchema);

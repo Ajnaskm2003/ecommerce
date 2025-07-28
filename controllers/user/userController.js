@@ -128,49 +128,41 @@ const loadSignin = (req, res) => {
 };
 
 const signin = async (req, res) => {
-    const { email, password } = req.body;
-
     try {
+        const { email, password } = req.body;
+
         const user = await User.findOne({ email });
         if (!user) {
             req.flash('error', 'Invalid email or password');
             return res.redirect('/signin');
         }
-        console.log('1')
-        if (user.isBlocked) {
-            req.flash("error", "Your account is blocked. Please contact support.");
-            return res.redirect("/signin");
-        }
-        console.log('2');
-        
 
         const isMatch = await bcrypt.compare(password, user.password);
-
         if (!isMatch) {
-            res.redirect('/signin',{status:false , message:"Invalid password "});
+            req.flash('error', 'Invalid password');
+            return res.redirect('/signin');
         }
 
+        // Set session with secure options
         req.session.user = {
             id: user._id,
             email: user.email,
-            name: user.name,
-            isLoggedIn: true
-
+            name: user.name
         };
 
+        // Set secure cookie options
+        req.session.cookie.secure = process.env.NODE_ENV === 'production';
+        req.session.cookie.httpOnly = true;
+        req.session.cookie.maxAge = 24 * 60 * 60 * 1000; // 24 hours
 
-        req.session.userData = {
-            id: user._id,
-            email: user.email,
-            name: user.name,
-            isLoggedIn: true
-        }
+        // Set headers for no caching
+        res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+        res.set('Pragma', 'no-cache');
+        res.set('Expires', '0');
 
-        req.flash('success', 'Signed in successfully');
-        console.log('session',req.session.user)
         return res.redirect('/');
     } catch (error) {
-        console.error('Sign-in error:', error);
+        console.error('Signin error:', error);
         req.flash('error', 'Something went wrong');
         return res.redirect('/signin');
     }

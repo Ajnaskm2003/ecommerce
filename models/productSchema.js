@@ -16,7 +16,15 @@ const productSchema = new mongoose.Schema({
     category: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Category',
-        required: true
+        required: true,
+        validate: {
+            validator: async function(value) {
+                const Category = mongoose.model('Category');
+                const category = await Category.findById(value);
+                return category !== null;
+            },
+            message: 'Category does not exist'
+        }
     },
     regularPrice: {
         type: Number,
@@ -51,6 +59,29 @@ const productSchema = new mongoose.Schema({
         7: { type: Number, default: 0 },
         8: { type: Number, default: 0 },
         9: { type: Number, default: 0 }
+    }
+});
+
+// Add pre-find middleware to always populate category
+productSchema.pre('find', function(next) {
+    this.populate('category');
+    next();
+});
+
+// Add error handling for null category references
+productSchema.post('save', async function(doc, next) {
+    try {
+        if (doc.category) {
+            const Category = mongoose.model('Category');
+            const category = await Category.findById(doc.category);
+            if (!category) {
+                doc.category = null;
+                await doc.save();
+            }
+        }
+        next();
+    } catch (error) {
+        next(error);
     }
 });
 

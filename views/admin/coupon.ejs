@@ -1,0 +1,387 @@
+<%- include("../../views/partials/admin/header") %>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coupon Management</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --surface: #ffffff;
+            --background: #f8f9fa;
+            --text: #212529;
+            --text-light: #6c757d;
+            --border: #e9ecef;
+            --shadow: rgba(0, 0, 0, 0.05);
+            --danger: #e63946;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        h1 {
+            font-weight: 600;
+            font-size: 1.5rem;
+            color: var(--text);
+        }
+        
+        .card {
+            background-color: var(--surface);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px var(--shadow);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            text-align: left;
+            padding: 1rem;
+            font-weight: 500;
+            color: var(--text-light);
+            border-bottom: 1px solid var(--border);
+            font-size: 0.875rem;
+        }
+        
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.875rem;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .badge-percentage {
+            background-color: #e3f6f5;
+            color: #2c9c91;
+        }
+        
+        .badge-fixed {
+            background-color: #ffedeb;
+            color: #e85d04;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #3a56d4;
+        }
+        
+        .btn-danger {
+            background-color: white;
+            color: var(--danger);
+            border: 1px solid #f8d7da;
+        }
+        
+        .btn-danger:hover {
+            background-color: #f8d7da;
+        }
+        
+        .btn-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-icon:hover {
+            background-color: var(--border);
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 1rem;
+        }
+        
+        .icon {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2;
+        }
+        
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            text-align: center;
+        }
+        
+        .empty-state-icon {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+        
+        .empty-state-text {
+            margin-bottom: 1.5rem;
+            color: var(--text-light);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Coupon Management</h1>
+        </header>
+        
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Active Coupons</h2>
+                <button class="btn btn-primary" onclick="document.getElementById('newCouponForm').style.display='block'">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    &nbsp;New Coupon
+                </button>
+            </div>
+            
+            <% if (coupons && coupons.length > 0) { %>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Discount</th>
+                            <th>Type</th>
+                            <th>Min Purchase</th>
+                            <th>Expiry Date</th>
+                            <th>Usage Limit</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% coupons.forEach(coupon => { %>
+                        <tr>
+                            <td><strong><%= coupon.code %></strong></td>
+                            <td><%= coupon.discount %> <%= coupon.type === 'percentage' ? '%' : '₹' %></td>
+                            <td>
+                                <span class="badge <%= coupon.type === 'percentage' ? 'badge-percentage' : 'badge-fixed' %>">
+                                    <%= coupon.type === 'percentage' ? 'Percentage' : 'Fixed Amount' %>
+                                </span>
+                            </td>
+                            <td>₹<%= coupon.minPurchase || '0' %></td>
+                            <td>
+                                <% 
+                                    const expiryDate = new Date(coupon.expiryDate);
+                                    const today = new Date();
+                                    const daysLeft = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+                                %>
+                                <%= expiryDate.toLocaleDateString() %>
+                                <% if(daysLeft > 0 && daysLeft <= 7) { %>
+                                <span style="color: #e85d04; font-size: 0.75rem; margin-left: 0.5rem;">
+                                    (<%= daysLeft %> day<%= daysLeft !== 1 ? 's' : '' %> left)
+                                </span>
+                                <% } else if(daysLeft <= 0) { %>
+                                <span style="color: #e63946; font-size: 0.75rem; margin-left: 0.5rem;">
+                                    (Expired)
+                                </span>
+                                <% } %>
+                            </td>
+                            <td><%= coupon.usageLimit || 'Unlimited' %></td>
+                            <td>
+                                <form action="/admin/coupons/delete/<%= coupon._id %>" method="POST" style="display: inline;">
+                                    <button type="submit" class="btn btn-danger">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                            <polyline points="3 6 5 6 21 6"></polyline>
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                        </svg>
+                                        Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+            <% } else { %>
+            <div class="empty-state">
+                <svg xmlns="http://www.w3.org/2000/svg" class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                </svg>
+                <p class="empty-state-text">No coupons found. Create your first coupon to get started.</p>
+                <button class="btn btn-primary" onclick="document.getElementById('newCouponForm').style.display='block'">Create New Coupon</button>
+            </div>
+            <% } %>
+        </div>
+        
+        <div id="newCouponForm" class="card" style="display: none;">
+            <div class="card-header">
+                <h2 class="card-title">Create New Coupon</h2>
+                <button class="btn-icon" onclick="document.getElementById('newCouponForm').style.display='none'">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            
+            <form action="/admin/coupons" method="POST">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="code">Coupon Code*</label>
+                        <input type="text" id="code" name="code" class="form-control" placeholder="e.g. SUMMER25" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="discount">Discount Amount*</label>
+                        <input type="number" id="discount" name="discount" class="form-control" placeholder="e.g. 25" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="type">Discount Type*</label>
+                        <select id="type" name="type" class="form-control">
+                            <option value="percentage">Percentage (%)</option>
+                            <option value="fixed">Fixed Amount (₹)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="minPurchase">Minimum Purchase (₹)</label>
+                        <input type="number" id="minPurchase" name="minPurchase" class="form-control" placeholder="e.g. 1000">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="maxDiscount">Maximum Discount (₹)</label>
+                        <input type="number" id="maxDiscount" name="maxDiscount" class="form-control" placeholder="Only for percentage discounts">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="usageLimit">Usage Limit*</label>
+                        <input type="number" id="usageLimit" name="usageLimit" class="form-control" placeholder="e.g. 100" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="expiryDate">Expiry Date*</label>
+                        <input type="date" id="expiryDate" name="expiryDate" class="form-control" required>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-danger" style="margin-right: 0.5rem;" onclick="document.getElementById('newCouponForm').style.display='none'">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Coupon</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Set default expiry date to 30 days from now
+        document.addEventListener('DOMContentLoaded', function() {
+            const expiryDateInput = document.getElementById('expiryDate');
+            if (expiryDateInput) {
+                const date = new Date();
+                date.setDate(date.getDate() + 30);
+                expiryDateInput.valueAsDate = date;
+            }
+        });
+    </script>
+</body>
+</html>

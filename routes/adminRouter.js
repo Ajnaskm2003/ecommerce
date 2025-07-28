@@ -7,6 +7,7 @@ const customerController = require('../controllers/admin/customerController');
 const categoryController = require('../controllers/admin/categoryController');
 const productController = require('../controllers/admin/productController');
 const orderController = require('../controllers/admin/orderController');
+const coupenController = require('../controllers/admin/coupenController');
 const upload = require('../middlewares/multer');
 const multer = require('multer');
 // const upload = multer({storage:storage});
@@ -27,6 +28,8 @@ router.get("/listCategory",authMiddleware.checkSession,categoryController.getLis
 router.get('/unlistCategory',authMiddleware.checkSession,categoryController.getUnlistCategory);
 router.get('/editCategory',authMiddleware.checkSession,categoryController.getEditCategory);
 router.post('/editCategory/:id',categoryController.editCategory);
+router.post('/addCategoryOffer',categoryController.addCategoryOffer);
+router.post('/removeCategoryOffer',categoryController.removeCategoryOffer)
 
 
 router.get('/products',productController.getProdutPage);
@@ -39,6 +42,7 @@ router.get('/blockProduct',authMiddleware.checkSession,productController.blockPr
 router.get('/unblockProduct',authMiddleware.checkSession,productController.unblockProduct);
 
 
+
 router.get('/orders',authMiddleware.checkSession,orderController.getAllOrders);
 router.get('/order-details/:orderId',authMiddleware.checkSession,orderController.getOrderDetails);
 router.post('/orders/:orderId/update-status',orderController.updateOrderStatus);
@@ -48,6 +52,9 @@ router.post('/returns/accept/:orderId/:itemId', orderController.acceptReturn);
 router.post('/returns/reject/:orderId/:itemId', orderController.rejectReturn);
 
 
+router.get('/coupons', coupenController.getCoupons); 
+router.post('/coupons', coupenController.addCoupon);
+router.post('/coupons/delete/:id', coupenController.deleteCoupon);
 
 
 
