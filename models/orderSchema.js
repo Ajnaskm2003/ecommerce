@@ -60,13 +60,16 @@ const orderSchema = new Schema({
     paymentMethod: {
         type: String,
         required: true,
-        enum: ['Cash on Delivery', 'Online Payment']
+        enum: ['Cash on Delivery', 'Online Payment','Wallet Payment']
     },
-    // Razorpay-specific fields
+    walletTransactionId: {
+        type: String,
+        sparse: true
+    },
     razorpayOrderId: {
         type: String,
         unique: true,
-        sparse: true // Allows null values for COD orders
+        sparse: true 
     },
     razorpayPaymentId: {
         type: String,

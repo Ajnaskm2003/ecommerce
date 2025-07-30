@@ -216,6 +216,27 @@ const editProduct = async (req, res) => {
             return res.status(404).json({ error: "Product not found" });
         }
 
+        // Validate and parse prices
+        const regularPrice = parseFloat(data.regularPrice);
+        const offerPercentage = parseFloat(data.offerPercentage) || 0;
+
+        // Validate regular price
+        if (isNaN(regularPrice) || regularPrice <= 0) {
+            return res.json({ error: 'Invalid regular price' });
+        }
+
+        // Validate offer percentage
+        if (isNaN(offerPercentage) || offerPercentage < 0 || offerPercentage > 100) {
+            return res.json({ error: 'Invalid offer percentage. Must be between 0 and 100' });
+        }
+
+        // Calculate sale price based on offer percentage
+        const discountAmount = regularPrice * (offerPercentage / 100);
+        const salePrice = regularPrice - discountAmount;
+
+        // Round to 2 decimal places
+        const finalSalePrice = Math.round(salePrice * 100) / 100;
+
         // Validate sizes stock
         const sizes = data.sizes || {};
         let formattedSizes = {};
@@ -261,7 +282,7 @@ const editProduct = async (req, res) => {
             }
         }
 
-        // Validate images (new + existing)
+        // Update images array
         const updatedImages = [...product.productImage, ...newImages];
         if (updatedImages.length === 0) {
             return res.json({ error: 'At least one image is required' });
@@ -273,25 +294,33 @@ const editProduct = async (req, res) => {
             return res.json({ error: 'Invalid category' });
         }
 
-        // Perform update
-        await Product.findByIdAndUpdate(
+        // Perform update with new sale price
+        const updatedProduct = await Product.findByIdAndUpdate(
             id,
             {
                 productName: data.productName,
                 description: data.description,
                 brand: data.brand,
                 category: categoryDoc._id,
-                regularPrice: parseFloat(data.regularPrice),
-                salePrice: parseFloat(data.salePrice),
+                regularPrice: regularPrice,
+                offerPercentage: offerPercentage,
+                salePrice: finalSalePrice, // Use the calculated sale price
                 quantity: parseInt(data.quantity),
-                color: data.color,
                 sizes: formattedSizes,
-                productImage: updatedImages
+                productImage: updatedImages,
+                updatedAt: new Date()
             },
             { new: true }
         );
 
-        return res.json({ success: true, message: 'Product updated successfully' });
+        return res.json({ 
+            success: true, 
+            message: 'Product updated successfully',
+            product: {
+                ...updatedProduct._doc,
+                salePrice: finalSalePrice
+            }
+        });
 
     } catch (error) {
         console.error("Error updating product:", error);

@@ -110,6 +110,9 @@ router.get('/order-details/:id',Auth.checkSession,orderController.viewOrderDetai
 router.get('/cancel-order/:id', orderController.cancelOrder);
 router.post('/submit-return', orderController.submitReturnRequest);
 
+router.get('/wallet/balance', Auth.checkSession, walletController.getWalletBalance);
+router.post('/place-order-with-wallet', Auth.checkSession, walletController.placeOrderWithWallet);
+
 
 router.get('/wallet',Auth.checkSession,walletController.getWalletPage);
 
@@ -117,6 +120,9 @@ router.post('/create-order',razorpayController.createOrder);
 router.post('/verify-payment',razorpayController.verifyPayment);
 
 router.post('/apply-coupon', couponController.applyCoupon);
+
+
+
 
 
 

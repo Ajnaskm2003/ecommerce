@@ -470,6 +470,36 @@
             transform: none;
             box-shadow: none;
         }
+
+        /* Wallet specific styles */
+        #walletBalanceRow {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 10px;
+        }
+
+        #walletBalance {
+            color: #2ecc71;
+            font-weight: 600;
+        }
+
+        .wallet-payment-info {
+            background: #e8f4fd;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            border-left: 4px solid #3498db;
+            display: none;
+        }
+
+        .wallet-payment-info p {
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .wallet-payment-info strong {
+            color: #2980b9;
+        }
     </style>
 </head>
 
@@ -573,6 +603,13 @@
         <div class="right-section">
             <div class="card order-summary">
                 <h2>Order Summary</h2>
+                
+                <!-- Wallet Balance Display -->
+                <div class="order-row" id="walletBalanceRow">
+                    <span>Wallet Balance:</span>
+                    <span id="walletBalance">₹0.00</span>
+                </div>
+                
                 <div class="order-details">
                     <div class="order-row">
                         <span>Subtotal:</span>
@@ -602,12 +639,16 @@
                     <select id="paymentMethod" class="payment-select">
                         <option value="Cash on Delivery">Cash on Delivery</option>
                         <option value="Online Payment">Online Payment</option>
+                        <option value="Wallet">Wallet Payment</option>
                     </select>
+                    <div id="walletPaymentInfo" class="wallet-payment-info">
+                        <p><strong>Wallet Payment</strong></p>
+                        <p>Amount will be deducted from your wallet balance</p>
+                        <p id="walletRemainingBalance">Remaining balance: ₹0.00</p>
+                    </div>
                 </div>
 
                 <button onclick="placeOrder()" class="place-order-btn">Place Order</button>
-                
-                <!-- Rest of the order summary content -->
             </div>
         </div>
 
@@ -616,6 +657,48 @@
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchWalletBalance();
+            
+            document.getElementById('paymentMethod').addEventListener('change', function() {
+                const walletInfo = document.getElementById('walletPaymentInfo');
+                if (this.value === 'Wallet') {
+                    walletInfo.style.display = 'block';
+                    updateWalletPaymentInfo();
+                } else {
+                    walletInfo.style.display = 'none';
+                }
+            });
+        });
+
+        // Fetch wallet balance from server
+        async function fetchWalletBalance() {
+            try {
+                const response = await fetch("/get-wallet-balance");
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById("walletBalance").textContent = `₹${data.balance.toFixed(2)}`;
+                    // Update wallet payment info if payment method is Wallet
+                    if (document.getElementById('paymentMethod').value === 'Wallet') {
+                        updateWalletPaymentInfo();
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching wallet balance:", error);
+            }
+        }
+
+        // Update wallet payment information
+        function updateWalletPaymentInfo() {
+            const walletBalance = parseFloat(document.getElementById("walletBalance").textContent.replace(/[^\d.]/g, ""));
+            const finalAmount = parseFloat(document.getElementById("finalAmount").textContent.replace(/[^\d.]/g, ""));
+            const remainingBalance = walletBalance - finalAmount;
+            
+            document.getElementById("walletRemainingBalance").textContent = 
+                `Remaining balance: ₹${remainingBalance.toFixed(2)}`;
+        }
+
         function openAddAddressModal() {
             document.getElementById("addressModal").style.display = "flex";
         }
@@ -660,7 +743,77 @@
             try {
                 if (paymentMethod === "Online Payment") {
                     await handleRazorpayPayment(addressId, finalAmount);
-                } else {
+                } 
+                else if (paymentMethod === "Wallet") {
+                    // Check wallet balance
+                    const walletBalance = parseFloat(document.getElementById("walletBalance").textContent.replace(/[^\d.]/g, ""));
+                    
+                    if (walletBalance < finalAmount) {
+                        return Swal.fire({
+                            icon: 'error',
+                            title: 'Insufficient Balance',
+                            html: `Your wallet balance (₹${walletBalance.toFixed(2)}) is insufficient for this order (₹${finalAmount.toFixed(2)}).<br>Please choose another payment method.`
+                        });
+                    }
+                    
+                    // Confirm wallet payment
+                    const result = await Swal.fire({
+                        icon: 'question',
+                        title: 'Confirm Wallet Payment',
+                        html: `This will deduct <strong>₹${finalAmount.toFixed(2)}</strong> from your wallet.<br>Remaining balance: <strong>₹${(walletBalance - finalAmount).toFixed(2)}</strong>`,
+                        showCancelButton: true,
+                        confirmButtonText: 'Confirm Payment',
+                        cancelButtonText: 'Cancel'
+                    });
+                    
+                    if (!result.isConfirmed) {
+                        return;
+                    }
+                    
+                    // Proceed with wallet payment
+                    const response = await fetch("/place-order-with-wallet", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            addressId,
+                            totalAmount: finalAmount,
+                            discount: discount,
+                            coupon: window.appliedCoupon ? window.appliedCoupon.code : null
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Prevent back button
+                        window.history.pushState(null, '', window.location.href);
+                        window.onpopstate = function () {
+                            window.location.href = '/';
+                        };
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Order Placed Successfully!',
+                            html: `₹${finalAmount.toFixed(2)} deducted from your wallet.<br>New balance: <strong>₹${data.newBalance.toFixed(2)}</strong>`,
+                            confirmButtonText: 'View Orders',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false
+                        }).then(() => {
+                            window.location.replace('/order/view/' + data.orderId);
+                        });
+
+                        // Clear cart access
+                        sessionStorage.removeItem('cartAccess');
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.message || 'Failed to place order'
+                        });
+                    }
+                }
+                else {
+                    // Existing COD logic
                     const response = await fetch("/place", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -758,7 +911,6 @@
             }
         }
 
-        // Update the frontend payment handler
         async function verifyPayment(response, orderIds) {
             try {
                 const verifyResponse = await fetch("/verify-payment", {
@@ -941,51 +1093,45 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    // Show discount row
                     discountRow.style.display = "flex";
                     
-                    // Update discount amount
                     document.getElementById("discountAmount").innerText = 
                         `-₹${data.discountAmount.toFixed(2)}`;
                     
-                    // Update final amount
                     document.getElementById("finalAmount").innerText = 
                         `₹${data.newTotal.toFixed(2)}`;
 
-                    // Show success message
                     Swal.fire({
                         icon: 'success',
                         title: 'Success',
                         text: 'Coupon applied successfully!'
                     });
 
-                    // Store coupon data for order placement
                     window.appliedCoupon = {
                         code: code,
                         discountAmount: data.discountAmount,
                         newTotal: data.newTotal
                     };
 
-                    // Update coupon message
                     messageDiv.className = "coupon-message success";
                     messageDiv.innerText = `Coupon applied! You saved ₹${data.discountAmount.toFixed(2)}`;
+                    
+                    if (document.getElementById('paymentMethod').value === 'Wallet') {
+                        updateWalletPaymentInfo();
+                    }
                 } else {
-                    // Show error message
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
                         text: data.message || 'Failed to apply coupon'
                     });
 
-                    // Reset discount if there was one
                     discountRow.style.display = "none";
                     document.getElementById("finalAmount").innerText = 
                         `₹${totalAmount.toFixed(2)}`;
                     
-                    // Clear stored coupon data
                     window.appliedCoupon = null;
 
-                    // Update error message
                     messageDiv.className = "coupon-message error";
                     messageDiv.innerText = data.message || 'Invalid coupon';
                 }
@@ -1004,20 +1150,15 @@
             const messageDiv = document.getElementById("couponMessage");
             const originalAmount = <%= totalAmount %>;
 
-            // Hide discount row
             discountRow.style.display = "none";
             
-            // Reset total amount
             document.getElementById("finalAmount").innerText = 
                 `₹${originalAmount.toFixed(2)}`;
             
-            // Clear coupon input
             document.getElementById("couponCode").value = "";
             
-            // Clear message
             messageDiv.innerText = "";
             
-            // Clear stored coupon data
             window.appliedCoupon = null;
 
             Swal.fire({
@@ -1027,7 +1168,7 @@
             });
         }
 
-        // Add this to handle page load
+        
         window.onload = function() {
             if (sessionStorage.getItem('orderPlaced')) {
                 sessionStorage.removeItem('orderPlaced');
@@ -1035,12 +1176,36 @@
             }
         };
 
-        // Add this to handle back button
+        
         window.onpageshow = function(event) {
             if (event.persisted) {
                 window.location.href = '/';
             }
         };
+
+        
+        async function fetchWalletBalance() {
+            try {
+                const response = await fetch('/wallet/balance');
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('walletBalance').innerText = `₹${parseFloat(data.balance).toFixed(2)}`;
+                } else {
+                    console.error('Error fetching wallet balance:', data.message);
+                }
+            } catch (error) {
+                console.error('Error fetching wallet balance:', error);
+            }
+        }
+
+        // Call this when page loads and when payment method changes
+        document.addEventListener('DOMContentLoaded', fetchWalletBalance);
+        document.getElementById('paymentMethod').addEventListener('change', function(e) {
+            if (e.target.value === 'Wallet Payment') {
+                fetchWalletBalance();
+            }
+        });
     </script>
 </body>
 

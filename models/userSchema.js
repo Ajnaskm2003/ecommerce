@@ -38,12 +38,10 @@ const userSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "Cart",
     }],
-    wallet: {  // Keep this as wallet since it's already in use
+    wallet: {
         type: Number,
         default: 0,
-        get: function(v) {  // Add getter to ensure number format
-            return parseFloat(v).toFixed(2);
-        }
+        min: 0
     },
     wishlist: [{
         type: Schema.Types.ObjectId,

@@ -45,26 +45,20 @@
     }
 
    </style>
-   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.css">
-   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
    <section class="content-main">
        <div class="row">
            <div class="col-9">
                <div class="content-header">
                    <h2 class="content-title">Edit Product</h2>
-
-
                </div>
            </div>
            <div class="col-lg-6">
                <div class="card mb-4">
-
-
                    <div class="card-body">
-                       <form method="post" action="/admin/editProduct/<%=product._id%>" enctype="multipart/form-data"
-                           onsubmit="return validateForm()">
+                       <form id="editProductForm" method="post" action="/admin/editProduct/<%=product._id%>" enctype="multipart/form-data" onsubmit="handleEditProductSubmit(event)">
                            <div class="mb-4">
                                <label for="product_name" class="form-label">Product Name</label>
                                <input type="text" name="productName" value="<%=product.productName%>"
@@ -82,23 +76,33 @@
                                <div class="col-lg-4">
                                    <div class="mb-4">
                                        <label class="form-label">Regular price</label>
-                                       <input placeholder="$" name="regularPrice" type="text"
-                                           value="<%=product.regularPrice%>" class="form-control border">
+                                       <input placeholder="$" name="regularPrice" type="number" step="0.01"
+                                           value="<%=product.regularPrice%>" class="form-control border" id="regularPrice" oninput="calculateSalePrice()">
                                            <div id="regularPrice-error" class="error-message"></div>
                                    </div>
                                </div>
                                <div class="col-lg-4">
                                    <div class="mb-4">
-                                       <label class="form-label">Sale price</label>
-                                       <input name="salePrice" type="text" value="<%=product.salePrice%>"
-                                           class="form-control border">
+                                       <label class="form-label">Offer Percentage (%)</label>
+                                       <input name="offerPercentage" type="number" min="0" max="100" step="1"
+                                           value="<%=product.offerPercentage || 0%>" class="form-control border" id="offerPercentage" oninput="calculateSalePrice()">
+                                           <div id="offerPercentage-error" class="error-message"></div>
                                    </div>
-                                   <div id="salePrice-error" class="error-message"></div>
                                </div>
                                <div class="col-lg-4">
                                    <div class="mb-4">
+                                       <label class="form-label">Sale price</label>
+                                       <input name="salePrice" type="number" step="0.01" value="<%=product.salePrice%>"
+                                           class="form-control border" id="salePrice" readonly>
+                                           <div id="salePrice-error" class="error-message"></div>
+                                   </div>
+                               </div>
+                           </div>
+                           <div class="row">
+                               <div class="col-lg-4">
+                                   <div class="mb-4">
                                        <label class="form-label">Quantity</label>
-                                       <input name="quantity" type="text" value="<%=product.quantity%>"
+                                       <input name="quantity" type="number" value="<%=product.quantity%>"
                                            class="form-control border">
                                            <div id="quantity-error" class="error-message"></div>
                                    </div>
@@ -126,9 +130,6 @@
                             </div>
                         </div>
                         
-                           
-
-
                                 <div class="card-body">
                                    <div class="row gx-2">
                                        <div class="col-sm-6 mb-3">
@@ -142,8 +143,6 @@
                                                    </option>
                                                    <%}%>   
                                            </select>
-
-
                                            <div id="category-error" class="error-message"></div>
                                        </div>
                                    </div>
@@ -238,14 +237,7 @@
                                </div>   
                            </div>
                            <div>
-                            <form id="editProductForm" 
-                                method="post" 
-                                action="/admin/editProduct/<%=product._id%>" 
-                                enctype="multipart/form-data" 
-                                onsubmit="handleEditProductSubmit(event)">
-                                <!-- Your existing form fields remain the same -->
                                 <button type="submit" class="btn btn-md rounded font-sm hover-up" id="updatebtn">Update</button>
-                            </form>
                            </div>
                        </form>
                    </div>
@@ -263,20 +255,42 @@
 <%- include("../../views/partials/admin/footer") %>
 
 <script>
+function calculateSalePrice() {
+    const regularPrice = parseFloat(document.getElementById('regularPrice').value);
+    const offerPercentage = parseFloat(document.getElementById('offerPercentage').value);
+    
+    if (!isNaN(regularPrice) && regularPrice > 0) {
+        if (!isNaN(offerPercentage) && offerPercentage >= 0 && offerPercentage <= 100) {
+            const discountAmount = regularPrice * (offerPercentage / 100);
+            const salePrice = regularPrice - discountAmount;
+            document.getElementById('salePrice').value = salePrice.toFixed(2);
+        } else {
+            document.getElementById('salePrice').value = regularPrice.toFixed(2);
+        }
+    }
+}
+
+// Add event listeners for input changes
+document.getElementById('regularPrice').addEventListener('input', calculateSalePrice);
+document.getElementById('offerPercentage').addEventListener('input', calculateSalePrice);
+
+// Calculate initial sale price on page load
+document.addEventListener('DOMContentLoaded', function() {
+    calculateSalePrice();
+});
 
 function handleEditProductSubmit(event) {
     event.preventDefault();
+    const form = event.target;
     
     if (!validateForm()) {
         return;
     }
 
-    
     const updateBtn = document.getElementById('updatebtn');
     updateBtn.disabled = true;
     updateBtn.innerHTML = 'Updating...';
 
-    
     Swal.fire({
         title: 'Updating...',
         text: 'Please wait while we update the product',
@@ -286,6 +300,8 @@ function handleEditProductSubmit(event) {
             Swal.showLoading();
         }
     });
+
+    const formData = new FormData(form);
 
     fetch(form.action, {
         method: 'POST',
@@ -327,32 +343,15 @@ function handleEditProductSubmit(event) {
     });
 }
 
-
-
-
-
-
-
-
-    function validateAndSubmit() {
-    if (validateForm()) {
-        document.getElementById("editProductForm").submit();
-    }
-}
-    
-    
-    
-    
 function validateForm() {
     let imageDatas = false;
     clearErrorMessages();
     
     const name = document.getElementsByName('productName')[0].value;
     const description = document.getElementsByName('descriptionData')[0].value;
-    const brand = document.getElementsByName('brand')[0].value;
-    const price = document.getElementsByName('regularPrice')[0].value;
-    const saleprice = document.getElementsByName('salePrice')[0].value;
-    const color = document.getElementsByName('color')[0].value;
+    const regularPrice = parseFloat(document.getElementById('regularPrice').value);
+    const offerPercentage = parseFloat(document.getElementById('offerPercentage').value);
+    const salePrice = parseFloat(document.getElementById('salePrice').value);
     const category = document.getElementsByName('category')[0].value;
     const quantity = parseInt(document.getElementsByName('quantity')[0].value) || 0;
     const images = document.getElementById('input1');
@@ -378,23 +377,23 @@ function validateForm() {
         isValid = false;
     }
 
-    if (quantity < 0) {
-        displayErrorMessage('quantity-error', 'Please enter a valid non-negative quantity.');
-        isValid = false;
-    }
-
-    if (!/^\d+(\.\d{1,2})?$/.test(price) || parseFloat(price) < 0) {
+    if (isNaN(regularPrice) || regularPrice < 0) {
         displayErrorMessage('regularPrice-error', 'Please enter a valid non-negative price.');
         isValid = false;
     }
 
-    if (!/^\d+(\.\d{1,2})?$/.test(saleprice) || parseFloat(saleprice) < 0) {
-        displayErrorMessage('salePrice-error', 'Please enter a valid non-negative price.');
+    if (!isNaN(offerPercentage) && (offerPercentage < 0 || offerPercentage > 100)) {
+        displayErrorMessage('offerPercentage-error', 'Offer percentage must be between 0 and 100');
         isValid = false;
     }
 
-    if (color.trim() === "") {
-        displayErrorMessage('color-error', 'Please enter a color.');
+    if (isNaN(salePrice) {
+        displayErrorMessage('salePrice-error', 'Invalid sale price');
+        isValid = false;
+    }
+
+    if (quantity < 0) {
+        displayErrorMessage('quantity-error', 'Please enter a valid non-negative quantity.');
         isValid = false;
     }
 
@@ -427,108 +426,60 @@ function clearErrorMessages() {
     document.getElementById('size-error').innerText = '';
 }
     
-    
-    
-    
-    function viewImage1(event) {
-               document.getElementById('imgView1').src = URL.createObjectURL(event.target.files[0])
-           }
-    
-    
-           function viewImage2(event) {
-               document.getElementById('imgView2').src = URL.createObjectURL(event.target.files[0])
-           }
-    
-    
-           function viewImage3(event) {
-               document.getElementById('imgView3').src = URL.createObjectURL(event.target.files[0])
-           }
-    
-    
-           function viewImage4(event) {
-               document.getElementById('imgView4').src = URL.createObjectURL(event.target.files[0])
-           }
-    
-    
-    
-    
-           function viewImage(event, index) {
-               let input = event.target;
-               let reader = new FileReader();
-               reader.onload = function () {
-                   let dataURL = reader.result;
-                   let image = document.getElementById('imgView' + index);
-                   image.src = dataURL;
-                   let cropper = new Cropper(image, {
-                       aspectRatio: 1,
-                       viewMode: 1,
-                       guides: true,
-                       background: false,
-                       autoCropArea: 1,
-                       zoomable: true
-                   });
-                   let cropperContainer = document.querySelector('#croppedImg' + index).parentNode;
-                   cropperContainer.style.display = 'block';
-                   let saveButton = document.querySelector('#saveButton' + index);
-                   saveButton.addEventListener('click', async function () {
-                       let croppedCanvas = cropper.getCroppedCanvas();
-                       let croppedImage = document.getElementById("croppedImg" + index);
-                       croppedImage.src = croppedCanvas.toDataURL('image/jpeg', 1.0);
-                       let timestamp = new Date().getTime();
-                       let fileName = `cropped-img-${timestamp}-${index}.png`;
-                       await croppedCanvas.toBlob(blob => {
-                           let input = document.getElementById('input' + index);
-                           let imgFile = new File([blob], fileName, blob)
-                           const fileList = new DataTransfer();
-                           fileList.items.add(imgFile);
-                           input.files = fileList.files
-                       });
-                       cropperContainer.style.display = 'none';
-                   });
-               };
-               reader.readAsDataURL(input.files[0]);
-           }
-    
-    
-           const selectedImages = [];
-       document.getElementById("imageInput").addEventListener("change", handleFileSelect);
-    
-    
-           function handleFileSelect(event) {
-               const addedImagesContainer = document.getElementById("addedImagesContainer");
-               addedImagesContainer.innerHTML = "";
-               const files = event.target.files;
-               for (let i = 0; i < files.length; i++) {
-                   const file = files[i];
-                   selectedImages.push(file);
-                   const thumbnail = document.createElement("div");
-                   thumbnail.classList.add("thumbnail");
-                   const img = document.createElement("img");
-                   img.src = URL.createObjectURL(file);
-                   img.alt = "thumbnail";
-                   img.style.width = "50px";
-                   img.style.height = "auto";
-                   const removeIcon = document.createElement("span");
-                   removeIcon.classList.add("remove-icon");
-                   removeIcon.innerHTML = "&times;";
-                   removeIcon.addEventListener("click", function () {
-                       const index = selectedImages.indexOf(file);
-                       if (index !== -1) {
-                           selectedImages.splice(index, 1);
-                       }
-                       thumbnail.remove();
-                   });
-                   thumbnail.appendChild(img);
-                   thumbnail.appendChild(removeIcon);
-                   addedImagesContainer.appendChild(thumbnail);
-               }
-           };
+function viewImage1(event) {
+    document.getElementById('imgView1').src = URL.createObjectURL(event.target.files[0])
+}
 
+function viewImage2(event) {
+    document.getElementById('imgView2').src = URL.createObjectURL(event.target.files[0])
+}
 
+function viewImage3(event) {
+    document.getElementById('imgView3').src = URL.createObjectURL(event.target.files[0])
+}
 
+function viewImage4(event) {
+    document.getElementById('imgView4').src = URL.createObjectURL(event.target.files[0])
+}
 
-           function deleteSingleImage(imageId, productId) {
-    // Show confirmation dialog first
+function viewImage(event, index) {
+    let input = event.target;
+    let reader = new FileReader();
+    reader.onload = function() {
+        let dataURL = reader.result;
+        let image = document.getElementById('imgView' + index);
+        image.src = dataURL;
+        let cropper = new Cropper(image, {
+            aspectRatio: 1,
+            viewMode: 1,
+            guides: true,
+            background: false,
+            autoCropArea: 1,
+            zoomable: true
+        });
+        let cropperContainer = document.querySelector('#croppedImg' + index).parentNode;
+        cropperContainer.style.display = 'block';
+        let saveButton = document.querySelector('#saveButton' + index);
+        saveButton.addEventListener('click', async function() {
+            let croppedCanvas = cropper.getCroppedCanvas();
+            let croppedImage = document.getElementById("croppedImg" + index);
+            croppedImage.src = croppedCanvas.toDataURL('image/jpeg', 1.0);
+            let timestamp = new Date().getTime();
+            let fileName = `cropped-img-${timestamp}-${index}.png`;
+            await croppedCanvas.toBlob(blob => {
+                let input = document.getElementById('input' + index);
+                let imgFile = new File([blob], fileName, blob)
+                const fileList = new DataTransfer();
+                fileList.items.add(imgFile);
+                input.files = fileList.files
+            });
+            cropperContainer.style.display = 'none';
+        });
+    };
+    reader.readAsDataURL(input.files[0]);
+}
+
+function deleteSingleImage(imageId, productId) {
     if (confirm("Are you sure you want to delete this image?")) {
         $.ajax({
             url: "/admin/deleteImage",
@@ -539,7 +490,6 @@ function clearErrorMessages() {
             },
             success: (response) => {
                 if (response.status === true) {
-                    // Reload the page on success
                     window.location.reload();
                 } else {
                     alert("Failed to delete image: " + (response.message || "Unknown error"));
@@ -552,9 +502,6 @@ function clearErrorMessages() {
         });
     }
 }
-
-
-           
 </script>
 
 

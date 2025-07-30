@@ -169,8 +169,6 @@ const addAddress = async (req, res) => {
 
 
 const placedOrder = async (req, res) => {
-    console.log("controller reached!");
-
     try {
         const { addressId, paymentMethod, coupon, totalAmount, discount } = req.body;
         const userId = req.session.user.id;
@@ -179,7 +177,36 @@ const placedOrder = async (req, res) => {
             return res.status(401).json({ success: false, message: "User not authenticated" });
         }
 
-    
+        // If wallet payment, check user and wallet balance
+        if (paymentMethod === 'Wallet Payment') {
+            const user = await User.findById(userId);
+            if (!user) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: "User not found" 
+                });
+            }
+
+            if (typeof user.wallet !== 'number' || isNaN(user.wallet)) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: "Invalid wallet balance" 
+                });
+            }
+
+            if (user.wallet < totalAmount) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: `Insufficient wallet balance. Your balance: ₹${user.wallet}, Order total: ₹${totalAmount}` 
+                });
+            }
+
+            // Deduct from wallet
+            user.wallet -= totalAmount;
+            await user.save();
+        }
+
+        
         const addressDoc = await Address.findOne({ userId: userId, "address._id": addressId });
         if (!addressDoc) {
             return res.status(400).json({ success: false, message: "Address not found" });
@@ -190,18 +217,13 @@ const placedOrder = async (req, res) => {
             return res.status(400).json({ success: false, message: "Address not found inside array" });
         }
 
-        
         const cart = await Cart.findOne({ userId: userId }).populate('items.productId');
         if (!cart || cart.items.length === 0) {
             return res.status(400).json({ success: false, message: "Cart is empty" });
         }
 
         const placedOrders = [];
-
-        
         const cartTotal = cart.items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
-        
-        
         const discountPerRupee = discount ? discount / cartTotal : 0;
 
         for (let item of cart.items) {
@@ -209,7 +231,6 @@ const placedOrder = async (req, res) => {
             const selectedSize = item.size;
             const orderedQty = item.quantity;
 
-            
             if (product.sizes[selectedSize] < orderedQty) {
                 return res.status(400).json({
                     success: false,
@@ -217,17 +238,14 @@ const placedOrder = async (req, res) => {
                 });
             }
 
-            
             product.sizes[selectedSize] -= orderedQty;
             product.quantity -= orderedQty;
             await product.save();
 
-            
             const itemTotal = item.quantity * item.price;
             const itemDiscount = Math.round(itemTotal * discountPerRupee * 100) / 100;
             const finalAmount = itemTotal - itemDiscount;
 
-            
             const newOrder = new Order({
                 userId,
                 orderItems: [{
@@ -240,6 +258,10 @@ const placedOrder = async (req, res) => {
                 discount: itemDiscount,          
                 totalAmount: finalAmount,        
                 paymentMethod,
+                
+                ...(paymentMethod === 'Wallet Payment' && { 
+                    walletTransactionId: uuidv4() 
+                }),
                 address: {
                     fullname: selectedAddress.fullname,
                     street: selectedAddress.street,
@@ -256,18 +278,19 @@ const placedOrder = async (req, res) => {
             placedOrders.push(newOrder);
         }
 
-        
         cart.items = [];
         await cart.save();
-
-        
         req.session.orderPlaced = true;
         delete req.session.cartAccess;
 
         res.json({ 
             success: true, 
             orders: placedOrders.map(order => order._id),
-            message: "Orders placed successfully"
+            message: "Orders placed successfully",
+            
+            ...(paymentMethod === 'Wallet Payment' && {
+                walletBalance: (await Wallet.findOne({ userId })).balance
+            })
         });
 
     } catch (error) {

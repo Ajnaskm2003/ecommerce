@@ -30,6 +30,18 @@ const productSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    offerPercentage: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 100,
+        validate: {
+            validator: function(value) {
+                return value >= 0 && value <= 100;
+            },
+            message: 'Offer percentage must be between 0 and 100'
+        }
+    },
     salePrice: {
         type: Number,
         required: true
