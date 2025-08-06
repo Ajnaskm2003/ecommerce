@@ -178,7 +178,7 @@ const placedOrder = async (req, res) => {
             return res.status(401).json({ success: false, message: "User not authenticated" });
         }
 
-        // If wallet payment, check user and wallet balance
+        
         if (paymentMethod === 'Wallet Payment') {
             const user = await User.findById(userId);
             if (!user) {
@@ -202,7 +202,7 @@ const placedOrder = async (req, res) => {
                 });
             }
 
-            // Deduct from wallet
+            
             user.wallet -= totalAmount;
             await user.save();
         }
@@ -309,7 +309,7 @@ const viewOrder = async (req, res) => {
         const orderId = req.params.orderId;
         console.log('Looking for order:', orderId);
 
-        // Change the query to look for _id instead of orderId
+        
         const order = await Order.findById(orderId)
             .populate({
                 path: 'orderItems.product',
@@ -362,32 +362,32 @@ const viewOrder = async (req, res) => {
 
 const downloadInvoice = async (req, res) => {
   try {
-    const { orderId } = req.params; // Extract orderId from params
+    const { orderId } = req.params; 
 
-    // Validate orderId
+    
     if (!orderId) {
       return res.status(400).json({ error: "Order ID is required" });
     }
 
-    // Log the requested orderId for debugging
+    
     console.log("Requested orderId:", orderId);
 
-    // Query the order
+    
     const order = await Order.findOne({ orderId })
       .populate('orderItems.product')
       .populate('userId');
 
-    // Check if order exists
+
     if (!order) {
       console.log("Order not found for orderId:", orderId);
-      // Log all orderIds for debugging
+      
       const orders = await Order.find({}, { orderId: 1, createdOn: 1 }).sort({ createdOn: -1 }).limit(10);
       const orderIds = orders.map(o => ({
         orderId: o.orderId,
         createdOn: o.createdOn.toISOString()
       }));
       console.log("Recent orderIds in database:", orderIds);
-      // Include recent orderIds in response only in development mode
+      
       const response = { error: "Order not found" };
       if (process.env.NODE_ENV === 'development') {
         response.recentOrderIds = orderIds;
@@ -395,17 +395,17 @@ const downloadInvoice = async (req, res) => {
       return res.status(404).json(response);
     }
 
-    // Initialize PDF document
+    
     const doc = new PDFDocument();
 
-    // Set response headers
+    
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename=invoice-${order.orderId}.pdf`);
 
-    // Pipe PDF to response
+    
     doc.pipe(res);
 
-    // Add invoice content
+    
     doc.fontSize(20).text('Invoice', { align: 'center' }).moveDown();
 
     doc.fontSize(12).text(`Order ID: ${order.orderId}`);
@@ -418,7 +418,7 @@ const downloadInvoice = async (req, res) => {
 
     doc.fontSize(14).text('Products', { underline: true }).moveDown();
 
-    // Iterate over order items
+    
     order.orderItems.forEach((item, index) => {
       const productName = item.product?.name || item.product?.productName || 'Unknown Product';
       doc.fontSize(12).text(`${index + 1}. ${productName} (Size: ${item.size || 'N/A'})`);
@@ -429,7 +429,7 @@ const downloadInvoice = async (req, res) => {
 
     doc.fontSize(14).text(`Total Amount: ₹${order.totalAmount?.toFixed(2) || '0.00'}`, { align: 'right' });
 
-    // Finalize PDF
+    
     doc.end();
   } catch (error) {
     console.error("Invoice download error:", error);
