@@ -1,10 +1,108 @@
 <%- include("../../views/partials/admin/header") %>
-<section class="content-main">
-    <div class="content-header">
-        <div>
-            <h2 class="content-title card-title">Dashboard </h2>
+
+<div class="content-wrapper">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sales Card -->
+            <div class="col-xl-3 col-lg-6 col-md-6">
+                <div class="card card-stats mb-4">
+                    <div class="card-body">
+                        <div class="icon-box">💰</div>
+                        <div class="card-title">Total Sales</div>
+                        <div class="value">₹<%= (totalSalesAmount || 0).toLocaleString() %></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Card -->
+            <div class="col-xl-3 col-lg-6 col-md-6">
+                <div class="card card-stats mb-4">
+                    <div class="card-body">
+                        <div class="icon-box">📦</div>
+                        <div class="card-title">Total Orders</div>
+                        <div class="value"><%= totalOrders || 0 %></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Orders -->
+            <div class="col-xl-3 col-lg-6 col-md-6">
+                <div class="card card-stats mb-4">
+                    <div class="card-body">
+                        <div class="icon-box">⏳</div>
+                        <div class="card-title">Pending Orders</div>
+                        <div class="value"><%= pendingOrders || 0 %></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shipped Orders -->
+            <div class="col-xl-3 col-lg-6 col-md-6">
+                <div class="card card-stats mb-4">
+                    <div class="card-body">
+                        <div class="icon-box">🚚</div>
+                        <div class="card-title">Shipped Orders</div>
+                        <div class="value"><%= shippedOrders || 0 %></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delivered Orders -->
+            <div class="col-xl-3 col-lg-6 col-md-6">
+                <div class="card card-stats mb-4">
+                    <div class="card-body">
+                        <div class="icon-box">✅</div>
+                        <div class="card-title">Delivered Orders</div>
+                        <div class="value"><%= deliveredOrders || 0 %></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Returned Orders -->
+            <div class="col-xl-3 col-lg-6 col-md-6">
+                <div class="card card-stats mb-4">
+                    <div class="card-body">
+                        <div class="icon-box">↩️</div>
+                        <div class="card-title">Returned Orders</div>
+                        <div class="value"><%= returnedOrders || 0 %></div>
+                    </div>
+                </div>
+            </div>
         </div>
-       
     </div>
-</section>
+</div>
+
+<style>
+    .content-wrapper {
+        padding: 20px;
+        margin-top: 60px;
+    }
+    .card-stats {
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+    .card-stats:hover {
+        transform: translateY(-5px);
+    }
+    .card-body {
+        padding: 20px;
+        text-align: center;
+    }
+    .icon-box {
+        font-size: 2em;
+        margin-bottom: 10px;
+    }
+    .card-title {
+        color: #666;
+        font-size: 0.9em;
+        margin-bottom: 10px;
+    }
+    .value {
+        font-size: 1.5em;
+        font-weight: bold;
+        color: #2c3e50;
+    }
+</style>
+
 <%- include("../../views/partials/admin/footer") %>

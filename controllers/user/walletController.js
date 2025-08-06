@@ -1,195 +1,173 @@
+const mongoose = require('mongoose');
 const User = require('../../models/userSchema');
 const Order = require('../../models/orderSchema');
 const Cart = require('../../models/cartSchema');
-const Product = require('../../models/productSchema')
+const Product = require('../../models/productSchema');
+const Address = require('../../models/addressSchema');
 const Transaction = require('../../models/transactionSchema');
-const{v4: uuidv4} = require('uuid');
+const { v4: uuidv4 } = require('uuid');
 
 const getWalletPage = async (req, res) => {
     try {
         const userId = req.session.user.id;
 
-        
         const user = await User.findById(userId)
-            .select('wallet')  
+            .select('wallet')
             .lean();
 
         if (!user) {
             return res.status(404).send('User not found');
         }
 
-        
         user.wallet = user.wallet || 0;
 
-        
         const transactions = await Transaction.find({ userId })
             .sort({ createdAt: -1 })
             .lean();
 
-        res.render('mywallet', {  
+        res.render('mywallet', {
             user,
             transactions,
             title: 'My Wallet'
         });
-
     } catch (error) {
         console.error('Wallet page error:', error);
         res.status(500).send('Error loading wallet');
     }
 };
 
-
 const getWalletBalance = async (req, res) => {
     try {
         const userId = req.session.user.id;
         const user = await User.findById(userId);
-        
+
         if (!user) {
-            return res.status(404).json({ 
-                success: false, 
-                message: "User not found" 
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
             });
         }
 
-        // Ensure wallet exists and is a number
         const balance = typeof user.wallet === 'number' ? user.wallet : 0;
 
-        res.json({ 
-            success: true, 
-            balance: parseFloat(balance).toFixed(2) 
+        res.json({
+            success: true,
+            balance: parseFloat(balance).toFixed(2)
         });
     } catch (error) {
         console.error('Error getting wallet balance:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Failed to fetch wallet balance' 
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch wallet balance'
         });
     }
 };
 
-
-
-
-
-
-
 const placeOrderWithWallet = async (req, res) => {
-    const session = await mongoose.startSession();
-    console.log("walletttttttttttt");
-    
     try {
-        await session.withTransaction(async () => {
-            const { addressId, totalAmount, discount = 0, coupon } = req.body;
-            const userId = req.session.user._id;
+        console.log("=== Wallet Payment Started ===");
+        const userId = req.session.user.id;
+        const { addressId, totalAmount, discount, coupon } = req.body;
 
-            
-            const user = await User.findById(userId).session(session);
-            if (!user) {
-                throw new Error("User not found");
-            }
+        console.log('Request data:', { userId, addressId, totalAmount });
 
-            if (user.wallet < totalAmount) {
-                throw new Error("Insufficient wallet balance");
-            }
+        // Get user and validate
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.json({ success: false, message: 'User not found' });
+        }
 
-            
-            const addressDoc = await Address.findOne({ userId, "address._id": addressId }).session(session);
-            if (!addressDoc) {
-                throw new Error("Address not found");
-            }
+        // Check wallet balance
+        if (user.wallet < totalAmount) {
+            return res.json({ 
+                success: false, 
+                message: `Insufficient wallet balance. Available: ₹${user.wallet}` 
+            });
+        }
 
-            const selectedAddress = addressDoc.address.find(addr => addr._id.toString() === addressId);
-            if (!selectedAddress) {
-                throw new Error("Selected address not found");
-            }
+        // Get address - Fixed address query
+        const address = await Address.findOne({ userId });
+        console.log('Found address document:', address);
 
-            
-            const cart = await Cart.findOne({ userId }).populate('items.productId').session(session);
-            if (!cart || cart.items.length === 0) {
-                throw new Error("Cart is empty");
-            }
+        if (!address || !address.address) {
+            return res.json({ success: false, message: 'No addresses found' });
+        }
 
-            
-            for (const item of cart.items) {
-                const product = await Product.findById(item.productId._id).session(session);
-                if (!product || product.sizes[item.size] < item.quantity) {
-                    throw new Error(`Stock issue with ${item.productId.productName} (Size: ${item.size})`);
-                }
-            }
+        // Find the specific address in the array
+        const selectedAddress = address.address.find(addr => addr._id.toString() === addressId);
+        console.log('Selected address:', selectedAddress);
 
-            
-            const orderItems = cart.items.map(item => ({
+        if (!selectedAddress) {
+            return res.json({ success: false, message: 'Selected address not found' });
+        }
+
+        // Get cart and validate
+        const cart = await Cart.findOne({ userId }).populate('items.productId');
+        console.log('Cart found:', cart ? 'Yes' : 'No');
+
+        if (!cart || !cart.items || cart.items.length === 0) {
+            return res.json({ success: false, message: 'Cart is empty' });
+        }
+
+        // Create order
+        const order = new Order({
+            userId,
+            orderItems: cart.items.map(item => ({
                 product: item.productId._id,
                 size: item.size,
                 quantity: item.quantity,
-                price: item.price,
-                status: 'Pending'
-            }));
+                price: item.price
+            })),
+            totalPrice: totalAmount,
+            discount: discount || 0,
+            totalAmount,
+            paymentMethod: 'Wallet Payment',
+            paymentStatus: 'Paid',
+            address: {
+                fullname: selectedAddress.fullname,
+                street: selectedAddress.street,
+                city: selectedAddress.city,
+                state: selectedAddress.state,
+                zipCode: selectedAddress.zipCode,
+                phone: selectedAddress.phone,
+                landmark: selectedAddress.landmark
+            },
+            status: 'Pending',
+            couponApplied: !!coupon
+        });
 
-        
-            const newOrder = new Order({
-                userId,
-                orderItems,
-                totalPrice: totalAmount + discount,
-                discount,
-                totalAmount,
-                paymentMethod: 'Wallet Payment',
-                address: {
-                    fullname: selectedAddress.fullname,
-                    street: selectedAddress.street,
-                    city: selectedAddress.city,
-                    state: selectedAddress.state,
-                    zipCode: selectedAddress.zipCode,
-                    phone: selectedAddress.phone
-                },
-                status: 'Pending',
-                couponApplied: !!coupon,
-                walletTransactionId: uuidv4()
-            });
+        await order.save();
+        console.log('Order created:', order._id);
 
-        
-            user.wallet -= totalAmount;
+        // Update wallet balance
+        user.wallet -= totalAmount;
+        await user.save();
+        console.log('Wallet updated. New balance:', user.wallet);
 
-            
-            for (const item of cart.items) {
-                const product = await Product.findById(item.productId._id).session(session);
-                product.sizes[item.size] -= item.quantity;
-                product.quantity -= item.quantity;
-                await product.save({ session });
-            }
+        // Clear cart
+        await Cart.findByIdAndDelete(cart._id);
+        console.log('Cart cleared');
 
-            await newOrder.save({ session });
-            await user.save({ session });
-            await Cart.deleteOne({ userId }).session(session);
-
-            res.status(200).json({
-                success: true,
-                message: 'Order placed successfully using wallet',
-                orderId: newOrder._id,
-                newBalance: user.wallet.toFixed(2)
-            });
-
+        return res.json({
+            success: true,
+            orderId: order._id,
+            newBalance: user.wallet.toFixed(2),
+            message: 'Order placed successfully'
         });
 
     } catch (error) {
-        console.error("Error placing order with wallet:", error);
-        res.status(500).json({
-            success: false,
-            message: error.message || "Order placement failed"
+        console.error('Wallet payment error:', error);
+        return res.json({ 
+            success: false, 
+            message: error.message || 'Failed to place order. Please try again.' 
         });
-    } finally {
-        session.endSession();
     }
 };
-
-
-
-
-
 
 
 module.exports = {
     getWalletPage,
     getWalletBalance,
-    placeOrderWithWallet
+    placeOrderWithWallet,
+    
 };

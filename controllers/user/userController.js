@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const path = require("path");
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
+const session = require('express-session');
 
 exports.showSignup = (req, res) => {
     res.render('signup');
@@ -124,49 +125,49 @@ const verifyOtp = async (req, res) => {
 };
 
 const loadSignin = (req, res) => {
-    res.render('signin', { message: req.flash('error') });
+  const error = req.flash('error');
+  res.render('signin', { error });
 };
 
 const signin = async (req, res) => {
-    try {
-        const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-        const user = await User.findOne({ email });
-        if (!user) {
-            req.flash('error', 'Invalid email or password');
-            return res.redirect('/signin');
-        }
-
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            req.flash('error', 'Invalid password');
-            return res.redirect('/signin');
-        }
-
-        // Set session with secure options
-        req.session.user = {
-            id: user._id,
-            email: user.email,
-            name: user.name
-        };
-
-        // Set secure cookie options
-        req.session.cookie.secure = process.env.NODE_ENV === 'production';
-        req.session.cookie.httpOnly = true;
-        req.session.cookie.maxAge = 24 * 60 * 60 * 1000; // 24 hours
-
-        // Set headers for no caching
-        res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-        res.set('Pragma', 'no-cache');
-        res.set('Expires', '0');
-
-        return res.redirect('/');
-    } catch (error) {
-        console.error('Signin error:', error);
-        req.flash('error', 'Something went wrong');
-        return res.redirect('/signin');
+    const user = await User.findOne({ email });
+    if (!user) {
+      req.flash('error', 'Invalid email or password');
+      return res.redirect('/signin');
     }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      req.flash('error', 'Invalid password');
+      return res.redirect('/signin');
+    }
+
+    req.session.user = {
+      id: user._id,
+      email: user.email,
+      name: user.name
+    };
+
+    req.session.cookie.secure = process.env.NODE_ENV === 'production';
+    req.session.cookie.httpOnly = true;
+    req.session.cookie.maxAge = 24 * 60 * 60 * 1000;
+
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+
+    return res.redirect('/');
+  } catch (error) {
+    console.error('Signin error:', error);
+    req.flash('error', 'Something went wrong');
+    return res.redirect('/signin');
+  }
 };
+
+
 
 const pageNotFound = async (req, res) => {
     try {
@@ -245,10 +246,15 @@ const resendOtp = async (req, res) => {
 };
   
 
-const logout = (req,res) =>{
-    req.session.destroy();
+const logout = async (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.log("Error destroying session:", err);
+      return res.status(500).send("Could not log out");
+    }
     res.redirect('/signin');
-}
+  });
+};
 
 
 module.exports = {

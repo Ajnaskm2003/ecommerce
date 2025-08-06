@@ -1,14 +1,40 @@
-
+const Order = require('../../models/orderSchema')
 const Admin = require('../../models/Admin'); 
 
-const loadDashboard = async(req,res)=>{
-   
+const loadDashboard = async (req, res) => {
     try {
-        console.log(' in thhe load')
-        return res.render('dashboard');
+        const orders = await Order.find();
+
+        const totalOrders = orders.length;
+        const totalSalesAmount = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+        const pendingOrders = orders.filter(o => o.status === 'Pending').length;
+        const shippedOrders = orders.filter(o => o.status === 'Shipped').length;
+        const deliveredOrders = orders.filter(o => o.status === 'Delivered').length;
+        const returnedOrders = orders.filter(o => 
+            o.orderItems.some(item => item.returnStatus === 'Accepted')
+        ).length;
+
+        console.log('Rendering dashboard with data:', {
+            totalSalesAmount,
+            totalOrders,
+            pendingOrders,
+            shippedOrders,
+            deliveredOrders,
+            returnedOrders
+        });
+
+        return res.render('dashboard', {
+            totalSalesAmount,
+            totalOrders,
+            pendingOrders,
+            shippedOrders,
+            deliveredOrders,
+            returnedOrders
+        });
 
     } catch (error) {
-        res.status(500);
+        console.error("Dashboard error:", error);
+        res.status(500).send("Something went wrong");
     }
 }
 
@@ -69,12 +95,14 @@ const loadsignin= async (req,res)=>{
     }
 }
 
+
+
+
 module.exports={
     adminSignIn,
     adminLogout,
     loadsignin,
-    loadDashboard,
-    adminLogout
+    loadDashboard
 }
 
 

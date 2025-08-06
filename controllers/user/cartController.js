@@ -24,53 +24,92 @@ const getCart = async (req, res) => {
 
 const addToCart = async (req, res) => {
     try {
-        const { productId, size } = req.body; 
-        const userId = req.session.user?.id;  
+        const { productId, size, quantity = 1 } = req.body;
+        const userId = req.session.user?.id;
 
-        if (!userId) return res.status(401).json({ message: "User not authenticated" });
-
-        
-        const product = await Product.findById(productId);
-        if (!product || product.blocked || product.sizes[size] <= 0) {
-            return res.status(400).json({ message: "Product not available" });
+        if (!userId) {
+            return res.json({ 
+                success: false, 
+                message: "Please login to add items to cart" 
+            });
         }
 
-        
-        const selectedSize = size.toString(); 
+        const product = await Product.findById(productId);
+        if (!product) {
+            return res.json({ 
+                success: false, 
+                message: "Product not found" 
+            });
+        }
 
-        
+        if (product.blocked) {
+            return res.json({ 
+                success: false, 
+                message: "This product is currently unavailable" 
+            });
+        }
+
+        // Check if size exists and has stock
+        const stockForSize = product.sizes[size];
+        if (stockForSize === undefined) {
+            return res.json({ 
+                success: false, 
+                message: "Selected size not available" 
+            });
+        }
+
+        if (stockForSize <= 0) {
+            return res.json({ 
+                success: false, 
+                message: "Selected size is out of stock" 
+            });
+        }
+
         let cart = await Cart.findOne({ userId });
         if (!cart) cart = new Cart({ userId, items: [] });
 
-        
         const existingItem = cart.items.find(item => 
-            item.productId.equals(productId) && item.size === selectedSize
+            item.productId.equals(productId) && 
+            item.size === size
         );
 
-        
         if (existingItem) {
-            
-            if (existingItem.quantity + 1 > product.sizes[selectedSize]) {
-                return res.status(400).json({ message: "Stock limit exceeded" });
+            if (existingItem.quantity + quantity > stockForSize) {
+                return res.json({ 
+                    success: false, 
+                    message: `Only ${stockForSize} items available in stock` 
+                });
             }
-            existingItem.quantity += 1; 
+            existingItem.quantity += quantity;
         } else {
-            
-            cart.items.push({ productId, size: selectedSize, quantity: 1, price: product.salePrice });
+            cart.items.push({
+                productId,
+                size,
+                quantity,
+                price: product.salePrice
+            });
         }
 
-        
         await cart.save();
 
-        
-        await Wishlist.updateOne({ userId }, { $pull: { items: { productId } } });
+        // Remove from wishlist if exists
+        await Wishlist.updateOne(
+            { userId }, 
+            { $pull: { items: { productId } } }
+        );
 
-        
-        res.json({ message: "Product added to cart", cart });
+        return res.json({
+            success: true,
+            message: "Product added to cart successfully",
+            cart: cart
+        });
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Server error", error });
+        console.error("Add to cart error:", error);
+        return res.json({ 
+            success: false, 
+            message: "Failed to add product to cart" 
+        });
     }
 };
 

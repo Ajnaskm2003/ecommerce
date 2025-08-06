@@ -1,162 +1,197 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <title>Order Details</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f1f3f6;
-        }
-        .container {
-            max-width: 900px;
-            margin: 50px auto;
-            padding: 20px;
-        }
-        .box {
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        .success-message {
-            text-align: center;
-            color: #28a745;
-            font-size: 28px;
-            font-weight: bold;
-            margin-bottom: 30px;
-        }
-        .error-message {
-            text-align: center;
-            color: #dc3545;
-            font-size: 28px;
-            font-weight: bold;
-            margin-bottom: 30px;
-        }
-        h2 {
-            margin-bottom: 20px;
-            font-size: 24px;
-            color: #333;
-            border-bottom: 1px solid #e0e0e0;
-            padding-bottom: 10px;
-        }
-        p {
-            margin-bottom: 8px;
-            color: #555;
-        }
-        .product {
-            border-bottom: 1px solid #e0e0e0;
-            padding: 15px 0;
-            display: flex;
-        }
-        .product:last-child {
-            border-bottom: none;
-        }
-        .product-image img {
-            max-width: 100px;
-            margin-right: 20px;
-        }
-        .product-details {
-            flex: 1;
-        }
-        .badge {
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            color: #fff;
-            display: inline-block;
-            margin-left: 5px;
-        }
-        .Pending { background-color: orange; }
-        .Processing { background-color: blue; }
-        .Shipped { background-color: purple; }
-        .Delivered { background-color: green; }
-        .Cancelled { background-color: red; }
-        .ReturnRequest { background-color: gray; }
-        .Returned { background-color: darkred; }
+  <meta charset="UTF-8">
+  <title>Order Details</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f1f3f6;
+    }
 
-        .back-btn {
-            display: block;
-            width: 200px;
-            margin: 30px auto 0;
-            padding: 12px;
-            text-align: center;
-            background-color: #28a745;
-            color: #fff;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: bold;
-            transition: background 0.3s ease;
-        }
-        .back-btn:hover {
-            background-color: #218838;
-        }
-        .order-summary {
-            margin-top: 20px;
-        }
-        .order-total {
-            margin-top: 20px;
-        }
-    </style>
+    .container {
+      max-width: 900px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+
+    .box {
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .success-message {
+      text-align: center;
+      color: #28a745;
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 30px;
+    }
+
+    .error-message {
+      text-align: center;
+      color: #dc3545;
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 30px;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      font-size: 24px;
+      color: #333;
+      border-bottom: 1px solid #e0e0e0;
+      padding-bottom: 10px;
+    }
+
+    p {
+      margin-bottom: 8px;
+      color: #555;
+    }
+
+    .product {
+      border-bottom: 1px solid #e0e0e0;
+      padding: 15px 0;
+      display: flex;
+      gap: 15px;
+    }
+
+    .product-image img {
+      max-width: 100px;
+      max-height: 100px;
+      object-fit: cover;
+    }
+
+    .product-details {
+      flex: 1;
+    }
+
+    .badge {
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      color: #fff;
+      display: inline-block;
+      margin-left: 5px;
+    }
+
+    .Pending { background-color: orange; }
+    .Processing { background-color: blue; }
+    .Shipped { background-color: purple; }
+    .Delivered { background-color: green; }
+    .Cancelled { background-color: red; }
+    .ReturnRequest { background-color: gray; }
+    .Returned { background-color: darkred; }
+
+    .button-group {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 30px;
+    }
+
+    .btn {
+      display: block;
+      padding: 12px 24px;
+      background-color: #28a745;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: bold;
+      transition: background 0.3s ease;
+      text-align: center;
+    }
+
+    .btn:hover {
+      background-color: #218838;
+    }
+
+    .btn.invoice {
+      background-color: #007bff;
+    }
+
+    .btn.invoice:hover {
+      background-color: #0056b3;
+    }
+
+    .order-summary {
+      margin-top: 20px;
+    }
+
+    .order-total {
+      margin-top: 20px;
+    }
+  </style>
 </head>
-
 <body>
-    <div class="container">
-        <div class="box">
-            <% if (error) { %>
-                <div class="error-message">✔ Order SuccessFully Placed</div>
-            <% } else if (order) { %>
-                <div class="success-message">✔ Order Details</div>
-                
-                <div class="order-info">
-                    <p><strong>Order ID:</strong> <%= order.orderId %></p>
-                    <p><strong>Order Date:</strong> <%= new Date(order.createdOn).toLocaleDateString() %></p>
-                    <p><strong>Order Status:</strong> 
-                        <span class="badge <%= order.status.replace(' ', '') %>">
-                            <%= order.status %>
-                        </span>
-                    </p>
-                </div>
+  <div class="container">
+    <div class="box">
 
-                <div class="shipping-info">
-                    <h3>Shipping Address</h3>
-                    <p><%= order.address.fullname %></p>
-                    <p><%= order.address.street %></p>
-                    <p><%= order.address.city %>, <%= order.address.state %> - <%= order.address.zipCode %></p>
-                    <p>Phone: <%= order.address.phone %></p>
-                </div>
-
-                <div class="order-summary">
-                    <h3>Products</h3>
-                    <% order.orderItems.forEach(item => { %>
-                        <div class="product">
-                            <div class="product-image">
-                                <img src="<%= item.product.image %>" alt="<%= item.product.name %>">
-                            </div>
-                            <div class="product-details">
-                                <h4><%= item.product.name %></h4>
-                                <p><strong>Size:</strong> <%= item.size %></p>
-                                <p><strong>Quantity:</strong> <%= item.quantity %></p>
-                                <p><strong>Price:</strong> ₹<%= item.price.toFixed(2) %></p>
-                                <p><strong>Subtotal:</strong> ₹<%= item.subtotal.toFixed(2) %></p>
-                            </div>
-                        </div>
-                    <% }) %>
-
-                    <div class="order-total">
-                        <h3>Order Summary</h3>
-                        <p><strong>Payment Method:</strong> <%= order.paymentMethod %></p>
-                        <p><strong>Total Amount:</strong> ₹<%= order.totalAmount.toFixed(2) %></p>
-                    </div>
-                </div>
-            <% } %>
-
-            <a href="/orders" class="back-btn">Back to Orders</a>
+      <% if (error) { %>
+        <div class="error-message">
+          <h2>⚠ <%= error %></h2>
+          <p>Unable to find the order details.</p>
         </div>
-    </div>
-</body>
+      <% } else if (order) { %>
+        <div class="success-message">✔ Order Details</div>
 
+        <div class="order-info">
+          <p><strong>Order ID:</strong> <%= order.orderId %></p>
+          <p><strong>Order Date:</strong> <%= new Date(order.createdOn).toLocaleDateString() %></p>
+          <p><strong>Order Status:</strong> 
+            <span class="badge <%= order.status.replace(' ', '') %>"><%= order.status %></span>
+          </p>
+        </div>
+
+        <div class="shipping-info">
+          <h3>Shipping Address</h3>
+          <p><strong>Name:</strong> <%= order.address.fullname %></p>
+          <p><%= order.address.street %>, <%= order.address.city %></p>
+          <p><%= order.address.state %> - <%= order.address.zipCode %></p>
+          <p><strong>Phone:</strong> <%= order.address.phone %></p>
+        </div>
+
+        <div class="order-summary">
+          <h3>Products</h3>
+
+          <% order.orderItems.forEach(item => { %>
+            <div class="product">
+              <div class="product-image">
+                <img src="/uploads/<%= item.product.image %>" alt="<%= item.product.name %>">
+              </div>
+              <div class="product-details">
+                <h4><%= item.product.name %></h4>
+                <p><strong>Size:</strong> <%= item.size %></p>
+                <p><strong>Quantity:</strong> <%= item.quantity %></p>
+                <p><strong>Price:</strong> ₹<%= item.price.toFixed(2) %></p>
+                <p><strong>Subtotal:</strong> ₹<%= item.subtotal.toFixed(2) %></p>
+              </div>
+            </div>
+          <% }) %>
+
+          <div class="order-total">
+            <h3>Order Summary</h3>
+            <p><strong>Payment Method:</strong> <%= order.paymentMethod %></p>
+            <p><strong>Total Amount:</strong> ₹<%= order.totalAmount.toFixed(2) %></p>
+          </div>
+        </div>
+      <% } else { %>
+        <div class="error-message">⚠ Order data not found.</div>
+      <% } %>
+
+      <!-- BUTTONS SECTION -->
+        <div class="button-group">
+         <a href="/orders" class="btn">Back to Orders</a>
+        </div>
+</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+
+</body>
 </html>

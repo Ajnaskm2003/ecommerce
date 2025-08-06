@@ -1,139 +1,160 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Sign In - Emporium</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <style>
-      body {
-        font-family: 'Poppins', sans-serif;
-        display: flex;
-        height: 100vh;
-        align-items: center;
-        justify-content: center;
-        background-color: #f7f9fc;
-      }
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign In - Emporium</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      height: 100vh;
+      align-items: center;
+      justify-content: center;
+      background-color: #f7f9fc;
+    }
 
-      .signin-container {
-        display: flex;
-        background: white;
-        border-radius: 20px;
-        box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
-      }
+    .signin-container {
+      display: flex;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
 
-      .left-section {
-        background: url('/img/backgr1.jpeg') no-repeat center center/cover;
-        width: 300px;
-        height: 400px;
-        position: relative;
-      }
+    .left-section {
+      background: url('/img/backgr1.jpeg') no-repeat center center/cover;
+      width: 300px;
+      height: 400px;
+      position: relative;
+    }
 
-      .left-section .logo {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background-color: rgba(255, 255, 255, 0.8);
-        padding: 20px;
-        border-radius: 10px;
-      }
+    .left-section .logo {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 20px;
+      border-radius: 10px;
+    }
 
-      .logo img {
-        width: 100px;
-        height: 100px;
-      }
+    .logo img {
+      width: 100px;
+      height: 100px;
+    }
 
-      .form-section {
-        padding: 40px;
-        width: 400px;
-        height: 400px;
-      }
+    .form-section {
+      padding: 40px;
+      width: 400px;
+      height: 400px;
+    }
 
-      .form-section h2 {
-        font-weight: 700;
-        font-size: 24px;
-        text-align: center;
-        margin-bottom: 20px;
-        color: #333;
-      }
+    .form-section h2 {
+      font-weight: 700;
+      font-size: 24px;
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
 
-      .form-control {
-        height: 40px;
-        border-radius: 8px;
-        padding-left: 12px;
-      }
+    .form-control {
+      height: 40px;
+      border-radius: 8px;
+      padding-left: 12px;
+    }
 
-      .btn-primary {
-        height: 40px;
-        border-radius: 10px;
-        font-weight: 600;
-        font-size: 14px;
-        background-color: #007bff;
-      }
+    .btn-primary {
+      height: 40px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      background-color: #007bff;
+    }
 
-      .google-btn img {
-        width: 20px;
-        margin-right: 8px;
-        vertical-align: middle;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="signin-container">
-      <div class="left-section">
-        <div class="logo">
-          <img src="/img/logo.jpg" alt="Emporium The Shoe Store">
-        </div>
-      </div>
-      <div class="form-section">
-        <h2>Sign In to Emporium</h2>
-        <form action="/signin" method="POST">
-          <div class="mb-3">
-            <input type="text" name="email" class="form-control" placeholder="email" required>
-          </div>
-          <div class="mb-3">
-            <input type="password" name="password" class="form-control" placeholder="Password" required>
-          </div>
-          <button type="submit" class="btn btn-primary w-100">Sign In</button>
-        </form>
-        <div class="text-center mt-3">
-          <a href="/auth/google" class="btn btn-outline-secondary google-btn w-100">
-            <img src="https://img.icons8.com/color/48/000000/google-logo.png" alt="Google">
-          </a>
+    .google-btn img {
+      width: 20px;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
 
-          <a href="/signup">signup</a>
-        </div>
+    .alert {
+      font-size: 14px;
+      padding: 10px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="signin-container">
+    <div class="left-section">
+      <div class="logo">
+        <img src="/img/logo.jpg" alt="Emporium The Shoe Store" />
       </div>
     </div>
 
-    <script>
-    // Prevent back button navigation
+    <div class="form-section">
+      <h2>Sign In to Emporium</h2>
+
+      <!-- Flash Error Message -->
+      <% if (typeof error !== 'undefined' && error.length > 0) { %>
+        <div class="alert alert-danger text-center" id="error-alert">
+          <%= error[0] %>
+        </div>
+      <% } %>
+
+      <form action="/signin" method="POST">
+        <div class="mb-3">
+          <input type="text" name="email" class="form-control" placeholder="Email" required />
+        </div>
+        <div class="mb-3">
+          <input type="password" name="password" class="form-control" placeholder="Password" required />
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Sign In</button>
+      </form>
+
+      <div class="text-center mt-3">
+        <a href="/auth/google" class="btn btn-outline-secondary google-btn w-100">
+          <img src="https://img.icons8.com/color/48/000000/google-logo.png" alt="Google" />
+          Sign in with Google
+        </a>
+        <div class="mt-2">
+          <a href="/signup">Don't have an account? Sign up</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Prevent back button from returning to sign-in after login
     window.history.pushState(null, '', window.location.href);
-    window.onpopstate = function() {
-        window.history.pushState(null, '', window.location.href);
+    window.onpopstate = function () {
+      window.history.pushState(null, '', window.location.href);
     };
 
-    // Handle page loads and refreshes
-    window.onpageshow = function(event) {
-        if (event.persisted) {
-            window.location.reload();
-        }
+    // Reload page if restored from bfcache
+    window.onpageshow = function (event) {
+      if (event.persisted) {
+        window.location.reload();
+      }
     };
 
-    // Clear form on page load
-    window.onload = function() {
-        document.querySelector('form').reset();
-        
-        // Check session storage for login state
-        if (sessionStorage.getItem('isLoggedIn')) {
-            window.location.href = '/';
-        }
+    // Reset form on load
+    window.onload = function () {
+      document.querySelector('form').reset();
     };
 
-    // Update form submission
-    document.querySelector('form').addEventListener('submit', function() {
-        sessionStorage.setItem('isLoggedIn', 'true');
+    // Set login state
+    document.querySelector('form').addEventListener('submit', function () {
+      sessionStorage.setItem('isLoggedIn', 'true');
     });
+
+    // Auto-hide error alert after 3 seconds
+    setTimeout(() => {
+      const alertBox = document.getElementById('error-alert');
+      if (alertBox) alertBox.style.display = 'none';
+    }, 3000);
   </script>
-  </body>
+</body>
 </html>

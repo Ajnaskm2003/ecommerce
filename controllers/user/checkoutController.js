@@ -3,6 +3,7 @@ const Product = require('../../models/productSchema');
 const User = require('../../models/userSchema');
 const Cart = require('../../models/cartSchema');
 const Address = require('../../models/addressSchema');
+const PDFDocument = require('pdfkit');
 
 
 
@@ -305,17 +306,19 @@ const placedOrder = async (req, res) => {
 
 const viewOrder = async (req, res) => {
     try {
-        const orderId = req.params.id;
-        
+        const orderId = req.params.orderId;
+        console.log('Looking for order:', orderId);
+
+        // Change the query to look for _id instead of orderId
         const order = await Order.findById(orderId)
             .populate({
                 path: 'orderItems.product',
                 select: 'productName productImage price'
             })
-            .populate('userId', 'name email')
-            .exec();
+            .populate('userId', 'name email');
 
         if (!order) {
+            console.log('Order not found for ID:', orderId);
             return res.render('orderdetails', { 
                 order: null,
                 error: 'Order not found'
@@ -323,7 +326,7 @@ const viewOrder = async (req, res) => {
         }
 
         const formattedOrder = {
-            orderId: order.orderId,
+            orderId: order._id,
             status: order.status,
             createdOn: order.createdOn,
             address: order.address,
@@ -357,7 +360,82 @@ const viewOrder = async (req, res) => {
     }
 };
 
+const downloadInvoice = async (req, res) => {
+  try {
+    const { orderId } = req.params; // Extract orderId from params
 
+    // Validate orderId
+    if (!orderId) {
+      return res.status(400).json({ error: "Order ID is required" });
+    }
+
+    // Log the requested orderId for debugging
+    console.log("Requested orderId:", orderId);
+
+    // Query the order
+    const order = await Order.findOne({ orderId })
+      .populate('orderItems.product')
+      .populate('userId');
+
+    // Check if order exists
+    if (!order) {
+      console.log("Order not found for orderId:", orderId);
+      // Log all orderIds for debugging
+      const orders = await Order.find({}, { orderId: 1, createdOn: 1 }).sort({ createdOn: -1 }).limit(10);
+      const orderIds = orders.map(o => ({
+        orderId: o.orderId,
+        createdOn: o.createdOn.toISOString()
+      }));
+      console.log("Recent orderIds in database:", orderIds);
+      // Include recent orderIds in response only in development mode
+      const response = { error: "Order not found" };
+      if (process.env.NODE_ENV === 'development') {
+        response.recentOrderIds = orderIds;
+      }
+      return res.status(404).json(response);
+    }
+
+    // Initialize PDF document
+    const doc = new PDFDocument();
+
+    // Set response headers
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=invoice-${order.orderId}.pdf`);
+
+    // Pipe PDF to response
+    doc.pipe(res);
+
+    // Add invoice content
+    doc.fontSize(20).text('Invoice', { align: 'center' }).moveDown();
+
+    doc.fontSize(12).text(`Order ID: ${order.orderId}`);
+    doc.text(`Order Date: ${new Date(order.createdOn).toLocaleDateString()}`);
+    doc.text(`Customer: ${order.address?.fullname || 'N/A'}`);
+    doc.text(`Address: ${order.address?.street || ''}, ${order.address?.city || ''}, ${order.address?.state || ''} - ${order.address?.zipCode || ''}`);
+    doc.text(`Phone: ${order.address?.phone || 'N/A'}`);
+    doc.text(`Payment Method: ${order.paymentMethod || 'N/A'}`);
+    doc.text(`Order Status: ${order.status || 'N/A'}`).moveDown();
+
+    doc.fontSize(14).text('Products', { underline: true }).moveDown();
+
+    // Iterate over order items
+    order.orderItems.forEach((item, index) => {
+      const productName = item.product?.name || item.product?.productName || 'Unknown Product';
+      doc.fontSize(12).text(`${index + 1}. ${productName} (Size: ${item.size || 'N/A'})`);
+      doc.text(`   Quantity: ${item.quantity || 0}`);
+      doc.text(`   Price: ₹${item.price?.toFixed(2) || '0.00'}`);
+      doc.text(`   Subtotal: ₹${(item.quantity * (item.price || 0)).toFixed(2)}`).moveDown();
+    });
+
+    doc.fontSize(14).text(`Total Amount: ₹${order.totalAmount?.toFixed(2) || '0.00'}`, { align: 'right' });
+
+    // Finalize PDF
+    doc.end();
+  } catch (error) {
+    console.error("Invoice download error:", error);
+    res.status(500).json({ error: "Failed to download invoice", details: error.message });
+  }
+};
 
 
 module.exports = {
@@ -366,4 +444,5 @@ module.exports = {
     addAddress,
     placedOrder,
     viewOrder,
+    
 }

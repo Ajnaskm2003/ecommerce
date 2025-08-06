@@ -16,7 +16,8 @@ const couponController = require("../controllers/user/couponController");
 const upload = require('../middlewares/multer');
 const multer = require('multer');
 
-// Add this middleware at the top
+
+
 const cacheControl = (req, res, next) => {
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     res.set('Pragma', 'no-cache');
@@ -31,38 +32,74 @@ router.get("/signup",Auth.isLogin,userController.loadSignup);
 router.post("/signup", userController.signup);
 router.get('/verifyotp',Auth.isLogin,userController.loadOtpPage);
 router.post('/verifyotp',userController.verifyOtp);
-router.get("/signin", cacheControl,Auth.isLogin, userController.loadSignin);
+router.get('/signin', (req, res, next) => {
+    console.log("Session at signin:", req.session);
+    next();
+}, Auth.redirectIfLoggedIn, userController.loadSignin);
+
+
+
+
 router.post('/signin', cacheControl, userController.signin);
 router.get('/',userController.loadHomepage);
 
 router.get('/auth/google',passport.authenticate('google',{scope:['profile','email']}));
+
 router.get(
-    "/auth/google/callback",
-    (req, res, next) => {
-      if (req.query.error) {
-        console.log("Google authentication failed:", req.query.error);
-        return res.redirect("/home?error=google_auth_failed"); 
-      }
-      next();
-    },
-    passport.authenticate("google", { failureRedirect: "/signup" }),
-    (req, res) => {
-      console.log("Google authentication success");
-            req.session.user=req.user._id
-    
-            
-            
-      res.redirect("/");
+  '/auth/google/callback',
+  (req, res, next) => {
+    if (req.query.error) {
+      console.log('Google authentication failed:', req.query.error);
+      return res.redirect('/home?error=google_auth_failed');
     }
-  );
+    next();
+  },
+  passport.authenticate('google', { failureRedirect: '/signup' }),
+  (req, res) => {
+    try {
+      console.log('Google authentication success');
+
+      // Set session with user data (matching signin function)
+      req.session.user = {
+        id: req.user._id,
+        email: req.user.email,
+        name: req.user.name || 'Unknown User', // Fallback for name
+      };
+
+      // Set secure cookie options (matching signin function)
+      req.session.cookie.secure = process.env.NODE_ENV === 'production'; // Secure in production
+      req.session.cookie.httpOnly = true; // Prevent client-side access
+      req.session.cookie.maxAge = 24 * 60 * 60 * 1000; // 24 hours
+
+      // Set headers for no caching (matching signin function)
+      res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
+
+      res.redirect('/');
+    } catch (error) {
+      console.error('Google auth callback error:', error);
+      req.flash('error', 'Something went wrong with Google authentication');
+      res.redirect('/signup');
+    }
+  }
+);
   
 
 router.post('/resend-otp',userController.resendOtp)
-router.get('/logout', cacheControl, (req, res) => {
-    req.session.destroy();
-    sessionStorage.removeItem('isLoggedIn');
-    res.redirect('/signin');
+router.get('/logout', (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            console.error("Session destroy error:", err);
+            return res.status(500).send("Logout failed");
+        }
+
+        res.clearCookie('connect.sid'); 
+        res.redirect('/signin'); 
+    });
 });
+
+
 
 
 
@@ -70,6 +107,7 @@ router.get('/shop',productController.getAllProducts);
 
 
 router.get('/product',productController.getProductDetails);
+router.get('/order-details/orderid/:orderId/invoice', productController.downloadInvoice);
 
 
 
@@ -84,11 +122,14 @@ router.post('/verify-email-otp',profileController.verifyEmailOtp);
 router.get('/my-address',addressController.getAddresses);
 router.post('/add-address',addressController.addAddress);
 router.post("/edit-address", addressController.editAddress);
+router.post("/delete-address/:addressId",addressController.deleteAddress);
+
 
 
 
 router.get('/wishlist',wishlistController.getWishlist)
 router.post('/wishlist-add',wishlistController.addToWishlist);
+router.post('/wishlist/remove',wishlistController.removeFromWishlist);
 
 
 
@@ -103,7 +144,10 @@ router.get("/checkout", Auth.checkSession, Auth.checkOrderPlaced, Auth.checkCart
 router.post("/order/place", checkoutController.placeOrder);
 router.post("/address/add",checkoutController.addAddress);
 router.post("/place",checkoutController.placedOrder);
-router.get("/order/view/:orderId",checkoutController.viewOrder);
+router.get("/order/view/:orderId", checkoutController.viewOrder);
+
+
+
 
 router.get('/orders',Auth.checkSession,orderController.getUserOrders);
 router.get('/order-details/:id',Auth.checkSession,orderController.viewOrderDetails);
@@ -111,7 +155,7 @@ router.get('/cancel-order/:id', orderController.cancelOrder);
 router.post('/submit-return', orderController.submitReturnRequest);
 
 router.get('/wallet/balance', Auth.checkSession, walletController.getWalletBalance);
-router.post('/place-order-with-wallet', Auth.checkSession, walletController.placeOrderWithWallet);
+router.post('/place-order-with-wallet', walletController.placeOrderWithWallet);
 
 
 router.get('/wallet',Auth.checkSession,walletController.getWalletPage);

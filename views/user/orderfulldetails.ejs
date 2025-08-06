@@ -169,7 +169,7 @@
             }
         }
 
-        /* Add these styles in your <style> section */
+        /* Action buttons */
         .action-buttons {
             text-align: center;
             margin-top: 50px;
@@ -213,7 +213,18 @@
             box-shadow: 0 6px 20px rgba(255, 193, 7, 0.6);
         }
 
-        /* Replace the existing modal styles in your <style> section */
+        .download-button {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .download-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.6);
+        }
+
+        /* Modal styles */
         .return-modal {
             display: none;
             position: fixed;
@@ -389,7 +400,7 @@
             }
         }
 
-        /* Add these styles in your <style> section */
+        /* Return status styles */
         .return-status {
             display: inline-block;
             padding: 12px 25px;
@@ -435,7 +446,6 @@
 </head>
 
 <body>
-
     <div class="container">
         <div class="header">
             <h2>Order #<%= order.orderId %></h2>
@@ -486,7 +496,7 @@
                 <p>Delivered</p>
             </div>
         </div>
-        <!-- Update the action-buttons section -->
+        <!-- Action buttons -->
         <div class="action-buttons">
             <% if(order.status === 'Pending' || order.status === 'Processing') { %>
                 <a href="/cancel-order/<%= order._id %>" class="action-button cancel-button">
@@ -512,8 +522,13 @@
                     </span>
                 <% } %>
             <% } %>
+            <% if(order.status !== 'Cancelled') { %>
+                <% if (order) { %>
+                    <button class="action-button download-button" data-id="<%= order.orderId %>">Download Invoice</button>
+                <% } %>
+            <% } %>
         </div>
-        <!-- Update the return modal -->
+        <!-- Return modal -->
         <div id="returnModal" class="return-modal">
             <div class="modal-content">
                 <span class="close-modal" onclick="closeReturnModal()">&times;</span>
@@ -522,8 +537,7 @@
                     <p>Please tell us why you want to return this item</p>
                 </div>
                 <div class="return-form">
-                    <form action="/submit-return" method="POST" onsubmit="return submitReturn(event)">
-                        <!-- Moved inside the form -->
+                    <form action="/submit-return" method="POST" onsubmit="event.preventDefault(); submitReturn();">
                         <input type="hidden" name="orderId" id="orderId">
                         <input type="hidden" name="itemId" id="itemId">
                         <textarea 
@@ -541,12 +555,10 @@
                 </div>
             </div>
         </div>
-        
     </div>
-    <!-- Add SweetAlert2 CDN first -->
+    <!-- SweetAlert2 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
-    <!-- Then add your scripts -->
+    <!-- Client-side scripts -->
     <script>
         function openReturnModal(orderId, itemId) {
             const modal = document.getElementById('returnModal');
@@ -573,9 +585,6 @@
                 const itemId = document.getElementById('itemId').value;
                 const reason = document.getElementById('returnReason').value.trim();
 
-                console.log(orderId)
-
-                // Validation check for empty reason
                 if (!reason) {
                     Swal.fire({
                         icon: 'warning',
@@ -588,7 +597,6 @@
                     return;
                 }
 
-                // Show loading state
                 Swal.fire({
                     title: 'Processing...',
                     text: 'Submitting your return request',
@@ -600,13 +608,33 @@
                     }
                 });
 
-                const response = await fetch('/user/return-request', {
+                const response = await fetch('/submit-return', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify({ orderId, itemId, reason })
                 });
+
+                // Handle specific status codes
+                if (response.status === 401) {
+                    throw new Error('Please log in to submit a return request');
+                }
+                if (response.status === 404) {
+                    throw new Error('Order or item not found');
+                }
+                if (response.status === 403) {
+                    throw new Error('Unauthorized to submit return for this order');
+                }
+
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    console.error('Non-JSON response:', text);
+                    throw new Error(`Server returned non-JSON response (Status: ${response.status}). Response starts with: ${text.slice(0, 100)}...`);
+                }
 
                 const data = await response.json();
 
@@ -615,7 +643,7 @@
                     await Swal.fire({
                         icon: 'success',
                         title: 'Success!',
-                        text: 'Return request submitted successfully',
+                        text: 'Return submitted successfully',
                         confirmButtonColor: '#28a745',
                         timer: 2000,
                         timerProgressBar: true
@@ -626,11 +654,11 @@
                 }
 
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Error in submitReturn:', error);
                 Swal.fire({
                     icon: 'error',
                     title: 'Error!',
-                    text: error.message || 'Something went wrong',
+                    text: error.message || 'Something went wrong while submitting the return request',
                     confirmButtonColor: '#dc3545'
                 });
             }
@@ -651,6 +679,23 @@
             document.addEventListener('keydown', function(event) {
                 if (event.key === "Escape") {
                     closeReturnModal();
+                }
+            });
+        });
+
+        document.querySelector('.download-button')?.addEventListener('click', function () {
+            const orderId = this.getAttribute('data-id');
+            Swal.fire({
+                title: 'Download Invoice?',
+                text: 'Do you want to download the invoice for this order?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, download it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = `/order-details/orderid/${orderId}/invoice`;
                 }
             });
         });

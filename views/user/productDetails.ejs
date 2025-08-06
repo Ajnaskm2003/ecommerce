@@ -87,7 +87,59 @@
                         inset -2px -2px 5px rgba(0, 0, 0, 0.5);
             transform: translateY(2px);
         }
-</style>
+
+        .no-product-container {
+        min-height: 400px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .no-product-container .card {
+        max-width: 500px;
+        width: 100%;
+        border-radius: 15px;
+        background: #fff;
+    }
+
+    .no-product-container h2 {
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .no-product-container p {
+        font-size: 16px;
+        margin-bottom: 20px;
+    }
+
+    .no-product-container .primary-btn {
+        display: inline-block;
+        padding: 12px 30px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .no-product-container .primary-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    @media (max-width: 768px) {
+        .no-product-container {
+            min-height: 300px;
+            padding: 20px;
+        }
+        
+        .no-product-container h2 {
+            font-size: 24px;
+        }
+        
+        .no-product-container p {
+            font-size: 14px;
+        }
+    }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -114,8 +166,9 @@
 
 	<!--================Single Product Area =================-->
 	<div class="product_image_area">
-		<div class="container">
-			<div class="row s_product_inner">
+    <div class="container">
+        <% if (product) { %>
+            <div class="row s_product_inner">
                 <div class="col-lg-6">
                     <div class="product-image-wrapper">
                         <!-- Main image with zoom functionality -->
@@ -168,9 +221,21 @@
 						</div>
 					</div>
 				</div>
-			</div>
-		</div>
-	</div>
+            </div>
+        <% } else { %>
+            <div class="no-product-container text-center my-5">
+                <div class="card p-5 shadow-sm">
+                    <i class="fa fa-search-minus mb-3" style="font-size: 48px; color: #777;"></i>
+                    <h2>No Product Found</h2>
+                    <p class="text-muted">The product you're looking for is not available.</p>
+                    <div class="mt-4">
+                        <a href="/shop" class="primary-btn">Continue Shopping</a>
+                    </div>
+                </div>
+            </div>
+        <% } %>
+    </div>
+</div>
 	<!--================End Single Product Area =================-->
 
 	<!--================Product Description Area =================-->
@@ -663,39 +728,105 @@
 
 function addToCart(productId) {
     const selectedSizeBtn = document.querySelector('.size-btn.selected');
+    
     if (!selectedSizeBtn) {
-        alert("Please select a size.");
+        Swal.fire({
+            icon: 'warning',
+            title: 'Size Required',
+            text: 'Please select a size before adding to cart',
+            confirmButtonColor: '#3085d6'
+        });
         return;
     }
 
     const selectedSize = selectedSizeBtn.getAttribute('data-size');
+    const quantity = parseInt(document.getElementById('sst').value) || 1;
 
     fetch("/cart/add", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId, size: selectedSize })
+        headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ 
+            productId, 
+            size: selectedSize,
+            quantity: quantity 
+        })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert("Product added to cart!");
+            Swal.fire({
+                icon: 'success',
+                title: 'Added to Cart!',
+                text: 'Product has been added to your cart',
+                showConfirmButton: true,
+                showCancelButton: true,
+                confirmButtonText: 'View Cart',
+                cancelButtonText: 'Continue Shopping',
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#6c757d'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '/cart';
+                }
+            });
         } else {
-            alert(data.message);
+            throw new Error(data.message);
         }
     })
-    .catch(error => console.error("Error:", error));
+    .catch(error => {
+        Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: error.message || 'Failed to add item to cart',
+            confirmButtonColor: '#3085d6'
+        });
+    });
 }
 
 
     function addToWishlist(productId) {
         fetch("/wishlist-add", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
             body: JSON.stringify({ productId })
         })
         .then(response => response.json())
-        .then(data => alert(data.message))
-        .catch(error => console.error("Error:", error));
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Added to Wishlist!',
+                    text: data.message,
+                    showConfirmButton: true,
+                    showCancelButton: true,
+                    confirmButtonText: 'View Wishlist',
+                    cancelButtonText: 'Continue Shopping',
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#6c757d'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = '/wishlist';
+                    }
+                });
+            } else {
+                throw new Error(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Wishlist error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: error.message || 'Failed to add to wishlist',
+                confirmButtonColor: '#3085d6'
+            });
+        });
     }
    </script>
 

@@ -745,75 +745,97 @@
                     await handleRazorpayPayment(addressId, finalAmount);
                 } 
                 else if (paymentMethod === "Wallet") {
-                    // Check wallet balance
-                    const walletBalance = parseFloat(document.getElementById("walletBalance").textContent.replace(/[^\d.]/g, ""));
-                    
-                    if (walletBalance < finalAmount) {
-                        return Swal.fire({
-                            icon: 'error',
-                            title: 'Insufficient Balance',
-                            html: `Your wallet balance (₹${walletBalance.toFixed(2)}) is insufficient for this order (₹${finalAmount.toFixed(2)}).<br>Please choose another payment method.`
+                    try {
+                        // Check wallet balance first
+                        const walletBalance = parseFloat(document.getElementById("walletBalance").textContent.replace(/[^\d.]/g, ""));
+                        const finalAmount = parseFloat(document.getElementById("finalAmount").textContent.replace(/[^\d.]/g, ""));
+                        
+                        if (walletBalance < finalAmount) {
+                            throw new Error(`Insufficient wallet balance. Available: ₹${walletBalance.toFixed(2)}`);
+                        }
+
+                        // Confirm wallet payment
+                        const confirmResult = await Swal.fire({
+                            icon: 'question',
+                            title: 'Confirm Wallet Payment',
+                            html: `Amount to be paid: <strong>₹${finalAmount.toFixed(2)}</strong><br>
+                                  Current balance: <strong>₹${walletBalance.toFixed(2)}</strong><br>
+                                  Remaining balance will be: <strong>₹${(walletBalance - finalAmount).toFixed(2)}</strong>`,
+                            showCancelButton: true,
+                            confirmButtonText: 'Confirm Payment',
+                            cancelButtonText: 'Cancel',
+                            confirmButtonColor: '#2ecc71',
+                            cancelButtonColor: '#e74c3c'
                         });
-                    }
-                    
-                    // Confirm wallet payment
-                    const result = await Swal.fire({
-                        icon: 'question',
-                        title: 'Confirm Wallet Payment',
-                        html: `This will deduct <strong>₹${finalAmount.toFixed(2)}</strong> from your wallet.<br>Remaining balance: <strong>₹${(walletBalance - finalAmount).toFixed(2)}</strong>`,
-                        showCancelButton: true,
-                        confirmButtonText: 'Confirm Payment',
-                        cancelButtonText: 'Cancel'
-                    });
-                    
-                    if (!result.isConfirmed) {
-                        return;
-                    }
-                    
-                    // Proceed with wallet payment
-                    const response = await fetch("/place-order-with-wallet", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            addressId,
-                            totalAmount: finalAmount,
-                            discount: discount,
-                            coupon: window.appliedCoupon ? window.appliedCoupon.code : null
-                        })
-                    });
 
-                    const data = await response.json();
+                        if (!confirmResult.isConfirmed) {
+                            return;
+                        }
 
-                    if (data.success) {
+                        // Show loading state
+                        Swal.fire({
+                            title: 'Processing Payment',
+                            text: 'Please wait...',
+                            allowOutsideClick: false,
+                            showConfirmButton: false,
+                            willOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        // Make the API call
+                        const response = await fetch("/place-order-with-wallet", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                addressId,
+                                totalAmount: finalAmount,
+                                discount,
+                                coupon: window.appliedCoupon ? window.appliedCoupon.code : null
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (!data.success) {
+                            throw new Error(data.message || 'Failed to place order');
+                        }
+
                         // Prevent back button
                         window.history.pushState(null, '', window.location.href);
                         window.onpopstate = function () {
                             window.location.href = '/';
                         };
 
-                        Swal.fire({
+                        
+                        await Swal.fire({
                             icon: 'success',
                             title: 'Order Placed Successfully!',
-                            html: `₹${finalAmount.toFixed(2)} deducted from your wallet.<br>New balance: <strong>₹${data.newBalance.toFixed(2)}</strong>`,
-                            confirmButtonText: 'View Orders',
+                            html: `Payment completed!<br>
+                                  Amount paid: <strong>₹${finalAmount.toFixed(2)}</strong><br>
+                                  New wallet balance: <strong>₹${data.newBalance}</strong>`,
+                            confirmButtonText: 'View Order Details',
+                            confirmButtonColor: '#2ecc71',
                             allowOutsideClick: false,
                             allowEscapeKey: false
-                        }).then(() => {
-                            window.location.replace('/order/view/' + data.orderId);
                         });
 
-                        // Clear cart access
+                        
                         sessionStorage.removeItem('cartAccess');
-                    } else {
+                        window.location.href = `/order/view/${data.orderId}`;
+
+                    } catch (error) {
+                        console.error('Wallet payment error:', error);
                         Swal.fire({
                             icon: 'error',
-                            title: 'Error',
-                            text: data.message || 'Failed to place order'
+                            title: 'Payment Failed',
+                            text: error.message || 'Failed to process payment. Please try again.',
+                            confirmButtonColor: '#e74c3c'
                         });
                     }
                 }
                 else {
-                    // Existing COD logic
+                    
                     const response = await fetch("/place", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -839,11 +861,12 @@
                             icon: 'success',
                             title: 'Order Placed Successfully!',
                             text: 'Your order has been placed.',
-                            confirmButtonText: 'View Orders',
+                            confirmButtonText: 'View Order',
                             allowOutsideClick: false,
                             allowEscapeKey: false
                         }).then(() => {
-                            window.location.replace('/order/view/' + data.orders[0]);
+                            // Use the first order ID from the response
+                            window.location.href = `/order/view/${data.orders[0]}`;
                         });
 
                         // Clear cart access

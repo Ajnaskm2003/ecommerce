@@ -39,27 +39,40 @@ const userProfile = async(req,res) =>{
     }
 }
 
-const myInfo = async(req,res) =>{
-    try {
-       
-        
-        const email=req.session.user.email
-       
-        // const userData = req.session.userData;
-        const userData = await User.findOne({email});
-        console.log(userData)
 
-        res.render('myprofile',{
-            data:userData,
-            
-        })
-        
+const myInfo = async (req, res) => {
+    try {
+        const email = req.session.user?.email;
+
+        if (!email) {
+            return res.redirect('/signin'); // no session set
+        }
+
+        let userData = await User.findOne({ email });
+
+        // If not found, fallback to session user (Google login case)
+        if (!userData && req.session.user) {
+            userData = {
+                name: req.session.user.name || 'Unknown User',
+                email: req.session.user.email,
+                phone: req.session.user.phone || '',
+                image: req.session.user.image || '/images/default-profile.png' // Fallback image
+            };
+        } else {
+            // Ensure image has a fallback even for database users
+            userData.image = userData.image || '/images/default-profile.png';
+            userData.phone = userData.phone || ''; // Fallback for phone if not set
+        }
+
+        res.render('myprofile', {
+            data: userData,
+        });
+
     } catch (error) {
-        console.log('error is ',error);
-        
-        res.redirect('/pageNotFound')
+        console.log('Error in myInfo:', error);
+        res.redirect('/pageNotFound');
     }
-}
+};
 
 const updateInfo = async (req,res) =>{
 

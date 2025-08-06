@@ -380,7 +380,73 @@
         console.error('Error:', error);
       }
     });
+
+    // Add delete button event listeners
+    const deleteButtons = document.querySelectorAll('.btn-delete');
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', async function() {
+            const card = button.closest('.card');
+            const addressId = card.getAttribute('data-id');
+
+            try {
+                const result = await Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, delete it!',
+                    cancelButtonText: 'Cancel'
+                });
+
+                if (result.isConfirmed) {
+                    const response = await fetch(`/delete-address/${addressId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        await Swal.fire({
+                            icon: 'success',
+                            title: 'Deleted!',
+                            text: 'Address has been deleted successfully.',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                        
+                        // Remove the card and check for empty state
+                        card.remove();
+                        if (document.querySelectorAll('.card').length === 0) {
+                            document.getElementById('addressList').innerHTML = 
+                                '<p class="text-center mt-3">No addresses found.</p>';
+                        }
+                    } else {
+                        throw new Error(data.message);
+                    }
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: error.message || 'Failed to delete address',
+                    confirmButtonColor: '#dc3545'
+                });
+            }
+        });
+    });
   });
+
+  
+
+
+
+
 </script>
 </body>
 </html>

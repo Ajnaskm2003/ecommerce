@@ -15,7 +15,7 @@ const multer = require('multer');
 router.get('/login',authMiddleware.isLogin,adminController.loadsignin);
 router.post('/login',adminController.adminSignIn);
 router.get('/logout',adminController.adminLogout);
-router.get("/dashboard",authMiddleware.checkSession,adminController.loadDashboard);
+router.get("/dashboard", authMiddleware.checkSession, adminController.loadDashboard);
 
 router.get("/customers",authMiddleware.checkSession,customerController.customerInfo);
 router.get("/blockCustomer",authMiddleware.checkSession,customerController.customerBlocked);
@@ -55,7 +55,6 @@ router.post('/returns/reject/:orderId/:itemId', orderController.rejectReturn);
 router.get('/coupons', coupenController.getCoupons); 
 router.post('/coupons', coupenController.addCoupon);
 router.post('/coupons/delete/:id', coupenController.deleteCoupon);
-
 
 
 module.exports = router;
