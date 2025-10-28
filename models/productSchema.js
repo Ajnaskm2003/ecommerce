@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+
 const productSchema = new mongoose.Schema({
     productName: {
         type: String,
@@ -11,7 +12,7 @@ const productSchema = new mongoose.Schema({
     },
     brand: {
         type: String,
-        required: true
+        required: false // Changed from true to false
     },
     category: {
         type: mongoose.Schema.Types.ObjectId,
@@ -74,13 +75,11 @@ const productSchema = new mongoose.Schema({
     }
 });
 
-// Add pre-find middleware to always populate category
 productSchema.pre('find', function(next) {
     this.populate('category');
     next();
 });
 
-// Add error handling for null category references
 productSchema.post('save', async function(doc, next) {
     try {
         if (doc.category) {

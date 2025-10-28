@@ -5,21 +5,17 @@
         border-radius: 8px;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         overflow: hidden;
-        margin: 40px 20px; /* Increased top and bottom margin */
+        margin: 40px 20px;
     }
-
-    /* Add a wrapper class for additional spacing control */
     .returns-section {
         padding-top: 30px;
         margin-top: 30px;
     }
-
     .returns-table {
         width: 100%;
         border-collapse: collapse;
         white-space: nowrap;
     }
-
     .returns-table th {
         background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
         color: #2d3436;
@@ -28,29 +24,24 @@
         text-align: left;
         border-bottom: 2px solid #dee2e6;
     }
-
     .returns-table td {
         padding: 12px 15px;
         border-bottom: 1px solid #dee2e6;
         color: #4a4a4a;
     }
-
     .returns-table tr:hover {
         background-color: #f8f9fa;
     }
-
     .status-badge {
         padding: 6px 12px;
         border-radius: 50px;
         font-size: 0.85rem;
         font-weight: 500;
     }
-
     .action-buttons {
         display: flex;
         gap: 8px;
     }
-
     .btn {
         padding: 6px 12px;
         border: none;
@@ -59,22 +50,18 @@
         cursor: pointer;
         transition: all 0.2s ease;
     }
-
     .btn-success {
         background: #28a745;
         color: white;
     }
-
     .btn-danger {
         background: #dc3545;
         color: white;
     }
-
     .btn:hover {
         transform: translateY(-1px);
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
-
     @media (max-width: 768px) {
         .returns-table-container {
             margin: 10px;
@@ -83,68 +70,270 @@
     }
 </style>
 
-<!-- Wrap the table container in the new section div -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.2/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.2/dist/sweetalert2.all.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+
 <div class="returns-section">
-    <div class="returns-table-container">
-        <table class="returns-table">
-            <thead>
-                <tr>
-                    <th>Order ID</th>
-                    <th>Customer</th>
-                    <th>Product</th>
-                    <th>Return Reason</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% returnOrders.forEach(order => { %>
-                    <% order.orderItems.forEach(item => { %>
-                        <% if(item.returnRequest && item.returnStatus === 'Pending') { %>
-                            <tr>
-                                <td><%= order.orderId %></td>
-                                <td>
-                                    <div><%= order.userId.name %></div>
-                                    <small style="color: #6c757d;"><%= order.userId.email %></small>
-                                </td>
-                                <td><%= item.product.name %></td>
-                                <td><%= item.returnReason %></td>
-                                <td>
-                                    <span class="status-badge" style="
-                                        background: <%= 
-                                            item.returnStatus === 'Pending' ? '#fff3cd' : 
-                                            item.returnStatus === 'Accepted' ? '#d4edda' :
-                                            item.returnStatus === 'Returned' ? '#cce5ff' : '#f8d7da'
-                                        %>;
-                                        color: <%= 
-                                            item.returnStatus === 'Pending' ? '#856404' : 
-                                            item.returnStatus === 'Accepted' ? '#155724' :
-                                            item.returnStatus === 'Returned' ? '#004085' : '#721c24'
-                                        %>;">
-                                        <%= item.returnStatus %>
-                                    </span>
-                                </td>
-                                <td>
-                                    <% if(item.returnStatus === 'Pending') { %>
-                                        <div class="action-buttons">
-                                            <form action="/admin/returns/accept/<%= order._id %>/<%= item._id %>" method="POST" style="display: inline;">
-                                                <button type="submit" class="btn btn-success">Accept</button>
-                                            </form>
-                                            <form action="/admin/returns/reject/<%= order._id %>/<%= item._id %>" method="POST" style="display: inline;">
-                                                <button type="submit" class="btn btn-danger">Reject</button>
-                                            </form>
-                                        </div>
-                                    <% } else if(item.returnStatus === 'Accepted') { %>
-                                        <form action="/admin/returns/complete/<%= order._id %>/<%= item._id %>" method="POST">
-                                            <button type="submit" class="btn btn-primary">Mark as Returned</button>
-                                        </form>
-                                    <% } %>
-                                </td>
-                            </tr>
-                        <% } %>
-                    <% }) %>
-                <% }) %>
-            </tbody>
-        </table>
-    </div>
+  <div class="returns-table-container">
+    <table class="returns-table">
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Customer</th>
+          <th>Product</th>
+          <th>Return Reason</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="returnsTableBody">
+        <% returnOrders.forEach(order => { %>
+          <% order.orderItems.forEach(item => { %>
+            <% if(item.returnRequest) { %>
+              <tr data-order-id="<%= order.orderId %>" data-item-id="<%= item._id.toString() %>">
+                <td><%= order.orderId %></td>
+                <td>
+                  <div><%= order.userId.name %></div>
+                  <small style="color: #6c757d;"><%= order.userId.email %></small>
+                </td>
+                <td><%= item.product?.productName || 'Product Unavailable' %></td>
+                <td class="return-reason"><%= item.returnReason %></td>
+                <td>
+                  <span class="status-badge" style="
+                    background: <%= 
+                      item.returnStatus === 'Pending' ? '#fff3cd' : 
+                      item.returnStatus === 'Accepted' ? '#d4edda' :
+                      item.returnStatus === 'Rejected' ? '#f8d7da' : '#e9ecef'
+                    %>;
+                    color: <%= 
+                      item.returnStatus === 'Pending' ? '#856404' : 
+                      item.returnStatus === 'Accepted' ? '#155724' :
+                      item.returnStatus === 'Rejected' ? '#721c24' : '#6c757d'
+                    %>;">
+                    <%= item.returnStatus || 'None' %>
+                  </span>
+                </td>
+                <td>
+                  <% if(item.returnStatus === 'Pending') { %>
+                    <div class="action-buttons">
+                      <button class="btn btn-success" onclick="acceptReturn('<%= order._id %>', '<%= item._id %>')">Accept</button>
+                      <button class="btn btn-danger" onclick="rejectReturn('<%= order._id %>', '<%= item._id %>')">Reject</button>
+                    </div>
+                  <% } else { %>
+                    <span>No actions available</span>
+                  <% } %>
+                </td>
+              </tr>
+            <% } %>
+          <% }) %>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
 </div>
+
+<%- include("../../views/partials/admin/footer") %>
+
+<script>
+  const socket = io();
+
+  socket.on("connect", () => {
+    console.log("Connected to Socket.IO server:", socket.id);
+  });
+
+  socket.on("connect_error", (error) => {
+    console.error("Socket.IO connection error:", error);
+  });
+
+  socket.on("returnNotification", (notification) => {
+    console.log("Received returnNotification:", notification);
+    const tableBody = document.getElementById("returnsTableBody");
+    const existingRow = document.querySelector(
+      `tr[data-order-id="${notification.orderId}"][data-item-id="${notification.itemId}"]`
+    );
+
+    if (existingRow) {
+      const reasonCell = existingRow.querySelector(".return-reason");
+      reasonCell.textContent = notification.returnReason;
+      const statusCell = existingRow.querySelector(".status-badge");
+      statusCell.textContent = notification.returnStatus;
+      statusCell.style.background = "#fff3cd";
+      statusCell.style.color = "#856404";
+      const actionCell = existingRow.cells[5];
+      actionCell.innerHTML = `
+        <div class="action-buttons">
+          <button class="btn btn-success" onclick="acceptReturn('${notification.orderId}', '${notification.itemId}')">Accept</button>
+          <button class="btn btn-danger" onclick="rejectReturn('${notification.orderId}', '${notification.itemId}')">Reject</button>
+        </div>
+      `;
+      tableBody.prepend(existingRow); // Move updated row to top
+    } else {
+      const newRow = document.createElement("tr");
+      newRow.setAttribute("data-order-id", notification.orderId);
+      newRow.setAttribute("data-item-id", notification.itemId);
+      newRow.innerHTML = `
+        <td>${notification.orderId}</td>
+        <td>
+          <div>${notification.userName}</div>
+          <small style="color: #6c757d;">${notification.userEmail}</small>
+        </td>
+        <td>${notification.productName}</td>
+        <td class="return-reason">${notification.returnReason}</td>
+        <td>
+          <span class="status-badge" style="background: #fff3cd; color: #856404;">${notification.returnStatus}</span>
+        </td>
+        <td>
+          <div class="action-buttons">
+            <button class="btn btn-success" onclick="acceptReturn('${notification.orderId}', '${notification.itemId}')">Accept</button>
+            <button class="btn btn-danger" onclick="rejectReturn('${notification.orderId}', '${notification.itemId}')">Reject</button>
+          </div>
+        </td>
+      `;
+      tableBody.prepend(newRow); // Add new row at top
+    }
+
+    Swal.fire({
+      icon: "info",
+      title: "New Return Request",
+      text: `Order #${notification.orderId}: ${notification.returnReason}`,
+      timer: 5000,
+      timerProgressBar: true,
+    });
+  });
+
+  socket.on("returnStatusUpdate", (update) => {
+    console.log("Received returnStatusUpdate:", update);
+    const row = document.querySelector(
+      `tr[data-order-id="${update.orderId}"][data-item-id="${update.itemId}"]`
+    );
+    if (row) {
+      const statusCell = row.querySelector(".status-badge");
+      statusCell.textContent = update.returnStatus;
+      statusCell.style.background = update.returnStatus === "Accepted" ? "#d4edda" : "#f8d7da";
+      statusCell.style.color = update.returnStatus === "Accepted" ? "#155724" : "#721c24";
+      const actionCell = row.cells[5];
+      actionCell.innerHTML = "<span>No actions available</span>";
+      
+      Swal.fire({
+        icon: "success",
+        title: `Return ${update.returnStatus}`,
+        text: `Order #${update.orderId} has been ${update.returnStatus.toLowerCase()}.`,
+        timer: 5000,
+        timerProgressBar: true,
+      });
+    }
+  });
+
+  async function acceptReturn(orderId, itemId) {
+    try {
+      const processingAlert = Swal.fire({
+        title: "Processing",
+        text: "Accepting return request...",
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        willOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
+      const response = await fetch(`/admin/returns/accept/${orderId}/${itemId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const result = await response.json();
+      await processingAlert.close();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Failed to accept return request");
+      }
+
+      const row = document.querySelector(
+        `tr[data-order-id="${orderId}"][data-item-id="${itemId}"]`
+      );
+      if (row) {
+        const statusCell = row.querySelector(".status-badge");
+        statusCell.textContent = "Accepted";
+        statusCell.style.background = "#d4edda";
+        statusCell.style.color = "#155724";
+        const actionCell = row.cells[5];
+        actionCell.innerHTML = "<span>No actions available</span>";
+      }
+
+      Swal.fire({
+        icon: "success",
+        title: "Return Accepted",
+        text: result.message || "Return accepted successfully",
+        showConfirmButton: true,
+        timer: 8000,
+        timerProgressBar: true,
+      });
+    } catch (error) {
+      await Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.message || "An unexpected error occurred",
+        showConfirmButton: true,
+      });
+    }
+  }
+
+  async function rejectReturn(orderId, itemId) {
+    try {
+      const processingAlert = Swal.fire({
+        title: "Processing",
+        text: "Rejecting return request...",
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        willOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
+      const response = await fetch(`/admin/returns/reject/${orderId}/${itemId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const result = await response.json();
+      await processingAlert.close();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Failed to reject return request");
+      }
+
+      const row = document.querySelector(
+        `tr[data-order-id="${orderId}"][data-item-id="${itemId}"]`
+      );
+      if (row) {
+        const statusCell = row.querySelector(".status-badge");
+        statusCell.textContent = "Rejected";
+        statusCell.style.background = "#f8d7da";
+        statusCell.style.color = "#721c24";
+        const actionCell = row.cells[5];
+        actionCell.innerHTML = "<span>No actions available</span>";
+      }
+
+      Swal.fire({
+        icon: "success",
+        title: "Return Rejected",
+        text: result.message || "Return rejected successfully",
+        showConfirmButton: true,
+        timer: 8000,
+        timerProgressBar: true,
+      });
+    } catch (error) {
+      await Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.message || "An unexpected error occurred",
+        showConfirmButton: true,
+      });
+    }
+  }
+</script>

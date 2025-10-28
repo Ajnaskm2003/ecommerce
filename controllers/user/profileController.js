@@ -45,23 +45,23 @@ const myInfo = async (req, res) => {
         const email = req.session.user?.email;
 
         if (!email) {
-            return res.redirect('/signin'); // no session set
+            return res.redirect('/signin');
         }
 
         let userData = await User.findOne({ email });
 
-        // If not found, fallback to session user (Google login case)
+        
         if (!userData && req.session.user) {
             userData = {
                 name: req.session.user.name || 'Unknown User',
                 email: req.session.user.email,
                 phone: req.session.user.phone || '',
-                image: req.session.user.image || '/images/default-profile.png' // Fallback image
+                image: req.session.user.image || '/images/default-profile.png' 
             };
         } else {
-            // Ensure image has a fallback even for database users
+            
             userData.image = userData.image || '/images/default-profile.png';
-            userData.phone = userData.phone || ''; // Fallback for phone if not set
+            userData.phone = userData.phone || ''; 
         }
 
         res.render('myprofile', {
@@ -85,7 +85,7 @@ const updateInfo = async (req,res) =>{
         let profileImage = req.session.user.image;
         console.log(profileImage)
         if(req.file){
-            profileImage = `/uploads/temp/${req.file.filename}`; // Store only relative path
+            profileImage = `/uploads/temp/${req.file.filename}`;
         }
         
 

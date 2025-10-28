@@ -129,7 +129,7 @@
                             <input type="text" placeholder="Type here" name="productName" class="form-control" id="product_name">
                             <span id="productName-error" class="error-message"></span>
                         </div>
-                        <div class="col-lg-4 mb-4">
+                        <!-- <div class="col-lg-4 mb-4">
                             <label class="form-label">Brand</label>
                             <select class="form-select" name="brand" required>
                                 <option value="">Select Brand</option>
@@ -138,7 +138,7 @@
                                 <option value="Puma">Puma</option>
                             </select>
                             <span id="brand-error" class="error-message"></span>
-                        </div>
+                        </div> -->
                         <div class="mb-4">
                             <label class="form-label">Full description</label>
                             <textarea placeholder="Type here" id="descriptionid" name="description" class="form-control" rows="4"></textarea>
@@ -162,7 +162,7 @@
                             <div class="col-lg-4">
                                 <div class="mb-4">
                                     <label class="form-label">Quantity</label>
-                                    <input placeholder="" name="quantity" type="text" class="form-control">
+                                    <input placeholder="" name="quantity" type="text" class="form-control" id="totalQuantity">
                                     <span id="quantity-error" class="error-message"></span>
                                 </div>
                             </div>
@@ -340,7 +340,7 @@
             delete cropperInstances[index];
 
             uploadedImageCount++;
-            addNewImage(); // Add a new file input field after saving an image
+            addNewImage(); 
         }, 'image/jpeg', 0.9);
     }
 
@@ -359,7 +359,6 @@
 
         uploadedImageCount--;
 
-        // Remove the corresponding file input field
         const imageInputRow = document.getElementById(`imageInput${index}`);
         if (imageInputRow) {
             imageInputRow.remove();
@@ -393,78 +392,321 @@
         document.getElementById('imageUploadContainer').appendChild(newInput);
     }
 
+    function updateTotalQuantity() {
+        const sizes = document.querySelectorAll('input[name^="sizes"]');
+        let totalSizeStock = 0;
+        sizes.forEach(input => {
+            const value = input.value.trim();
+            if (value !== "" && !isNaN(value) && parseInt(value) >= 0) {
+                totalSizeStock += parseInt(value);
+            }
+        });
+        const quantityInput = document.getElementById("totalQuantity");
+        quantityInput.value = totalSizeStock || "";
+        document.getElementById("quantity-error").textContent = "";
+        document.getElementById("size-error").textContent = "";
+    }
+
+    function validateTotalQuantity() {
+        const sizes = document.querySelectorAll('input[name^="sizes"]');
+        const quantity = document.getElementById("totalQuantity").value.trim();
+        let totalSizeStock = 0;
+        sizes.forEach(input => {
+            const value = input.value.trim();
+            if (value !== "" && !isNaN(value) && parseInt(value) >= 0) {
+                totalSizeStock += parseInt(value);
+            }
+        });
+
+        if (quantity !== "" && !isNaN(quantity) && parseInt(quantity) >= 0) {
+            if (totalSizeStock > parseInt(quantity)) {
+                document.getElementById("quantity-error").textContent = "Total size stock cannot exceed total quantity.";
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Quantity',
+                    text: 'Total size stock cannot exceed total quantity.',
+                    confirmButtonText: 'OK'
+                });
+                return false;
+            } else {
+                document.getElementById("quantity-error").textContent = "";
+            }
+        }
+        return true;
+    }
+
+
+    document.querySelectorAll('input[name^="sizes"]').forEach(input => {
+        input.addEventListener('input', updateTotalQuantity);
+    });
+
+
+    document.getElementById("totalQuantity").addEventListener('input', validateTotalQuantity);
+
     document.addEventListener('DOMContentLoaded', () => {
         addNewImage();
     });
 
-    document.getElementById('productForm').addEventListener('submit', function(event) {
+    // Update the form submission handler
+    document.getElementById('productForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        try {
+            const formData = new FormData(this);
+            
+            const response = await fetch('/admin/addProducts', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            console.log('Response:', data);
+
+            if (data.success) {
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: 'Product added successfully',
+                    showConfirmButton: true
+                });
+                window.location.href = '/admin/products';
+            } else {
+                throw new Error(data.message || 'Failed to add product');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message || 'Failed to save product'
+            });
+        }
+    });
+
+    // Add form validation function
+    function validateFormData() {
+        const productName = document.getElementById('product_name').value.trim();
+        const description = document.getElementById('descriptionid').value.trim();
+        const regularPrice = document.querySelector('input[name="regularPrice"]').value.trim();
+        const salePrice = document.querySelector('input[name="salePrice"]').value.trim();
+        const quantity = document.getElementById('totalQuantity').value.trim();
+        const category = document.querySelector('select[name="category"]').value;
+        const fileInputs = document.querySelectorAll('input[name="productImages"]');
+
+        let errors = [];
+
+        // Validate each field
+        if (!productName) errors.push('Product name is required');
+        if (!description) errors.push('Description is required');
+        if (!regularPrice || isNaN(regularPrice)) errors.push('Valid regular price is required');
+        if (!salePrice || isNaN(salePrice)) errors.push('Valid sale price is required');
+        if (!quantity || isNaN(quantity)) errors.push('Valid quantity is required');
+        if (!category) errors.push('Category is required');
+
+        // Check if any images are selected
+        let hasImages = false;
+        fileInputs.forEach(input => {
+            if (input.files.length > 0) hasImages = true;
+        });
+        if (!hasImages) errors.push('At least one product image is required');
+
+        if (errors.length > 0) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Validation Error',
+                html: errors.join('<br>'),
+                confirmButtonText: 'OK'
+            });
+            return false;
+        }
+
+        return true;
+    }
+
+    function clearErrors() {
         document.getElementById("productName-error").textContent = "";
-        document.getElementById("brand-error").textContent = "";
         document.getElementById("description-error").textContent = "";
         document.getElementById("regularPrice-error").textContent = "";
         document.getElementById("salePrice-error").textContent = "";
         document.getElementById("quantity-error").textContent = "";
-        document.getElementById("color-error").textContent = "";
+        document.getElementById("category-error").textContent = "";
+        document.getElementById("size-error").textContent = "";
+    }
+
+
+    document.getElementById('productForm').addEventListener('submit', function(event) {
+
+        document.getElementById("productName-error").textContent = "";
+        document.getElementById("description-error").textContent = "";
+        document.getElementById("regularPrice-error").textContent = "";
+        document.getElementById("salePrice-error").textContent = "";
+        document.getElementById("quantity-error").textContent = "";
         document.getElementById("category-error").textContent = "";
         document.getElementById("size-error").textContent = "";
 
         let hasErrors = false;
-        let productName = document.getElementById("product_name").value.trim();
-        let brand = document.querySelector('select[name="brand"]').value;
-        let description = document.getElementById("descriptionid").value.trim();
-        let regularPrice = document.querySelector('input[name="regularPrice"]').value.trim();
-        let salePrice = document.querySelector('input[name="salePrice"]').value.trim();
-        let quantity = document.querySelector('input[name="quantity"]').value.trim();
-        let color = document.querySelector('input[name="color"]').value.trim();
-        let category = document.querySelector('select[name="category"]').value;
+        let errors = [];
+
+
+        const productName = document.getElementById("product_name").value.trim();
+        const description = document.getElementById("descriptionid").value.trim();
+        const regularPrice = document.querySelector('input[name="regularPrice"]').value.trim();
+        const salePrice = document.querySelector('input[name="salePrice"]').value.trim();
+        const quantity = document.getElementById("totalQuantity").value.trim();
+        const category = document.querySelector('select[name="category"]').value;
+        const sizes = document.querySelectorAll('input[name^="sizes"]');
+        const fileInputs = document.querySelectorAll('input[name="productImages"]');
+
 
         if (!productName) {
+            errors.push("Product Name is required.");
             document.getElementById("productName-error").textContent = "Product Name is required.";
             hasErrors = true;
-        }
-        if (!brand) {
-            document.getElementById("brand-error").textContent = "Brand is required.";
+        } else if (productName.length < 3) {
+            errors.push("Product Name must be at least 3 characters long.");
+            document.getElementById("productName-error").textContent = "Product Name must be at least 3 characters long.";
+            hasErrors = true;
+        } else if (!/^[a-zA-Z0-9\s]+$/.test(productName)) {
+            errors.push("Product Name can only contain letters, numbers, and spaces.");
+            document.getElementById("productName-error").textContent = "Product Name can only contain letters, numbers, and spaces.";
             hasErrors = true;
         }
+
+
         if (!description) {
+            errors.push("Description is required.");
             document.getElementById("description-error").textContent = "Description is required.";
             hasErrors = true;
+        } else if (description.length < 10) {
+            errors.push("Description must be at least 10 characters long.");
+            document.getElementById("description-error").textContent = "Description must be at least 10 characters long.";
+            hasErrors = true;
         }
+
+
         if (!regularPrice) {
+            errors.push("Regular Price is required.");
             document.getElementById("regularPrice-error").textContent = "Regular Price is required.";
             hasErrors = true;
+        } else if (isNaN(regularPrice) || parseFloat(regularPrice) <= 0) {
+            errors.push("Regular Price must be a positive number.");
+            document.getElementById("regularPrice-error").textContent = "Regular Price must be a positive number.";
+            hasErrors = true;
         }
+
+
         if (!salePrice) {
+            errors.push("Sale Price is required.");
             document.getElementById("salePrice-error").textContent = "Sale Price is required.";
             hasErrors = true;
-        }
-        if (!quantity) {
-            document.getElementById("quantity-error").textContent = "Quantity is required.";
+        } else if (isNaN(salePrice) || parseFloat(salePrice) <= 0) {
+            errors.push("Sale Price must be a positive number.");
+            document.getElementById("salePrice-error").textContent = "Sale Price must be a positive number.";
+            hasErrors = true;
+        } else if (parseFloat(salePrice) >= parseFloat(regularPrice)) {
+            errors.push("Sale Price must be less than Regular Price.");
+            document.getElementById("salePrice-error").textContent = "Sale Price must be less than Regular Price.";
             hasErrors = true;
         }
+
+        
+        if (!quantity) {
+            errors.push("Quantity is required.");
+            document.getElementById("quantity-error").textContent = "Quantity is required.";
+            hasErrors = true;
+        } else if (isNaN(quantity) || parseInt(quantity) <= 0) {
+            errors.push("Quantity must be a positive integer.");
+            document.getElementById("quantity-error").textContent = "Quantity must be a positive integer.";
+            hasErrors = true;
+        }
+
+        
         if (!category) {
+            errors.push("Category is required.");
             document.getElementById("category-error").textContent = "Category is required.";
             hasErrors = true;
         }
 
+        let sizeValid = false;
+        let totalSizeStock = 0;
+        sizes.forEach(input => {
+            const value = input.value.trim();
+            if (value !== "" && !isNaN(value) && parseInt(value) > 0) {
+                sizeValid = true;
+                totalSizeStock += parseInt(value);
+            } else if (value !== "" && (isNaN(value) || parseInt(value) < 0)) {
+                errors.push(`Size ${input.name.match(/\d+/)[0]} quantity must be a non-negative integer.`);
+                document.getElementById("size-error").textContent = `Size ${input.name.match(/\d+/)[0]} quantity must be a non-negative integer.`;
+                hasErrors = true;
+            }
+        });
 
+        if (!sizeValid) {
+            errors.push("At least one size quantity is required.");
+            document.getElementById("size-error").textContent = "At least one size quantity is required.";
+            hasErrors = true;
+        } else if (totalSizeStock > parseInt(quantity)) {
+            errors.push("Total size stock cannot exceed total quantity.");
+            document.getElementById("size-error").textContent = "Total size stock cannot exceed total quantity.";
+            hasErrors = true;
+        }
 
-    let sizes = document.querySelectorAll('input[name^="sizes"]');
-    let sizeValid = false;
+        
+        let hasImages = false;
+        fileInputs.forEach(input => {
+            if (input.files.length > 0) {
+                hasImages = true;
+            }
+        });
+        if (!hasImages) {
+            errors.push("At least one product image is required.");
+            hasErrors = true;
+        }
 
-    sizes.forEach(input => {
-        if (input.value.trim() !== "" && parseInt(input.value) > 0) {
-            sizeValid = true;
+        
+        if (hasErrors) {
+            event.preventDefault();
+            Swal.fire({
+                icon: 'error',
+                title: 'Validation Error',
+                html: errors.join('<br>'),
+                confirmButtonText: 'OK'
+            });
         }
     });
 
-    if (!sizeValid) {
-        document.getElementById("size-error").textContent = "At least one size quantity is required.";
-        hasErrors = true;
-    }
+    document.getElementById('productForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        try {
+            const formData = new FormData(this);
+            
+            const response = await fetch('/admin/addProducts', {
+                method: 'POST',
+                body: formData
+            });
 
-        if (hasErrors) {
-            event.preventDefault();
+            const data = await response.json();
+            console.log('Response:', data);
+
+            if (data.success) {
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: 'Product added successfully',
+                    showConfirmButton: true
+                });
+                window.location.href = '/admin/products';
+            } else {
+                throw new Error(data.message || 'Failed to add product');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message || 'Failed to save product'
+            });
         }
     });
 </script>

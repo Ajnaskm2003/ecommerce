@@ -3,17 +3,18 @@ const crypto = require('crypto');
 const Order = require('../../models/orderSchema');
 const Cart = require('../../models/cartSchema');
 const Address = require('../../models/addressSchema');
+const WalletTransaction = require('../../models/walletSchema');
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET
 });
+
 
 const createOrder = async (req, res) => {
     try {
         const { totalAmount, addressId } = req.body;
         const userId = req.session.user.id;
 
-        7// Validate address
         const addressDoc = await Address.findOne({ 
             userId: userId,
             'address._id': addressId 
@@ -37,9 +38,7 @@ const createOrder = async (req, res) => {
             });
         }
 
-        // Get cart items with product details
         const cart = await Cart.findOne({ userId }).populate('items.productId');
-
         if (!cart || cart.items.length === 0) {
             return res.status(400).json({ 
                 success: false, 
@@ -47,23 +46,18 @@ const createOrder = async (req, res) => {
             });
         }
 
-        // Create Razorpay order
         const options = {
             amount: totalAmount * 100,
             currency: "INR",
-            receipt: "order_rcptid_" + Math.random().toString(36).substr(2, 9)
+            receipt: "order_rcptid_" + Math.random().toString(36).substr(2, 9),
         };
 
         const razorpayOrder = await razorpay.orders.create(options);
-
-        // Create separate orders for each cart item
         const orders = [];
 
         for (const item of cart.items) {
-            // Calculate individual item total
             const itemTotal = item.quantity * item.price;
 
-            // Create new order for each item
             const newOrder = new Order({
                 userId,
                 orderItems: [{
@@ -71,7 +65,7 @@ const createOrder = async (req, res) => {
                     size: item.size,
                     quantity: item.quantity,
                     price: item.price,
-                    status: 'Pending'
+                    status: 'Pending',
                 }],
                 totalPrice: itemTotal,
                 totalAmount: itemTotal,
@@ -84,28 +78,41 @@ const createOrder = async (req, res) => {
                     city: selectedAddress.city,
                     state: selectedAddress.state,
                     zipCode: selectedAddress.zipCode,
-                    phone: selectedAddress.phone
+                    phone: selectedAddress.phone,
                 },
-                status: "Pending"
+                status: "Pending",
             });
 
             const savedOrder = await newOrder.save();
             orders.push(savedOrder);
+
+            
+            const walletTransaction = new WalletTransaction({
+                userId,
+                type: "Debit",
+                amount: itemTotal,
+                description: `Payment for order ${savedOrder._id} via Razorpay`,
+                orderId: savedOrder._id,
+                date: new Date(),
+            });
+
+            await walletTransaction.save();
         }
 
-        // Clear the cart after creating orders
-        await Cart.findByIdAndDelete(cart._id);
+        await Cart.deleteOne({ userId });
+
+        delete req.session.cartAccess;
+        req.session.orderPlaced = true;
 
         res.json({
             success: true,
             orderId: razorpayOrder.id,
             orderIds: orders.map(order => order._id),
             amount: razorpayOrder.amount,
-            currency: razorpayOrder.currency
+            currency: razorpayOrder.currency,
         });
-
     } catch (error) {
-        console.error("❌ Error Creating Order:", error);
+        console.error("Error Creating Order:", error);
         res.status(500).json({ 
             success: false, 
             message: "Order creation failed" 
@@ -113,13 +120,15 @@ const createOrder = async (req, res) => {
     }
 };
 
+
+
 const verifyPayment = async (req, res) => {
     try {
         const { 
             razorpay_order_id, 
             razorpay_payment_id, 
             razorpay_signature,
-            orderIds  // Array of order IDs
+            orderIds 
         } = req.body;
 
         const generatedSignature = crypto
@@ -128,7 +137,6 @@ const verifyPayment = async (req, res) => {
             .digest("hex");
 
         if (generatedSignature === razorpay_signature) {
-            // Update all orders associated with this payment
             await Promise.all(orderIds.map(orderId => 
                 Order.findByIdAndUpdate(
                     orderId,
@@ -136,21 +144,24 @@ const verifyPayment = async (req, res) => {
                         razorpayPaymentId: razorpay_payment_id,
                         razorpaySignature: razorpay_signature,
                         paymentStatus: "Paid",
-                        invoiceDate: new Date()
+                        invoiceDate: new Date(),
                     }
                 )
             ));
 
+    
+            delete req.session.cartAccess;
+            req.session.orderPlaced = true;
+
             res.json({ 
                 success: true, 
                 message: "Payment verified successfully",
-                orderIds: orderIds // Return all order IDs
+                orderIds: orderIds 
             });
         } else {
-            // Mark all orders as failed if verification fails
             await Promise.all(orderIds.map(orderId => 
                 Order.findByIdAndUpdate(orderId, {
-                    paymentStatus: "Failed"
+                    paymentStatus: "Failed",
                 })
             ));
             
@@ -159,7 +170,6 @@ const verifyPayment = async (req, res) => {
                 message: "Payment verification failed" 
             });
         }
-
     } catch (error) {
         console.error("Payment verification error:", error);
         res.status(500).json({ 

@@ -66,7 +66,7 @@ const addToWishlist = async (req, res) => {
                 userId, 
                 items: [{
                     productId,
-                    userId // Add userId here for the item
+                    userId 
                 }] 
             });
         } else {
@@ -81,7 +81,7 @@ const addToWishlist = async (req, res) => {
                 });
             }
 
-            // Add userId when pushing new items
+            
             wishlist.items.push({ 
                 productId,
                 userId

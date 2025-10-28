@@ -139,8 +139,8 @@
   <h2>My Account</h2>
   <ul>
     <li><a href="/userProfile"><span class="icon"><i class="fas fa-globe"></i></span> Overview</a></li>
-    <li><a href="#"><span class="icon"><i class="fas fa-box"></i></span> My Orders</a></li>
-    <li><a href="#"><span class="icon"><i class="fas fa-wallet"></i></span> My Wallet</a></li>
+    <li><a href="/orders"><span class="icon"><i class="fas fa-box"></i></span> My Orders</a></li>
+    <li><a href="/wallet"><span class="icon"><i class="fas fa-wallet"></i></span> My Wallet</a></li>
     <li><a href="/my-address"><span class="icon"><i class="fas fa-home"></i></span> My Address</a></li>
     <li><a href="/myInfo"><span class="icon"><i class="fas fa-user"></i></span> My Profile</a></li>
     <li><a href="#"><span class="icon"><i class="fas fa-sign-out-alt"></i></span> Logout</a></li>
@@ -221,7 +221,7 @@
   </div>
 </div>
 
-<!-- Edit Address Modal -->
+
 <div id="editAddressModal" class="modal fade" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -341,6 +341,7 @@
       event.preventDefault();
 
       const addressData = {
+        id:document.getElementById('editAddressId').value,
         fullname: document.getElementById('editFullName').value,
         phone: document.getElementById('editPhone').value,
         street: document.getElementById('editStreet').value,

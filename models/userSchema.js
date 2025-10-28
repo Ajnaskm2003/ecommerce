@@ -43,6 +43,30 @@ const userSchema = new Schema({
         default: 0,
         min: 0
     },
+    walletHistory: [{
+        amount: {
+            type: Number,
+            required: true,
+        },
+        type: {
+            type: String,
+            enum: ['credit', 'debit'],
+            required: true,
+        },
+        description: {
+            type: String,
+            default: "", 
+        },
+        orderId: {
+            type: Schema.Types.ObjectId,
+            ref: "Order",
+            default: null,
+        },
+        createdOn: {
+            type: Date,
+            default: Date.now,
+        }
+    }],
     wishlist: [{
         type: Schema.Types.ObjectId,
         ref: "Wishlist",
@@ -84,6 +108,8 @@ const userSchema = new Schema({
     }],
 });
 
+userSchema.index({ googleId: 1 }, { unique: true, sparse: true });
+
 const User = mongoose.model("User", userSchema);
 
 User.collection.dropIndex("googleId_1").catch(err => {
@@ -92,6 +118,6 @@ User.collection.dropIndex("googleId_1").catch(err => {
     }
 });
 
-userSchema.index({ googleId: 1 }, { unique: true, sparse: true });
+
 
 module.exports = User;
