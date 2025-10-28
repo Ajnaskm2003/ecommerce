@@ -1,5 +1,6 @@
 const Address = require('../../models/addressSchema');
 const User = require('../../models/userSchema');
+const mongoose = require('mongoose')
 
 
 
@@ -32,7 +33,7 @@ const addAddress = async (req, res) => {
 
         const {fullname, phone, street, city, landmark = '', state, zipCode} = req.body;
 
-        // Validate required fields
+        
         if (!fullname || !phone || !street || !city || !state || !zipCode) {
             return res.json({ 
                 success: false, 
@@ -47,7 +48,7 @@ const addAddress = async (req, res) => {
                 phone,
                 street,
                 city,
-                landmark, // Now optional
+                landmark, 
                 state,
                 zipCode
             }]
@@ -71,50 +72,60 @@ const addAddress = async (req, res) => {
 
 const editAddress = async (req, res) => {
     try {
-      const { id, fullname, city, street, landmark, state, zipCode, phone } = req.body;
+        const { id, fullname, city, street, landmark, state, zipCode, phone } = req.body;
 
-      console.log('req.body-====================',req.body)
-  
-      
-      const addressDoc = await Address.findOne({ "address._id": id });
+    
+        console.log('req.body:', req.body);
 
-      console.log(addressDoc)
-  
-      if (!addressDoc) {
-        return res.status(404).json({ success: false, message: "Address not found." });
-      }
-  
-     
-      const addressToUpdate = addressDoc.address.id(id);
+        
+        if (!id) {
+            return res.status(400).json({ success: false, message: "Address ID is required." });
+        }
 
-      console.log('-------',addressToUpdate)
-  
-      if (!addressToUpdate) {
-        return res.status(404).json({ success: false, message: "Address not found." });
-      }
-  
-      
-      addressToUpdate.fullname = fullname;
-      addressToUpdate.city = city;
-      addressToUpdate.street = street;
-      addressToUpdate.landmark = landmark;
-      addressToUpdate.state = state;
-      addressToUpdate.zipCode = zipCode;
-      addressToUpdate.phone = phone;
-  
-      
-      await addressDoc.save();
+        if (!mongoose.isValidObjectId(id)) {
+            return res.status(400).json({ success: false, message: "Invalid address ID format." });
+        }
+
+        
+        const addressDoc = await Address.findOne({ "address._id": id });
+
+        
+        console.log('addressDoc:', addressDoc);
+
+        if (!addressDoc) {
+            return res.status(404).json({ success: false, message: "No document found with the provided address ID." });
+        }
+
+        
+        const addressToUpdate = addressDoc.address.find(addr => addr._id.toString() === id);
 
 
-      console.log("-------------------------------");
-      
-  
-      res.status(200).json({ success: true, message: "Address updated successfully!" });
+        console.log('addressToUpdate:', addressToUpdate);
+
+        if (!addressToUpdate) {
+            return res.status(404).json({ success: false, message: "Address subdocument not found in the document." });
+        }
+
+        
+        addressToUpdate.fullname = fullname || addressToUpdate.fullname;
+        addressToUpdate.city = city || addressToUpdate.city;
+        addressToUpdate.street = street || addressToUpdate.street;
+        addressToUpdate.landmark = landmark || addressToUpdate.landmark || '';
+        addressToUpdate.state = state || addressToUpdate.state;
+        addressToUpdate.zipCode = zipCode || addressToUpdate.zipCode;
+        addressToUpdate.phone = phone || addressToUpdate.phone;
+
+    
+        await addressDoc.save();
+
+        console.log("Address updated successfully");
+
+        res.status(200).json({ success: true, message: "Address updated successfully!" });
     } catch (error) {
-      console.error("Error updating address:", error);
-      res.status(500).json({ success: false, message: "Failed to update address." });
+        console.error("Error updating address:", error);
+        res.status(500).json({ success: false, message: "Failed to update address.", error: error.message });
     }
-  };
+};
 
 
 

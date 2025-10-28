@@ -124,78 +124,105 @@ const getProductDetails = async (req, res) => {
 
 const downloadInvoice = async (req, res) => {
   try {
-    const { orderId } = req.params; 
+    const { orderId } = req.params;
 
-    
     if (!orderId) {
       return res.status(400).json({ error: "Order ID is required" });
     }
 
-    
-    console.log("Requested orderId:", orderId);
-
-    
     const order = await Order.findOne({ orderId })
-      .populate('orderItems.product')
-      .populate('userId');
+      .populate("orderItems.product", "productName") 
+      .populate("userId");
 
-    // Check if order exists
     if (!order) {
-      console.log("Order not found for orderId:", orderId);
-      // Log recent orderIds for debugging
-      const orders = await Order.find({}, { orderId: 1, createdOn: 1 }).sort({ createdOn: -1 }).limit(10);
-      const orderIds = orders.map(o => ({
-        orderId: o.orderId,
-        createdOn: o.createdOn.toISOString()
-      }));
-      console.log("Recent orderIds in database:", orderIds);
-      // Include recent orderIds in response only in development mode
-      const response = { error: "Order not found" };
-      if (process.env.NODE_ENV === 'development') {
-        response.recentOrderIds = orderIds;
-      }
-      return res.status(404).json(response);
+      return res.status(404).json({ error: "Order not found" });
     }
 
-    // Initialize PDF document
-    const doc = new PDFDocument();
+    const doc = new PDFDocument({ margin: 40 });
 
-    // Set response headers for PDF download
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=invoice-${order.orderId}.pdf`);
+    
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=invoice-${order.orderId}.pdf`
+    );
 
-    // Pipe PDF to response
     doc.pipe(res);
 
-    // Add invoice content
-    doc.fontSize(20).text('Invoice', { align: 'center' }).moveDown();
-    doc.fontSize(12).text(`Order ID: ${order.orderId}`);
-    doc.text(`Order Date: ${new Date(order.createdOn).toLocaleDateString()}`);
-    doc.text(`Customer: ${order.address?.fullname || 'N/A'}`);
-    doc.text(`Address: ${order.address?.street || ''}, ${order.address?.city || ''}, ${order.address?.state || ''} - ${order.address?.zipCode || ''}`);
-    doc.text(`Phone: ${order.address?.phone || 'N/A'}`);
-    doc.text(`Payment Method: ${order.paymentMethod || 'N/A'}`);
-    doc.text(`Order Status: ${order.status || 'N/A'}`).moveDown();
-    doc.fontSize(14).text('Products', { underline: true }).moveDown();
+    
+    doc.fontSize(22).fillColor("#333").text("INVOICE", { align: "center" });
+    doc.moveDown(1);
 
-    // Iterate over order items
-    order.orderItems.forEach((item, index) => {
-      const productName = item.product?.name || item.product?.productName || 'Unknown Product';
-      doc.fontSize(12).text(`${index + 1}. ${productName} (Size: ${item.size || 'N/A'})`);
-      doc.text(`   Quantity: ${item.quantity || 0}`);
-      doc.text(`   Price: ₹${item.price?.toFixed(2) || '0.00'}`);
-      doc.text(`   Subtotal: ₹${(item.quantity * (item.price || 0)).toFixed(2)}`).moveDown();
+    
+    doc.fontSize(10).fillColor("#555").text("Your Store Pvt Ltd", { align: "right" });
+    doc.text("123 Business Street, Kochi, Kerala", { align: "right" });
+    doc.text("Phone: +91 9876543210", { align: "right" });
+    doc.text("Email: support@yourstore.com", { align: "right" });
+    doc.moveDown(2);
+
+    
+    doc.fontSize(12).fillColor("#000").text(`Order ID: ${order.orderId}`);
+    doc.text(`Order Date: ${new Date(order.createdOn).toLocaleDateString()}`);
+    doc.text(`Payment Method: ${order.paymentMethod}`);
+    doc.text(`Order Status: ${order.status}`).moveDown(1);
+
+    
+    doc.fontSize(12).text("Bill To:", { underline: true });
+    doc.text(order.address?.fullname || "N/A");
+    doc.text(order.address?.street || "");
+    doc.text(`${order.address?.city || ""}, ${order.address?.state || ""}`);
+    doc.text(`Pincode: ${order.address?.zipCode || ""}`);
+    doc.text(`Phone: ${order.address?.phone || "N/A"}`);
+    doc.moveDown(2);
+
+    
+    const tableTop = doc.y;
+    const itemX = 50;
+    const qtyX = 300;
+    const priceX = 370;
+    const totalX = 460;
+
+    doc.fontSize(12).fillColor("#fff");
+    doc.rect(itemX, tableTop, 500, 20).fill("#007BFF").stroke();
+    doc.fillColor("#fff").text("Product", itemX + 5, tableTop + 5);
+    doc.text("Qty", qtyX, tableTop + 5);
+    doc.text("Price", priceX, tableTop + 5);
+    doc.text("Subtotal", totalX, tableTop + 5);
+
+    doc.moveDown(1.5);
+
+    
+    doc.fillColor("#000");
+
+    
+    order.orderItems.forEach((item, i) => {
+      const y = tableTop + 25 + i * 25;
+      const productName = item.product?.productName || "Deleted"; 
+
+      doc.text(`${productName} (Size: ${item.size || "N/A"})`, itemX + 5, y);
+      doc.text(item.quantity.toString(), qtyX, y);
+      doc.text(`₹${item.price.toFixed(2)}`, priceX, y);
+      doc.text(`₹${(item.quantity * item.price).toFixed(2)}`, totalX, y);
+
+      // Row Line
+      doc.moveTo(itemX, y + 18).lineTo(itemX + 500, y + 18).strokeColor("#ddd").stroke();
     });
 
-    doc.fontSize(14).text(`Total Amount: ₹${order.totalAmount?.toFixed(2) || '0.00'}`, { align: 'right' });
+   
+    const totalY = tableTop + 25 + order.orderItems.length * 25 + 20;
 
-    // Finalize PDF
+    doc.fontSize(12).fillColor("#000").text("Total Amount:", totalX - 80, totalY, {
+      align: "right",
+    });
+    doc.fontSize(14).fillColor("#007BFF").text(`₹${order.totalAmount.toFixed(2)}`, totalX, totalY);
+
     doc.end();
   } catch (error) {
     console.error("Invoice download error:", error);
     res.status(500).json({ error: "Failed to download invoice", details: error.message });
   }
 };
+
 
 
 

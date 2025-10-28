@@ -32,7 +32,7 @@ const addressSchema = new Schema({
         },
         landmark: {
             type: String,
-            default: ''  // Make landmark optional with empty default
+            default: ''  
         },
         state: {
             type: String,

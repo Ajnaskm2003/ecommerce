@@ -9,7 +9,6 @@ const getUserOrders = async (req, res) => {
 
         
 
-        // Fetch orders with populated product details
         const orders = await Order.find({ userId })
             .populate({
                 path: 'orderItems.product',
@@ -17,7 +16,6 @@ const getUserOrders = async (req, res) => {
             })
             .sort({ createdOn: -1 });
 
-        // Format orders for rendering
         const formattedOrders = orders.map(order => {
             return {
                 _id: order._id,
@@ -100,59 +98,77 @@ const cancelOrder = async (req, res) => {
 
 
 const submitReturnRequest = async (req, res) => {
-    try {
-        const { orderId, itemId, returnReason } = req.body;
-        console.log(req.body)
-        
-        
-        const order = await Order.findById(orderId);
+  try {
+    const { orderId, itemId, returnReason } = req.body;
+    console.log("Request body:", req.body);
 
-        if (!order) {
-            return res.status(404).json({ 
-                success: false,
-                message: "Order Not Found" 
-            });
-        }
-
-        
-        if (order.userId.toString() !== req.session.user.id.toString()) {
-            return res.status(403).json({ 
-                success: false,
-                message: "Unauthorized" 
-            });
-        }
-
-        
-        const orderItem = order.orderItems.find(item => item._id.toString() === itemId);
-        
-        if (!orderItem) {
-            return res.status(404).json({ 
-                success: false,
-                message: "Order item not found" 
-            });
-        }
-
-       
-        orderItem.returnRequest = true;
-        orderItem.returnReason = returnReason;
-        orderItem.returnStatus = 'Pending';
-        orderItem.returnRequestDate = new Date();
-
-        await order.save();
-
-        res.json({ 
-            success: true,
-            message: "Return request submitted successfully"
-        });
-
-    } catch (error) {
-        console.error('Return request error:', error);
-        res.status(500).json({ 
-            success: false,
-            message: 'Something went wrong', 
-            error: error.message 
-        });
+    if (!returnReason || returnReason.trim() === "") {
+      return res.status(400).json({
+        success: false,
+        message: "Return reason is required and cannot be empty",
+      });
     }
+
+    const order = await Order.findById(orderId).populate("orderItems.product", "productName");
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order Not Found",
+      });
+    }
+
+    if (order.userId.toString() !== req.session.user.id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    const orderItem = order.orderItems.find(
+      (item) => item._id.toString() === itemId
+    );
+
+    if (!orderItem) {
+      return res.status(404).json({
+        success: false,
+        message: "Order item not found",
+      });
+    }
+
+    orderItem.returnRequest = true;
+    orderItem.returnStatus = "Pending";
+    orderItem.returnReason = returnReason.trim();
+    orderItem.returnRequestDate = new Date();
+
+    await order.save();
+
+    const io = req.app.get("io");
+    const notification = {
+      orderId: order.orderId,
+      itemId: orderItem._id.toString(),
+      productName: orderItem.product?.productName || "Deleted",
+      userName: req.session.user.name || "Unknown User",
+      userEmail: req.session.user.email || "N/A",
+      returnReason: returnReason.trim(),
+      returnStatus: "Pending",
+      timestamp: new Date().toISOString(),
+    };
+    console.log("Emitting returnNotification:", notification);
+    io.emit("returnNotification", notification);
+
+    res.json({
+      success: true,
+      message: "Return request submitted successfully",
+    });
+  } catch (error) {
+    console.error("Return request error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+      error: error.message,
+    });
+  }
 };
 
 module.exports = {

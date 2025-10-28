@@ -139,6 +139,11 @@ const signin = async (req, res) => {
       return res.redirect('/signin');
     }
 
+    if (user.isBlocked) {
+      req.flash('error', 'Your account has been blocked. Please contact support.');
+      return res.redirect('/pageNotFound');
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       req.flash('error', 'Invalid password');

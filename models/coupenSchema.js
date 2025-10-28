@@ -8,7 +8,8 @@ const couponSchema = new mongoose.Schema({
     maxDiscount: { type: Number, default: 0 }, 
     expiryDate: { type: Date, required: true }, 
     usageLimit: { type: Number, default: 1 },
-    usedCount: { type: Number, default: 0 }
+    usedCount: { type: Number, default: 0 },
+    
 });
 
 module.exports = mongoose.model("Coupon", couponSchema);

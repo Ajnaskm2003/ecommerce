@@ -13,6 +13,7 @@ const orderController = require("../controllers/user/orderController");
 const walletController = require("../controllers/user/walletController");
 const razorpayController = require("../controllers/user/razorpayController");
 const couponController = require("../controllers/user/couponController");
+const forgotPasswordController = require("../controllers/user/forgotPasswordController");
 const upload = require('../middlewares/multer');
 const multer = require('multer');
 
@@ -59,19 +60,18 @@ router.get(
     try {
       console.log('Google authentication success');
 
-      // Set session with user data (matching signin function)
       req.session.user = {
         id: req.user._id,
         email: req.user.email,
-        name: req.user.name || 'Unknown User', // Fallback for name
+        name: req.user.name || 'Unknown User', 
       };
 
-      // Set secure cookie options (matching signin function)
-      req.session.cookie.secure = process.env.NODE_ENV === 'production'; // Secure in production
-      req.session.cookie.httpOnly = true; // Prevent client-side access
-      req.session.cookie.maxAge = 24 * 60 * 60 * 1000; // 24 hours
+    
+      req.session.cookie.secure = process.env.NODE_ENV === 'production'; 
+      req.session.cookie.httpOnly = true; 
+      req.session.cookie.maxAge = 24 * 60 * 60 * 1000;
 
-      // Set headers for no caching (matching signin function)
+      
       res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
       res.set('Pragma', 'no-cache');
       res.set('Expires', '0');
@@ -100,6 +100,11 @@ router.get('/logout', (req, res) => {
 });
 
 
+router.get('/forgot-password',forgotPasswordController.getForgotPasswordPage);
+router.post('/forgot-password/send-otp',forgotPasswordController.forgotSendOtp);
+router.post('/forgot-password/verify-otp',forgotPasswordController.forgotVerifyOtp);
+router.get('/change-password', forgotPasswordController.renderChangePassword);
+router.post('/reset-password', forgotPasswordController.resetPassword);
 
 
 
@@ -126,7 +131,6 @@ router.post("/delete-address/:addressId",addressController.deleteAddress);
 
 
 
-
 router.get('/wishlist',wishlistController.getWishlist)
 router.post('/wishlist-add',wishlistController.addToWishlist);
 router.post('/wishlist/remove',wishlistController.removeFromWishlist);
@@ -145,7 +149,9 @@ router.post("/order/place", checkoutController.placeOrder);
 router.post("/address/add",checkoutController.addAddress);
 router.post("/place",checkoutController.placedOrder);
 router.get("/order/view/:orderId", checkoutController.viewOrder);
-
+router.get("/address/:id", checkoutController.getAddress); 
+router.put('/address/edit', checkoutController.editAddress);
+router.get("/api/coupons/active",checkoutController.getActiveCoupons);
 
 
 
@@ -154,18 +160,21 @@ router.get('/order-details/:id',Auth.checkSession,orderController.viewOrderDetai
 router.get('/cancel-order/:id', orderController.cancelOrder);
 router.post('/submit-return', orderController.submitReturnRequest);
 
+
 router.get('/wallet/balance', Auth.checkSession, walletController.getWalletBalance);
 router.post('/place-order-with-wallet', walletController.placeOrderWithWallet);
-
-
 router.get('/wallet',Auth.checkSession,walletController.getWalletPage);
+router.get('/wallet/history', Auth.checkSession, walletController.getWalletHistory);
+
+
 
 router.post('/create-order',razorpayController.createOrder);
 router.post('/verify-payment',razorpayController.verifyPayment);
 
+
+router.get("/coupons/active", couponController.getActiveCoupons);
 router.post('/apply-coupon', couponController.applyCoupon);
-
-
+router.get('/get-wallet-balance', Auth.checkSession, checkoutController.getWalletBalance);
 
 
 

@@ -1,6 +1,36 @@
 const Coupon = require('../../models/coupenSchema');
 
 
+const getActiveCoupons = async (req, res) => {
+    try {
+        let currentDate = new Date();
+        currentDate.setHours(0, 0, 0, 0); 
+
+        console.log("Fetching active coupons as of:", currentDate); 
+
+        const coupons = await Coupon.find({
+            expiryDate: { $gte: currentDate },
+            $expr: { $lt: ["$usedCount", "$usageLimit"] }
+        }).select("code discount type minPurchase maxDiscount");
+
+        console.log("Found active coupons:", coupons.length); 
+
+        res.json({
+            success: true,
+            coupons: coupons.map(coupon => ({
+                code: coupon.code,
+                discount: coupon.discount,
+                type: coupon.type,
+                minPurchase: coupon.minPurchase,
+                maxDiscount: coupon.maxDiscount
+            }))
+        });
+    } catch (error) {
+        console.error("Error fetching active coupons:", error);
+        res.status(500).json({ success: false, message: "Failed to fetch active coupons" });
+    }
+};
+
 const applyCoupon = async (req, res) => {
     try {
         const { code, totalAmount } = req.body;  
@@ -13,39 +43,39 @@ const applyCoupon = async (req, res) => {
             return res.status(400).json({ message: "❌ Invalid coupon code" });
         }
 
-        // Check if coupon is expired
+        
         if (coupon.expiryDate < new Date()) {
             return res.status(400).json({ message: "❌ Coupon expired" });
         }
 
-        // Check if usage limit is reached
+        
         if (coupon.usageLimit > 0 && coupon.usedCount >= coupon.usageLimit) {
             return res.status(400).json({ message: "❌ Coupon usage limit reached" });
         }
 
-        // Convert totalAmount to a number (to avoid string issues)
+        
         const cartTotal = parseFloat(totalAmount);
 
-        // Check if cart total meets the minimum purchase amount
+    
         if (cartTotal < coupon.minPurchase) {
             return res.status(400).json({ message: `❌ Minimum purchase should be ₹${coupon.minPurchase}` });
         }
 
-        // Calculate discount amount
+        
         let discountAmount = 0;
         if (coupon.type === "percentage") {
             discountAmount = (cartTotal * coupon.discount) / 100;
             if (coupon.maxDiscount > 0 && discountAmount > coupon.maxDiscount) {
-                discountAmount = coupon.maxDiscount; // Apply max discount limit
+                discountAmount = coupon.maxDiscount; 
             }
         } else {
-            discountAmount = coupon.discount; // Flat discount
+            discountAmount = coupon.discount; 
         }
 
-        // Calculate the new total after applying discount
+        
         const newTotal = cartTotal - discountAmount;
 
-        // Increment used count for the coupon
+        
         await Coupon.updateOne({ code }, { $inc: { usedCount: 1 } });
 
         return res.json({ success: true, discountAmount, newTotal });
@@ -59,4 +89,5 @@ const applyCoupon = async (req, res) => {
 
 module.exports = {
     applyCoupon,
+    getActiveCoupons
 }

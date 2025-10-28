@@ -11,10 +11,23 @@ const getCart = async (req, res) => {
             return res.redirect('/login');
         }
 
-        
+        // Set cache control headers
+        res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+
         const cart = await Cart.findOne({ userId }).populate('items.productId');
 
-        res.render('cart', { cart: cart || { items: [] } }); 
+        // Remove the redirection to orders
+        if (!cart || !cart.items.length) {
+            return res.render('cart', { 
+                cart: { items: [] },
+                message: 'Your cart is empty'
+            });
+        }
+
+        res.render('cart', { 
+            cart: cart,
+            message: null
+        }); 
 
     } catch (error) {
         console.error("Error fetching cart:", error);
@@ -36,33 +49,21 @@ const addToCart = async (req, res) => {
 
         const product = await Product.findById(productId);
         if (!product) {
-            return res.json({ 
-                success: false, 
-                message: "Product not found" 
-            });
+            return res.json({ success: false, message: "Product not found" });
         }
 
         if (product.blocked) {
-            return res.json({ 
-                success: false, 
-                message: "This product is currently unavailable" 
-            });
+            return res.json({ success: false, message: "This product is currently unavailable" });
         }
 
-        // Check if size exists and has stock
+    
         const stockForSize = product.sizes[size];
         if (stockForSize === undefined) {
-            return res.json({ 
-                success: false, 
-                message: "Selected size not available" 
-            });
+            return res.json({ success: false, message: "Selected size not available" });
         }
 
         if (stockForSize <= 0) {
-            return res.json({ 
-                success: false, 
-                message: "Selected size is out of stock" 
-            });
+            return res.json({ success: false, message: "Selected size is out of stock" });
         }
 
         let cart = await Cart.findOne({ userId });
@@ -92,17 +93,13 @@ const addToCart = async (req, res) => {
 
         await cart.save();
 
-        // Remove from wishlist if exists
+        
         await Wishlist.updateOne(
             { userId }, 
             { $pull: { items: { productId } } }
         );
 
-        return res.json({
-            success: true,
-            message: "Product added to cart successfully",
-            cart: cart
-        });
+        return res.json({ success: true,message: "Product added to cart successfully",cart: cart });
 
     } catch (error) {
         console.error("Add to cart error:", error);
@@ -121,87 +118,116 @@ const addToCart = async (req, res) => {
 
 
 const incrementCartItem = async (req, res) => {
-        try {
-            console.log('-----------------------------------')
-            const { cartItemId } = req.body; 
-            const userId = req.session.user.id; 
+    try {
+        const userId = req.session.user?.id;
+        const { cartItemId } = req.body;
 
-            console.log(userId)
-    
-            if (!userId) {
-                return res.status(401).json({ message: "User not authenticated" });
-            }
-    
-            let cart = await Cart.findOne({ userId }).populate('items.productId');
-            if (!cart) return res.status(404).json({ message: "Cart not found" });
-    
-            
-            const item = cart.items.find(i => i._id.equals(cartItemId));
-            if (!item) return res.status(404).json({ message: "Item not found in cart" });
-    
-            const product = item.productId;
-            if (!product) return res.status(404).json({ message: "Product not found" });
-    
-            
-            if (item.quantity + 1 > product.sizes[item.size]) {
-                return res.status(400).json({ message: "Stock limit exceeded" });
-            }
-    
-            
-            item.quantity += 1;
-            cart.totalPrice = cart.items.reduce((acc, curr) => acc + curr.quantity * curr.price, 0);
-    
-            await cart.save();
-            res.json({ message: "Quantity updated", cart });
-    
-        } catch (error) {
-            console.error("Error incrementing cart item:", error);
-            res.status(500).json({ message: "Server error" });
+        if (!userId || !cartItemId) {
+            return res.json({ 
+                success: false, 
+                message: "Invalid request" 
+            });
         }
-    
-    
-}
+
+        const cart = await Cart.findOne({ userId });
+        if (!cart) {
+            return res.json({ 
+                success: false, 
+                message: "Cart not found" 
+            });
+        }
+
+        const cartItem = cart.items.id(cartItemId);
+        if (!cartItem) {
+            return res.json({ 
+                success: false, 
+                message: "Item not found in cart" 
+            });
+        }
+
+        // Check stock before increment
+        const product = await Product.findById(cartItem.productId);
+        if (!product) {
+            return res.json({ 
+                success: false, 
+                message: "Product not found" 
+            });
+        }
+
+        const size = product.sizes[cartItem.size];
+        if (cartItem.quantity >= size) {
+            return res.json({ 
+                success: false, 
+                message: "Maximum stock limit reached" 
+            });
+        }
+
+        cartItem.quantity += 1;
+        await cart.save();
+
+        res.json({ 
+            success: true, 
+            message: "Quantity updated" 
+        });
+
+    } catch (error) {
+        console.error("Increment error:", error);
+        res.json({ 
+            success: false, 
+            message: "Failed to update quantity" 
+        });
+    }
+};
 
 const decrementCartItem = async (req, res) => {
     try {
-        console.log('-----------------------------------')
-        const { cartItemId } = req.body; 
-        const userId = req.session.user.id; 
+        const userId = req.session.user?.id;
+        const { cartItemId } = req.body;
 
-        console.log(userId)
-
-        if (!userId) {
-            return res.status(401).json({ message: "User not authenticated" });
+        if (!userId || !cartItemId) {
+            return res.json({ 
+                success: false, 
+                message: "Invalid request" 
+            });
         }
 
-        let cart = await Cart.findOne({ userId }).populate('items.productId');
-        if (!cart) return res.status(404).json({ message: "Cart not found" });
-
-        const item = cart.items.find(i => i._id.equals(cartItemId));
-        if (!item) return res.status(404).json({ message: "Item not found in cart" });
-
-        const product = item.productId;
-        if (!product) return res.status(404).json({ message: "Product not found" });
-
-        
-        if (item.quantity <= 1) {
-            return res.status(400).json({ message: "Quantity cannot be less than 1" });
+        const cart = await Cart.findOne({ userId });
+        if (!cart) {
+            return res.json({ 
+                success: false, 
+                message: "Cart not found" 
+            });
         }
 
-        
-        item.quantity -= 1;
-        cart.totalPrice = cart.items.reduce((acc, curr) => acc + curr.quantity * curr.price, 0);
+        const cartItem = cart.items.id(cartItemId);
+        if (!cartItem) {
+            return res.json({ 
+                success: false, 
+                message: "Item not found in cart" 
+            });
+        }
+
+        if (cartItem.quantity <= 1) {
+            cart.items.pull(cartItemId);
+        } else {
+            cartItem.quantity -= 1;
+        }
 
         await cart.save();
-        res.json({ message: "Quantity decremented", cart });
+
+        res.json({ 
+            success: true, 
+            message: "Quantity updated" 
+        });
 
     } catch (error) {
-        console.error("Error decrementing cart item:", error);
-        res.status(500).json({ message: "Server error" });
+        console.error("Decrement error:", error);
+        res.json({ 
+            success: false, 
+            message: "Failed to update quantity" 
+        });
     }
-}
-
-
+};
 
 
 

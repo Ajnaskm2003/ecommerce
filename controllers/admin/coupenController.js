@@ -14,7 +14,7 @@ const getCoupons = async (req, res) => {
     }
 };
 
-// Add a new coupon
+
 const addCoupon = async (req, res) => {
     try {
 
@@ -45,7 +45,41 @@ const addCoupon = async (req, res) => {
     }
 };
 
-// Delete a coupon
+
+const editCoupon = async (req,res) => {
+    try {
+        const {id} = req.params;
+        const {code,discount,type,minPurchase,maxDiscount,usageLimit,expiryDate} = req.body;
+
+        const updated = await Coupon.findByIdAndUpdate(
+            id,
+            {
+                code,
+                discount,
+                type,
+                minPurchase,
+                maxDiscount,
+                usageLimit,
+                expiryDate
+            },
+            {new : true}
+        );
+
+        if(!updated){
+            return res.json({ success : false, message: "Coupon not Found"});
+        }
+
+        res.json({success: true , message : "Coupon updated Successfully"});
+
+
+
+    } catch (error) {
+        console.error(error);
+        res.json({ success: false, message: "Error updating coupon" });
+    }
+}
+
+
 const deleteCoupon = async (req, res) => {
     try {
         await Coupon.findByIdAndDelete(req.params.id);
@@ -59,5 +93,6 @@ const deleteCoupon = async (req, res) => {
 module.exports = {
     getCoupons,
     addCoupon,
-    deleteCoupon
+    deleteCoupon,
+    editCoupon
 }

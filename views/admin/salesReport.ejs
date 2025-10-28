@@ -1,0 +1,176 @@
+<%- include('../partials/admin/header') %>
+
+<style>
+    .sales-container {
+        background: #fff;
+        padding: 20px;
+        margin: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+        margin-bottom: 20px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #fff;
+        overflow: hidden;
+    }
+
+    table th, table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #ddd;
+        text-align: left;
+    }
+
+    table th {
+        background-color: #f4f4f4;
+        font-weight: bold;
+        color: #333;
+    }
+
+    table tr:hover {
+        background-color: #f9f9f9;
+    }
+
+    .order-items {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .order-items li {
+        margin-bottom: 3px;
+    }
+
+    .filter-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        gap: 10px;
+    }
+
+    .filter-container input, .filter-container select {
+        padding: 6px 10px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+
+    .filter-container button {
+        padding: 8px 14px;
+        border-radius: 5px;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .filter-btn {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .download-btn {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .filter-container button:hover {
+        opacity: 0.9;
+    }
+</style>
+
+<div class="sales-container">
+    <h2>Sales Report</h2>
+
+    <!-- Filter & Download Section -->
+    <div class="filter-container">
+        <!-- Static Date Filter Form -->
+        <form method="GET" action="/admin/salesReport" style="display:flex; gap:10px; align-items:center;">
+            <label for="period">Period:
+                <select name="period" id="period">
+                    <option value="day">Day</option>
+                    <option value="week">Week</option>
+                    <option value="month">Month</option>
+                </select>
+            </label>
+            <label>From: <input type="date" name="from"></label>
+            <label>To: <input type="date" name="to"></label>
+            <button type="submit" class="filter-btn">Filter</button>
+        </form>
+        <a href="/admin/salesReport"><button type="button" class="filter-btn">Clear Filters</button></a>
+
+        <!-- Download Button -->
+        <form id="downloadForm" method="GET" action="/admin/sales-report/download">
+        
+            <input type="hidden" name="period" value="<%= query?.period || '' %>">
+            <input type="hidden" name="from" value="<%= query?.from || '' %>">
+            <input type="hidden" name="to" value="<%= query?.to || '' %>">
+
+        <button type="submit" class="download-btn">Download Report</button>
+        </form>
+
+        <form id="downloadFormExcel" method="GET" action="/admin/sales-report/download-excel">
+    <input type="hidden" name="period" value="<%= query?.period || '' %>">
+    <input type="hidden" name="from" value="<%= query?.from || '' %>">
+    <input type="hidden" name="to" value="<%= query?.to || '' %>">
+    <button type="submit" class="download-btn">Download Excel</button>
+</form>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Order Items</th>
+                <th>Date</th>
+                <th>Sales Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (sales && sales.length > 0) { %>
+                <% sales.forEach(sale => { %>
+                    <tr>
+                        <td><%= sale.orderId %></td>
+                        <td>
+                            <ul class="order-items">
+                                <% sale.items.forEach(item => { %>
+                                    <li><%= item.name %> (x<%= item.quantity %>)</li>
+                                <% }) %>
+                            </ul>
+                        </td>
+                        <td><%= sale.date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) %></td>
+                        <td>₹<%= sale.price.toLocaleString('en-IN') %></td>
+                    </tr>
+                <% }) %>
+            <% } else { %>
+                <tr>
+                    <td colspan="4">No sales data available.</td>
+                </tr>
+            <% } %>
+        </tbody>
+    </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+<script>
+    document.getElementById('downloadForm').addEventListener('submit',function() {
+        Swal.fire({
+            icon:"success",
+            title:"Download Started",
+            text: "Your Sales report is started Downloading",
+            timer: 2000,
+            showConfiemButton: false
+        });
+    });
+</script>
+
+<%- include('../partials/admin/footer') %>
+

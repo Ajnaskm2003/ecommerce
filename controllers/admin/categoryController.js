@@ -1,5 +1,6 @@
 const Category = require('../../models/categorySchema');
 const Product = require('../../models/productSchema');
+const mongoose = require('mongoose');
 
 
 
@@ -139,6 +140,7 @@ const editCategory = async (req,res)=>{
 }
 
 
+
 const addCategoryOffer = async (req, res) => {
     try {
         const percentage = parseInt(req.body.percentage);
@@ -153,26 +155,39 @@ const addCategoryOffer = async (req, res) => {
 
         const products = await Product.find({ category: category._id });
 
-        // Check if any product has higher product offer
-        const hasProductOffer = products.some((product) => {
-            return product.productOffer && product.productOffer > percentage;
-        });
+        
+        const hasHigherProductOffer = products.some(
+            (product) => product.productOffer > percentage
+        );
 
-        if (hasProductOffer) {
-            return res.json({ status: false, message: "One or more products already have a higher product offer" });
+        if (hasHigherProductOffer) {
+            return res.json({ 
+                status: false, 
+                message: "One or more products already have a higher product offer" 
+            });
         }
 
-        // Update category offer
-        await Category.updateOne({ _id: categoryId }, { $set: { categoryOffer: percentage } });
+        
+        await Category.updateOne(
+            { _id: categoryId },
+            { $set: { categoryOffer: percentage } }
+        );
 
-        // Reset all product offers and sale prices
-        const updatedProducts = products.map((product) => {
-            product.productOffer = 0;
-            product.salePrice = product.regularPrice || 0; // Fallback to 0 if regularPrice is missing
-            return product.save();
-        });
-
-        await Promise.all(updatedProducts); // Save all products concurrently
+        
+        await Product.updateMany(
+            { category: category._id },
+            { 
+                $set: { 
+                    productOffer: 0,
+                    salesPrice: { 
+                        $subtract: [
+                            "$regularPrice",
+                            { $multiply: ["$regularPrice", percentage / 100] }
+                        ]
+                    }
+                }
+            }
+        );
 
         res.json({ status: true, message: "Category offer applied successfully" });
 

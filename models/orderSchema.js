@@ -47,6 +47,9 @@ const orderSchema = new Schema({
             type: String,
             enum: ['Pending', 'Accepted', 'Rejected', ''],
             default: ''
+        },
+        returnRequestDate: {
+            type: Date
         }
     }],
     totalPrice: {
@@ -60,7 +63,7 @@ const orderSchema = new Schema({
     paymentMethod: {
         type: String,
         required: true,
-        enum: ['Cash on Delivery', 'Online Payment', 'Wallet Payment'] // Updated enum values
+        enum: ['Cash on Delivery', 'Online Payment', 'Wallet Payment'] 
     },
     walletTransactionId: {
         type: String,

@@ -268,9 +268,7 @@
                         <option value="Processing" <%= order.status === 'Processing' ? 'selected' : '' %>>Processing</option>
                         <option value="Shipped" <%= order.status === 'Shipped' ? 'selected' : '' %>>Shipped</option>
                         <option value="Delivered" <%= order.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
-                        <!-- <option value="Cancelled" <%= order.status === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
-                        <option value="Return Request" <%= order.status === 'Return Request' ? 'selected' : '' %>>Return Request</option>
-                        <option value="Returned" <%= order.status === 'Returned' ? 'selected' : '' %>>Returned</option> -->
+                        
                     </select>
                 </div>
                 <button type="submit" class="update-btn">
@@ -283,19 +281,47 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const statusSelect = document.getElementById('status');
+        const currentStatus = '<%= order.status %>'; // Current status from the server
+
+        // Define status hierarchy
+        const statusHierarchy = {
+            'Pending': 1,
+            'Processing': 2,
+            'Shipped': 3,
+            'Delivered': 4,
+            'Cancelled': 5,
+            'Return Request': 6,
+            'Returned': 7
+        };
+
+        // Disable rollback options for Processing, Shipped, or Delivered
+        const options = statusSelect.options;
+        for (let i = 0; i < options.length; i++) {
+            const optionValue = options[i].value;
+            if (
+                ['Processing', 'Shipped', 'Delivered'].includes(currentStatus) &&
+                statusHierarchy[optionValue] < statusHierarchy[currentStatus]
+            ) {
+                options[i].disabled = true;
+            }
+        }
+
+        // Handle form submission
         document.getElementById('statusForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const status = document.getElementById('status').value;
-            
+            const status = statusSelect.value;
+
             try {
                 const response = await fetch(`/admin/orders/<%= order.orderId %>/update-status`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ status })
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (result.success) {
                     Swal.fire({
                         icon: 'success',
@@ -304,6 +330,8 @@
                         showConfirmButton: false,
                         timer: 1500
                     });
+                    // Optionally refresh the page or update the UI
+                    setTimeout(() => location.reload(), 1500);
                 } else {
                     throw new Error(result.error || 'Failed to update status');
                 }
@@ -315,6 +343,7 @@
                 });
             }
         });
-    </script>
+    });
+</script>
 </body>
 </html>
