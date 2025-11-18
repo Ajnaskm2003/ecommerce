@@ -401,7 +401,7 @@ const editProduct = async (req, res) => {
                 let tempFilePath = file.path;
                 try {
                     const filename = Date.now() + '-' + file.originalname;
-                    const resizedImagePath = path.join('public', 'Uploads', 'images', filename);
+                    const resizedImagePath = path.join(__dirname, '../../public/uploads/products');
                     
                     const dir = path.dirname(resizedImagePath);
                     if (!fs.existsSync(dir)) {
