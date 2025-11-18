@@ -113,10 +113,10 @@ userSchema.index({ googleId: 1 }, { unique: true, sparse: true });
 
 const User = mongoose.model("User", userSchema);
 
-User.collection.dropIndex("googleId_1").catch(err => {
-    if (err.codeName !== "NamespaceNotFound") {
-        console.error("Error dropping index:", err);
-    }
-});
+// User.collection.dropIndex("googleId_1").catch(err => {
+//     if (err.codeName !== "NamespaceNotFound") {
+//         console.error("Error dropping index:", err);
+//     }
+// });
 
 module.exports = User;
