@@ -33,10 +33,14 @@ router.get("/signup",Auth.isLogin,userController.loadSignup);
 router.post("/signup", userController.signup);
 router.get('/verifyotp',Auth.isLogin,userController.loadOtpPage);
 router.post('/verifyotp',userController.verifyOtp);
-router.get('/signin', (req, res, next) => {
-    console.log("Session at signin:", req.session);
-    next();
-}, Auth.redirectIfLoggedIn, userController.loadSignin);
+router.get('/signin', 
+    (req, res, next) => {
+        console.log("Session at signin:", req.session);
+        next();
+    }, 
+    Auth.redirectIfLoggedIn, 
+    userController.loadSignin 
+);
 
 
 
@@ -141,7 +145,7 @@ router.post("/cart/add", cartController.addToCart);
 router.post("/cart/increment", cartController.incrementCartItem);
 router.post("/cart/decrement", cartController.decrementCartItem);
 router.post("/cart/remove", cartController.decrementOrRemoveCartItem);
-router.get("/cart", Auth.checkSession, Auth.checkOrderPlaced, Auth.checkCartAccess, cartController.getCart);
+router.get("/cart", Auth.checkSession, Auth.checkOrderPlaced,  cartController.getCart);
 
 
 router.get("/checkout", Auth.checkSession, Auth.checkOrderPlaced, Auth.checkCartAccess, checkoutController.getCheckoutPage);
@@ -150,7 +154,7 @@ router.post("/address/add",checkoutController.addAddress);
 router.post("/place",checkoutController.placedOrder);
 router.get("/order/view/:orderId", checkoutController.viewOrder);
 router.get("/address/:id", checkoutController.getAddress); 
-router.put('/address/edit', checkoutController.editAddress);
+router.put('/address/edit/:id', checkoutController.editAddress);
 router.get("/api/coupons/active",checkoutController.getActiveCoupons);
 
 
@@ -158,7 +162,9 @@ router.get("/api/coupons/active",checkoutController.getActiveCoupons);
 router.get('/orders',Auth.checkSession,orderController.getUserOrders);
 router.get('/order-details/:id',Auth.checkSession,orderController.viewOrderDetails);
 router.get('/cancel-order/:id', orderController.cancelOrder);
+router.get('/cancel-item/:orderId/:itemId', orderController.cancelItem);
 router.post('/submit-return', orderController.submitReturnRequest);
+router.post('/return-item/:orderId/:itemId', orderController.returnItem);
 
 
 router.get('/wallet/balance', Auth.checkSession, walletController.getWalletBalance);
@@ -170,7 +176,9 @@ router.get('/wallet/history', Auth.checkSession, walletController.getWalletHisto
 
 router.post('/create-order',razorpayController.createOrder);
 router.post('/verify-payment',razorpayController.verifyPayment);
-
+router.get('/retry-payment', razorpayController.showRetryPage);
+router.post('/retry-payment/initiate', razorpayController.initiateRetry);
+router.post('/retry-payment/mark-failed',razorpayController.markFailed);
 
 router.get("/coupons/active", couponController.getActiveCoupons);
 router.post('/apply-coupon', couponController.applyCoupon);

@@ -75,10 +75,9 @@ const userSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "Order",
     }],
-    createdOn: {
-        type: Date,
-        default: Date.now,
-    },
+
+    // ❌ removed old createdOn because timestamps will create createdAt
+
     referralCode: { 
         type: String,
     },
@@ -106,6 +105,8 @@ const userSchema = new Schema({
     usedCoupons: [{ 
         type: String 
     }],
+}, { 
+    timestamps: true  
 });
 
 userSchema.index({ googleId: 1 }, { unique: true, sparse: true });
@@ -117,7 +118,5 @@ User.collection.dropIndex("googleId_1").catch(err => {
         console.error("Error dropping index:", err);
     }
 });
-
-
 
 module.exports = User;

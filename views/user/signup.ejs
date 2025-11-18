@@ -115,7 +115,7 @@
     }
 
     .error-message {
-      color: #ff0000; /* Red color for error messages */
+      color: #ff0000; 
       font-size: 12px;
       margin-top: 5px;
       display: block;
@@ -188,7 +188,11 @@
         if (!name) {
           document.getElementById("userNameError").textContent = "Name is required.";
           hasErrors = true;
+        } else if (name.length > 10) {  
+          document.getElementById("userNameError").textContent = "Name must be 10 characters or less.";
+          hasErrors = true;
         }
+
         if (!email) {
           document.getElementById("userEmailError").textContent = "Email is required.";
           hasErrors = true;

@@ -107,6 +107,23 @@
             vertical-align: middle;
         }
 
+        /* === ITEM STATUS BADGE === */
+        .item-status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 6px;
+        }
+        .status-cancelled { background: #fee2e2; color: #dc2626; }
+        .status-return-pending { background: #fef3c7; color: #d97706; }
+        .status-return-accepted { background: #d1fae5; color: #059669; }
+        .status-returned { background: #dbeafe; color: #2563eb; }
+        .status-return-rejected { background: #fee2e2; color: #dc2626; }
+
         .status-select {
             width: 100%;
             max-width: 300px;
@@ -178,11 +195,9 @@
     <div class="order-container">
         <div class="order-header">
             <div class="order-id">
-                <i class="fas fa-shopping-bag"></i>
                 Order #<%= order.orderId %>
             </div>
             <div class="order-date">
-                <i class="far fa-calendar-alt"></i>
                 <%= new Date(order.createdAt).toLocaleDateString() %>
             </div>
         </div>
@@ -190,7 +205,7 @@
         <div class="info-grid">
             <div class="info-card">
                 <div class="section-title">
-                    <i class="fas fa-user"></i> Customer Details
+                    Customer Details
                 </div>
                 <div class="info-item">
                     <div class="info-label">Name</div>
@@ -204,20 +219,20 @@
 
             <div class="info-card">
                 <div class="section-title">
-                    <i class="fas fa-shipping-fast"></i> Shipping Address
+                    Shipping Address
                 </div>
                 <div class="info-item">
                     <div class="info-value"><%= order.address.fullname %></div>
                     <div class="info-value"><%= order.address.street %></div>
                     <div class="info-value"><%= order.address.city %>, <%= order.address.state %></div>
                     <div class="info-value"><%= order.address.zipCode %></div>
-                    <div class="info-value"><i class="fas fa-phone"></i> <%= order.address.phone %></div>
+                    <div class="info-value"><%= order.address.phone %></div>
                 </div>
             </div>
         </div>
 
         <div class="section-title">
-            <i class="fas fa-box"></i> Order Items
+            Order Items
         </div>
         <table class="order-table">
             <thead>
@@ -232,7 +247,39 @@
             <tbody>
                 <% order.orderItems.forEach(item => { %>
                     <tr>
-                        <td><%= item.product.productName %></td>
+                        <td>
+                            <%= item.product.productName %>
+                            <!-- ITEM STATUS BADGE -->
+                            <% if (item.status && item.status !== 'default') { %>
+                                <% 
+                                    let badgeClass = '';
+                                    let badgeText = '';
+                                    if (item.status === 'Cancelled') {
+                                        badgeClass = 'status-cancelled';
+                                        badgeText = 'Cancelled';
+                                    } else if (item.returnRequest) {
+                                        if (item.returnStatus === 'Pending') {
+                                            badgeClass = 'status-return-pending';
+                                            badgeText = 'Return Requested';
+                                        } else if (item.returnStatus === 'Accepted') {
+                                            badgeClass = 'status-return-accepted';
+                                            badgeText = 'Return Accepted';
+                                        } else if (item.returnStatus === 'Returned') {
+                                            badgeClass = 'status-returned';
+                                            badgeText = 'Returned';
+                                        } else if (item.returnStatus === 'Rejected') {
+                                            badgeClass = 'status-return-rejected';
+                                            badgeText = 'Return Rejected';
+                                        }
+                                    }
+                                %>
+                                <% if (badgeClass) { %>
+                                    <div class="item-status-badge <%= badgeClass %>">
+                                        <%= badgeText %>
+                                    </div>
+                                <% } %>
+                            <% } %>
+                        </td>
                         <td><%= item.size || 'N/A' %></td>
                         <td><%= item.quantity %></td>
                         <td>₹<%= item.price.toFixed(2) %></td>
@@ -259,7 +306,7 @@
 
         <div class="info-card">
             <div class="section-title">
-                <i class="fas fa-tasks"></i> Order Status
+                Order Status
             </div>
             <form id="statusForm" class="d-flex gap-3 align-items-end">
                 <div class="flex-grow-1">
@@ -268,11 +315,10 @@
                         <option value="Processing" <%= order.status === 'Processing' ? 'selected' : '' %>>Processing</option>
                         <option value="Shipped" <%= order.status === 'Shipped' ? 'selected' : '' %>>Shipped</option>
                         <option value="Delivered" <%= order.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
-                        
                     </select>
                 </div>
                 <button type="submit" class="update-btn">
-                    <i class="fas fa-sync-alt"></i> Update Status
+                    Update Status
                 </button>
             </form>
             <div id="statusMessage"></div>
@@ -283,9 +329,8 @@
     <script>
     document.addEventListener('DOMContentLoaded', () => {
         const statusSelect = document.getElementById('status');
-        const currentStatus = '<%= order.status %>'; // Current status from the server
+        const currentStatus = '<%= order.status %>';
 
-        // Define status hierarchy
         const statusHierarchy = {
             'Pending': 1,
             'Processing': 2,
@@ -296,7 +341,6 @@
             'Returned': 7
         };
 
-        // Disable rollback options for Processing, Shipped, or Delivered
         const options = statusSelect.options;
         for (let i = 0; i < options.length; i++) {
             const optionValue = options[i].value;
@@ -308,7 +352,6 @@
             }
         }
 
-        // Handle form submission
         document.getElementById('statusForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const status = statusSelect.value;
@@ -330,7 +373,6 @@
                         showConfirmButton: false,
                         timer: 1500
                     });
-                    // Optionally refresh the page or update the UI
                     setTimeout(() => location.reload(), 1500);
                 } else {
                     throw new Error(result.error || 'Failed to update status');
@@ -344,6 +386,6 @@
             }
         });
     });
-</script>
+    </script>
 </body>
 </html>

@@ -15,6 +15,35 @@
         color: #333;
     }
 
+    /* Summary Cards */
+    .summary-card {
+        display: flex;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+    }
+    .card {
+        background: #f8f9fa;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 1px 5px rgba(0,0,0,.1);
+        flex: 1;
+        min-width: 180px;
+        text-align: center;
+    }
+    .card h4 { 
+        margin: 0 0 8px; 
+        font-size: 1rem; 
+        color: #555; 
+    }
+    .card p { 
+        margin: 0; 
+        font-size: 1.4rem; 
+        font-weight: bold; 
+        color: #333; 
+    }
+
     table {
         width: 100%;
         border-collapse: collapse;
@@ -54,9 +83,11 @@
         align-items: center;
         margin-bottom: 20px;
         gap: 10px;
+        flex-wrap: wrap;
     }
 
-    .filter-container input, .filter-container select {
+    .filter-container input, 
+    .filter-container select {
         padding: 6px 10px;
         border-radius: 5px;
         border: 1px solid #ccc;
@@ -80,49 +111,92 @@
         color: white;
     }
 
+    .clear-btn {
+        background-color: #6c757d;
+        color: white;
+    }
+
     .filter-container button:hover {
         opacity: 0.9;
+    }
+
+    @media (max-width: 768px) {
+        .filter-container {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .filter-container form {
+            width: 100%;
+        }
     }
 </style>
 
 <div class="sales-container">
     <h2>Sales Report</h2>
 
-    <!-- Filter & Download Section -->
+    
+    <% if (summary) { %>
+        <div class="summary-card">
+            <div class="card">
+                <h4>Total Orders</h4>
+                <p><%= summary.orderCount %></p>
+            </div>
+            <div class="card">
+                <h4>Total Revenue</h4>
+                <p>₹<%= summary.totalRevenue.toLocaleString('en-IN') %></p>
+            </div>
+            <div class="card">
+                <h4>Total Discount</h4>
+                <p>₹<%= summary.totalDiscount.toLocaleString('en-IN') %></p>
+            </div>
+        </div>
+    <% } %>
+
+    
     <div class="filter-container">
-        <!-- Static Date Filter Form -->
-        <form method="GET" action="/admin/salesReport" style="display:flex; gap:10px; align-items:center;">
+        
+        <form method="GET" action="/admin/salesReport" style="display:flex; gap:10px; align-items:center; flex-wrap: wrap;">
             <label for="period">Period:
-                <select name="period" id="period">
-                    <option value="day">Day</option>
-                    <option value="week">Week</option>
-                    <option value="month">Month</option>
+                <select name="period" id="period" onchange="toggleCustomDates(this)">
+                    <option value="" <%= !query.period ? 'selected' : '' %>>Custom</option>
+                    <option value="day" <%= query.period === 'day' ? 'selected' : '' %>>Day</option>
+                    <option value="week" <%= query.period === 'week' ? 'selected' : '' %>>Week</option>
+                    <option value="month" <%= query.period === 'month' ? 'selected' : '' %>>Month</option>
                 </select>
             </label>
-            <label>From: <input type="date" name="from"></label>
-            <label>To: <input type="date" name="to"></label>
-            <button type="submit" class="filter-btn">Filter</button>
-        </form>
-        <a href="/admin/salesReport"><button type="button" class="filter-btn">Clear Filters</button></a>
 
-        <!-- Download Button -->
-        <form id="downloadForm" method="GET" action="/admin/sales-report/download">
+            
+            <label id="fromLabel" style="display: <%= !query.period || query.period === '' ? 'block' : 'none' %>;">
+                From: <input type="date" name="from" value="<%= query.from || '' %>">
+            </label>
+            <label id="toLabel" style="display: <%= !query.period || query.period === '' ? 'block' : 'none' %>;">
+                To: <input type="date" name="to" value="<%= query.to || '' %>">
+            </label>
+
+            <button type="submit" class="filter-btn">Apply Filter</button>
+        </form>
+
         
+        <a href="/admin/salesReport"><button type="button" class="clear-btn">Clear Filters</button></a>
+
+        
+        <form id="downloadForm" method="GET" action="/admin/sales-report/download">
             <input type="hidden" name="period" value="<%= query?.period || '' %>">
             <input type="hidden" name="from" value="<%= query?.from || '' %>">
             <input type="hidden" name="to" value="<%= query?.to || '' %>">
-
-        <button type="submit" class="download-btn">Download Report</button>
+            <button type="submit" class="download-btn">Download PDF</button>
         </form>
 
+    
         <form id="downloadFormExcel" method="GET" action="/admin/sales-report/download-excel">
-    <input type="hidden" name="period" value="<%= query?.period || '' %>">
-    <input type="hidden" name="from" value="<%= query?.from || '' %>">
-    <input type="hidden" name="to" value="<%= query?.to || '' %>">
-    <button type="submit" class="download-btn">Download Excel</button>
-</form>
+            <input type="hidden" name="period" value="<%= query?.period || '' %>">
+            <input type="hidden" name="from" value="<%= query?.from || '' %>">
+            <input type="hidden" name="to" value="<%= query?.to || '' %>">
+            <button type="submit" class="download-btn">Download Excel</button>
+        </form>
     </div>
 
+    
     <table>
         <thead>
             <tr>
@@ -130,6 +204,7 @@
                 <th>Order Items</th>
                 <th>Date</th>
                 <th>Sales Price</th>
+                <th>Discount</th>
             </tr>
         </thead>
         <tbody>
@@ -146,31 +221,67 @@
                         </td>
                         <td><%= sale.date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) %></td>
                         <td>₹<%= sale.price.toLocaleString('en-IN') %></td>
+                        <td>₹<%= (sale.discount || 0).toLocaleString('en-IN') %></td>
                     </tr>
                 <% }) %>
             <% } else { %>
                 <tr>
-                    <td colspan="4">No sales data available.</td>
+                    <td colspan="5" style="text-align:center; color:#777; font-style:italic;">
+                        No sales data available for the selected period.
+                    </td>
                 </tr>
             <% } %>
         </tbody>
     </table>
 </div>
 
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-
 <script>
-    document.getElementById('downloadForm').addEventListener('submit',function() {
+    
+    function toggleCustomDates(select) {
+        const isCustom = select.value === '';
+        document.getElementById('fromLabel').style.display = isCustom ? 'block' : 'none';
+        document.getElementById('toLabel').style.display   = isCustom ? 'block' : 'none';
+    }
+
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        const periodSelect = document.getElementById('period');
+        if (periodSelect) {
+            toggleCustomDates(periodSelect);
+        }
+    });
+
+    
+    document.getElementById('downloadForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const form = this;
         Swal.fire({
-            icon:"success",
-            title:"Download Started",
-            text: "Your Sales report is started Downloading",
+            icon: 'success',
+            title: 'Download Started',
+            text: 'Your PDF sales report is being generated...',
             timer: 2000,
-            showConfiemButton: false
+            showConfirmButton: false
+        }).then(() => {
+            form.submit();
+        });
+    });
+
+    
+    document.getElementById('downloadFormExcel').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const form = this;
+        Swal.fire({
+            icon: 'success',
+            title: 'Download Started',
+            text: 'Your Excel sales report is being generated...',
+            timer: 2000,
+            showConfirmButton: false
+        }).then(() => {
+            form.submit();
         });
     });
 </script>
 
 <%- include('../partials/admin/footer') %>
-

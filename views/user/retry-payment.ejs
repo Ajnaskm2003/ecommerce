@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Retry Payment</title>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    body{font-family:Segoe UI;background:#f4f6f9;padding:40px}
+    .card{max-width:520px;margin:auto;background:#fff;padding:30px;border-radius:12px;
+          box-shadow:0 8px 25px rgba(0,0,0,.1);text-align:center}
+    .pay-btn{width:100%;padding:16px;background:linear-gradient(45deg,#ff4757,#ff6b6b);
+             color:#fff;border:none;border-radius:8px;font-size:1.1rem;cursor:pointer;margin-top:20px}
+    .total{font-size:1.5rem;font-weight:700;color:#e74c3c;margin:15px 0}
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h2>Payment Failed</h2>
+  <p>Please complete the payment to confirm your order.</p>
+
+  <% orders.forEach(o => { %>
+    <div style="text-align:left;margin:12px 0;padding:10px;background:#f8f9fa;border-radius:6px">
+      <strong><%= o.orderItems[0].product.productName %></strong><br>
+      Size: <%= o.orderItems[0].size %> | Qty: <%= o.orderItems[0].quantity %>
+    </div>
+  <% }) %>
+
+  <div class="total">Total: ₹<%= totalAmount.toFixed(2) %></div>
+
+  <button class="pay-btn" onclick="retryNow()">
+    Pay Now ₹<%= totalAmount.toFixed(2) %>
+  </button>
+</div>
+
+<script>
+  // MongoDB order ids (comma-separated string) – passed from controller
+  const mongoOrderIds = "<%= orderIds %>".split(',');
+
+  async function retryNow() {
+    try {
+      const r = await fetch('/retry-payment/initiate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderIds: mongoOrderIds })
+      });
+      const d = await r.json();
+      if (!d.success) throw new Error(d.message || 'Retry init failed');
+
+      const options = {
+        key: "<%= razorpayKey %>",
+        amount: d.amount,
+        currency: d.currency,
+        name: "Your Store",
+        order_id: d.orderId,               // Razorpay order id
+        handler: resp => verify(resp, mongoOrderIds),
+        modal: { ondismiss: () => markFailed(mongoOrderIds) },
+        theme: { color: "#ff4757" }
+      };
+      new Razorpay(options).open();
+
+    } catch (e) { Swal.fire('Error', e.message, 'error'); }
+  }
+
+  async function verify(resp, orderIds) {
+    const r = await fetch('/verify-payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        razorpay_order_id: resp.razorpay_order_id,
+        razorpay_payment_id: resp.razorpay_payment_id,
+        razorpay_signature: resp.razorpay_signature,
+        orderIds                     // MongoDB ids
+      })
+    });
+    const d = await r.json();
+    if (d.success) {
+      window.location = `/order/view/${orderIds[0]}`;
+    } else {
+      markFailed(orderIds);
+    }
+  }
+
+  async function markFailed(orderIds) {
+    await fetch('/retry-payment/mark-failed', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderIds })
+    });
+    Swal.fire('Payment Failed', 'You can try again.', 'error');
+  }
+</script>
+</body>
+</html>

@@ -2,150 +2,123 @@
 <html lang="zxx" class="no-js">
 
 <head>
-	<!-- Mobile Specific Meta -->
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	<!-- Favicon-->
 	<link rel="shortcut icon" href="img/fav.png">
-	<!-- Author Meta -->
 	<meta name="author" content="CodePixar">
-	<!-- Meta Description -->
 	<meta name="description" content="">
-	<!-- Meta Keyword -->
 	<meta name="keywords" content="">
-	<!-- meta character set -->
 	<meta charset="UTF-8">
-	<!-- Site Title -->
 	<title>Karma Shop</title>
-	<!--
-			CSS
-			============================================= -->
-            <link rel="stylesheet" href="css/linearicons.css">
-            <link rel="stylesheet" href="css/font-awesome.min.css">
-            <link rel="stylesheet" href="css/themify-icons.css">
-            <link rel="stylesheet" href="css/bootstrap.css">
-            <link rel="stylesheet" href="css/owl.carousel.css">
-            <link rel="stylesheet" href="css/nice-select.css">
-            <link rel="stylesheet" href="css/nouislider.min.css">
-            <link rel="stylesheet" href="css/ion.rangeSlider.css" />
-            <link rel="stylesheet" href="css/ion.rangeSlider.skinFlat.css" />
-            <link rel="stylesheet" href="css/main.css">
-            <style>
-                   .img-zoom-container {
-        position: relative;
-        overflow: hidden;
-    }
-    
-    #productImg {
-        display: block;
-        width: 100%;
-        transition: transform 0.5s ease;
-    }
-    
-    .img-zoom-container:hover #productImg {
-        transform: scale(1.5);
-        cursor: crosshair;
-        transform-origin: var(--x) var(--y);
-    }
-    
-    .product-thumbnails {
-        margin-top: 15px;
-    }
-    
-    .thumbnail {
-        border: 1px solid #ddd;
-        margin-right: 10px;
-        cursor: pointer;
-        transition: border 0.3s ease;
-    }
-    
-    .thumbnail:hover {
-        border: 1px solid #777;
-    }
-	.size-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: 2px solid black;
-            background-color: white;
-            color: black;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-            transition: all 0.2s ease-in-out;
-        }
 
-        .size-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.3);
-        }
+	<link rel="stylesheet" href="css/linearicons.css">
+	<link rel="stylesheet" href="css/font-awesome.min.css">
+	<link rel="stylesheet" href="css/themify-icons.css">
+	<link rel="stylesheet" href="css/bootstrap.css">
+	<link rel="stylesheet" href="css/owl.carousel.css">
+	<link rel="stylesheet" href="css/nice-select.css">
+	<link rel="stylesheet" href="css/nouislider.min.css">
+	<link rel="stylesheet" href="css/ion.rangeSlider.css" />
+	<link rel="stylesheet" href="css/ion.rangeSlider.skinFlat.css" />
+	<link rel="stylesheet" href="css/main.css">
 
-        .size-btn.selected {
-            background-color: black;
-            color: white;
-            box-shadow: inset 2px 2px 5px rgba(255, 255, 255, 0.2), 
-                        inset -2px -2px 5px rgba(0, 0, 0, 0.5);
-            transform: translateY(2px);
-        }
+	<style>
+		/* ────── IMAGE ZOOM (tiny & elegant) ────── */
+		.img-zoom-container {position:relative;overflow:hidden;border-radius:8px;box-shadow:0 3px 10px rgba(0,0,0,.09);}
+		#productImg{display:block;width:100%;transition:transform .45s ease;}
+		.img-zoom-container:hover #productImg{transform:scale(1.55);cursor:crosshair;transform-origin:var(--x) var(--y);}
 
-        .no-product-container {
-        min-height: 400px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
+		/* ────── THUMBNAILS (compact) ────── */
+		.product-thumbnails{margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;}
+		.thumbnail{border:1.2px solid #ddd;border-radius:5px;overflow:hidden;cursor:pointer;transition:all .2s ease;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+		.thumbnail:hover{border-color:#444;transform:translateY(-1.5px);box-shadow:0 4px 10px rgba(0,0,0,.1);}
+		.thumbnail img{width:62px;height:62px;object-fit:cover;}
 
-    .no-product-container .card {
-        max-width: 500px;
-        width: 100%;
-        border-radius: 15px;
-        background: #fff;
-    }
+		/* ────── SIZE BUTTONS (tiny & pretty) ────── */
+		.size-btn{width:36px;height:36px;border-radius:50%;border:1.8px solid #333;background:#fff;color:#333;font-weight:600;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;margin:0 5px 5px 0;transition:all .2s ease;box-shadow:0 2px 5px rgba(0,0,0,.07);}
+		.size-btn:hover{transform:translateY(-1.5px);box-shadow:0 4px 10px rgba(0,0,0,.13);}
+		.size-btn.selected{background:#333;color:#fff;transform:translateY(1px);box-shadow:inset 0 1.5px 3px rgba(0,0,0,.3),0 2px 5px rgba(0,0,0,.08);}
 
-    .no-product-container h2 {
-        color: #333;
-        margin-bottom: 10px;
-    }
+		/* ────── QUANTITY COUNTER (minimal) ────── */
+		.product_count{display:flex;align-items:center;gap:8px;margin:15px 0;}
+		.product_count label{font-weight:600;color:#444;font-size:14px;margin:0;}
+		.input-text.qty{width:52px;height:36px;text-align:center;border:1.3px solid #ccc;border-radius:5px;font-size:14px;font-weight:600;padding:0 5px;}
+		.items-count{width:30px;height:30px;border-radius:50%;background:#fafafa;border:1.3px solid #ccc;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s ease;font-size:13px;}
+		.items-count:hover{background:#333;color:#fff;border-color:#333;}
 
-    .no-product-container p {
-        font-size: 16px;
-        margin-bottom: 20px;
-    }
+		/* ────── ACTION BUTTONS (sleek) ────── */
+		.card_area{margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;}
+		.primary-btn{padding:9px 20px;font-weight:600;font-size:13.5px;text-transform:uppercase;letter-spacing:.7px;border-radius:25px;transition:all .25s ease;box-shadow:0 2px 7px rgba(0,0,0,.07);}
+		.primary-btn:hover{transform:translateY(-1.5px);box-shadow:0 5px 12px rgba(0,0,0,.13);}
 
-    .no-product-container .primary-btn {
-        display: inline-block;
-        padding: 12px 30px;
-        text-decoration: none;
-        transition: all 0.3s ease;
-    }
+		/* ────── NO PRODUCT CARD (compact) ────── */
+		.no-product-container{min-height:55vh;display:flex;align-items:center;justify-content:center;padding:25px 15px;}
+		.no-product-container .card{max-width:420px;width:100%;padding:28px 24px;border-radius:12px;background:#fff;box-shadow:0 6px 18px rgba(0,0,0,.07);text-align:center;}
+		.no-product-container i{font-size:44px;color:#bbb;margin-bottom:12px;}
+		.no-product-container h2{font-size:22px;font-weight:700;color:#333;margin-bottom:8px;}
+		.no-product-container p{color:#777;font-size:14.5px;margin-bottom:20px;}
 
-    .no-product-container .primary-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
+		/* ────── PRODUCT DETAILS → DEALS GAP (extra space) ────── */
+		.product_image_area{padding-bottom:70px !important;}
 
-    @media (max-width: 768px) {
-        .no-product-container {
-            min-height: 300px;
-            padding: 20px;
-        }
-        
-        .no-product-container h2 {
-            font-size: 24px;
-        }
-        
-        .no-product-container p {
-            font-size: 14px;
-        }
-    }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+		/* ────── DEALS OF THE WEEK (clean & spaced) ────── */
+		.related-product-area{padding-top:60px !important;padding-bottom:55px !important;background:#fdfdfd;border-top:1px solid #eee;}
+		.related-product-area .section-title h1{font-size:28px;font-weight:700;color:#222;margin-bottom:10px;position:relative;display:inline-block;}
+		.related-product-area .section-title h1::after{content:'';position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);width:45px;height:2.5px;background:#e74c3c;border-radius:2px;}
+		.related-product-area .section-title p{color:#666;font-size:14.5px;max-width:540px;margin:0 auto;}
+
+		.single-related-product{background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 3px 9px rgba(0,0,0,.06);transition:all .25s ease;display:flex;align-items:center;padding:9px;margin-bottom:16px;}
+		.single-related-product:hover{transform:translateY(-3px);box-shadow:0 8px 18px rgba(0,0,0,.11);}
+		.single-related-product img{width:70px;height:70px;object-fit:cover;border-radius:6px;}
+		.single-related-product .desc{padding-left:10px;flex:1;}
+		.single-related-product .title{font-weight:600;color:#333;font-size:13.5px;margin-bottom:3px;display:block;}
+		.single-related-product .price h6{font-size:14.5px;font-weight:700;color:#e74c3c;margin:0;}
+		.single-related-product .price .l-through{color:#999;text-decoration:line-through;font-weight:400;margin-left:5px;font-size:12.5px;}
+
+		.ctg-right a img{border-radius:10px;box-shadow:0 5px 15px rgba(0,0,0,.08);transition:transform .3s ease;}
+		.ctg-right a:hover img{transform:scale(1.03);}
+
+		/* ────── FLIPKART-STYLE OFFER BADGE (below Availibility) ────── */
+		.flipkart-offer {
+			display: inline-flex;
+			align-items: center;
+			gap: 5px;
+			background: #fff;
+			color: #388e3c;
+			font-size: 13px;
+			font-weight: 600;
+			padding: 2px 6px;
+			border: 1px solid #4caf50;
+			border-radius: 4px;
+			margin-top: 4px;
+		}
+		.flipkart-offer .ti-tag {
+			font-size: 14px;
+			color: #4caf50;
+		}
+
+		/* ────── RESPONSIVE ────── */
+		@media (max-width:768px){
+			.size-btn{width:32px;height:32px;font-size:12px;margin:0 4px 5px 0;}
+			.input-text.qty{width:48px;height:32px;font-size:13px;}
+			.items-count{width:28px;height:28px;font-size:12px;}
+			.primary-btn{padding:8px 18px;font-size:13px;}
+			.product_image_area{padding-bottom:50px !important;}
+			.related-product-area{padding-top:50px !important;}
+			.related-product-area .section-title h1{font-size:24px;}
+			.single-related-product{padding:8px;margin-bottom:14px;}
+			.single-related-product img{width:64px;height:64px;}
+			.flipkart-offer{font-size:12px;padding:2px 5px;}
+		}
+		@media (max-width:576px){
+			.thumbnail img{width:56px;height:56px;}
+			.card_area{justify-content:center;}
+		}
+	</style>
+
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
-
-	
-	
 
 	<!-- Start Banner Area -->
 	<section class="banner-area organic-breadcrumb">
@@ -154,8 +127,8 @@
 				<div class="col-first">
 					<h1>Product Details Page</h1>
 					<nav class="d-flex align-items-center">
-						<a href="index.html">Home<span class="lnr lnr-arrow-right"></span></a>
-						<a href="#">Shop<span class="lnr lnr-arrow-right"></span></a>
+						<a href="/">Home<span class="lnr lnr-arrow-right"></span></a>
+						<a href="/shop">Shop<span class="lnr lnr-arrow-right"></span></a>
 						<a href="single-product.html">product-details</a>
 					</nav>
 				</div>
@@ -166,668 +139,218 @@
 
 	<!--================Single Product Area =================-->
 	<div class="product_image_area">
-    <div class="container">
-        <% if (product) { %>
-            <div class="row s_product_inner">
-                <div class="col-lg-6">
-                    <div class="product-image-wrapper">
-                        <!-- Main image with zoom functionality -->
-                        <div class="img-zoom-container">
-                            <img id="productImg" class="img-fluid" src="<%= product.productImage[0] %>" alt="<%= product.productName %>">
-                            <div id="img-zoom-result"></div>
-                        </div>
-                        
-                        <!-- Thumbnail images (if more than one image) -->
-                        <% if (product.productImage.length > 1) { %>
-                            <div class="product-thumbnails mt-3">
-                                <% product.productImage.forEach((image, index) => { %>
-                                    <div class="thumbnail d-inline-block mr-2" onclick="changeImage('<%= image %>')">
-                                        <img src="<%= image %>" alt="<%= product.productName %> thumbnail" class="img-fluid" style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;">
-                                    </div>
-                                <% }) %>
-                            </div>
-                        <% } %>
-                    </div>
-                </div>
-                
-				<div class="col-lg-5 offset-lg-1">
-					<div class="s_product_text">
-						<h3><%=product.productName%></h3>
-						<h2><%=product.salePrice%></h2>
-						<ul class="list">
-							<li><a class="active" href="#"><span>Category :</span><%=product.category.name%></a></li>
-							<li><a href="#"><span>Availibility</span> : In Stock</a></li>
-						</ul>
-						<p><%=product.description%></p>
-						<div>
-							<button class="size-btn" onclick="selectSize(this)" data-size="6">6</button>
-							<button class="size-btn" onclick="selectSize(this)" data-size="7">7</button>
-							<button class="size-btn" onclick="selectSize(this)" data-size="8">8</button>
-							<button class="size-btn" onclick="selectSize(this)" data-size="9">9</button>
-						</div>
-						
-						<br>
-						<div class="product_count">
-							<label for="qty">Quantity:</label>
-							<input type="text" name="qty" id="sst" maxlength="12" value="1" title="Quantity:" class="input-text qty">
-							<button onclick="var result = document.getElementById('sst'); var sst = result.value; if( !isNaN( sst )) result.value++;return false;"
-							 class="increase items-count" type="button"><i class="lnr lnr-chevron-up"></i></button>
-							<button class="reduced items-count" type="button"><i class="lnr lnr-chevron-down"></i></button>
-						</div>
-						<div class="card_area d-flex align-items-center">
-							<button class="primary-btn" onclick="addToCart('<%= product._id %>')">Add to Cart</button>
-    						<button class="primary-btn" onclick="addToWishlist('<%= product._id %>')">Add to Wishlist</button>
-							
-						</div>
-					</div>
-				</div>
-            </div>
-        <% } else { %>
-            <div class="no-product-container text-center my-5">
-                <div class="card p-5 shadow-sm">
-                    <i class="fa fa-search-minus mb-3" style="font-size: 48px; color: #777;"></i>
-                    <h2>No Product Found</h2>
-                    <p class="text-muted">The product you're looking for is not available.</p>
-                    <div class="mt-4">
-                        <a href="/shop" class="primary-btn">Continue Shopping</a>
-                    </div>
-                </div>
-            </div>
-        <% } %>
-    </div>
-</div>
-	<!--================End Single Product Area =================-->
-
-	<!--================Product Description Area =================-->
-	<section class="product_description_area">
 		<div class="container">
-			<ul class="nav nav-tabs" id="myTab" role="tablist">
-				<li class="nav-item">
-					<a class="nav-link" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">Description</a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile"
-					 aria-selected="false">Specification</a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link" id="contact-tab" data-toggle="tab" href="#contact" role="tab" aria-controls="contact"
-					 aria-selected="false">Comments</a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link active" id="review-tab" data-toggle="tab" href="#review" role="tab" aria-controls="review"
-					 aria-selected="false">Reviews</a>
-				</li>
-			</ul>
-			<div class="tab-content" id="myTabContent">
-				<div class="tab-pane fade" id="home" role="tabpanel" aria-labelledby="home-tab">
-					<p>Beryl Cook is one of Britain’s most talented and amusing artists .Beryl’s pictures feature women of all shapes
-						and sizes enjoying themselves .Born between the two world wars, Beryl Cook eventually left Kendrick School in
-						Reading at the age of 15, where she went to secretarial school and then into an insurance office. After moving to
-						London and then Hampton, she eventually married her next door neighbour from Reading, John Cook. He was an
-						officer in the Merchant Navy and after he left the sea in 1956, they bought a pub for a year before John took a
-						job in Southern Rhodesia with a motor company. Beryl bought their young son a box of watercolours, and when
-						showing him how to use it, she decided that she herself quite enjoyed painting. John subsequently bought her a
-						child’s painting set for her birthday and it was with this that she produced her first significant work, a
-						half-length portrait of a dark-skinned lady with a vacant expression and large drooping breasts. It was aptly
-						named ‘Hangover’ by Beryl’s husband and</p>
-					<p>It is often frustrating to attempt to plan meals that are designed for one. Despite this fact, we are seeing
-						more and more recipe books and Internet websites that are dedicated to the act of cooking for one. Divorce and
-						the death of spouses or grown children leaving for college are all reasons that someone accustomed to cooking for
-						more than one would suddenly need to learn how to adjust all the cooking practices utilized before into a
-						streamlined plan of cooking that is more efficient for one person creating less</p>
-				</div>
-				<div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
-					<div class="table-responsive">
-						<table class="table">
-							<tbody>
-								<tr>
-									<td>
-										<h5>Width</h5>
-									</td>
-									<td>
-										<h5>128mm</h5>
-									</td>
-								</tr>
-								<tr>
-									<td>
-										<h5>Height</h5>
-									</td>
-									<td>
-										<h5>508mm</h5>
-									</td>
-								</tr>
-								<tr>
-									<td>
-										<h5>Depth</h5>
-									</td>
-									<td>
-										<h5>85mm</h5>
-									</td>
-								</tr>
-								<tr>
-									<td>
-										<h5>Weight</h5>
-									</td>
-									<td>
-										<h5>52gm</h5>
-									</td>
-								</tr>
-								<tr>
-									<td>
-										<h5>Quality checking</h5>
-									</td>
-									<td>
-										<h5>yes</h5>
-									</td>
-								</tr>
-								<tr>
-									<td>
-										<h5>Freshness Duration</h5>
-									</td>
-									<td>
-										<h5>03days</h5>
-									</td>
-								</tr>
-								<tr>
-									<td>
-										<h5>When packeting</h5>
-									</td>
-									<td>
-										<h5>Without touch of hand</h5>
-									</td>
-								</tr>
-								<tr>
-									<td>
-										<h5>Each Box contains</h5>
-									</td>
-									<td>
-										<h5>60pcs</h5>
-									</td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
-				</div>
-				<div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
-					<div class="row">
-						<div class="col-lg-6">
-							<div class="comment_list">
-								<div class="review_item">
-									<div class="media">
-										<div class="d-flex">
-											<img src="img/product/review-1.png" alt="">
-										</div>
-										<div class="media-body">
-											<h4>Blake Ruiz</h4>
-											<h5>12th Feb, 2018 at 05:56 pm</h5>
-											<a class="reply_btn" href="#">Reply</a>
-										</div>
-									</div>
-									<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-										dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-										commodo</p>
-								</div>
-								<div class="review_item reply">
-									<div class="media">
-										<div class="d-flex">
-											<img src="img/product/review-2.png" alt="">
-										</div>
-										<div class="media-body">
-											<h4>Blake Ruiz</h4>
-											<h5>12th Feb, 2018 at 05:56 pm</h5>
-											<a class="reply_btn" href="#">Reply</a>
-										</div>
-									</div>
-									<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-										dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-										commodo</p>
-								</div>
-								<div class="review_item">
-									<div class="media">
-										<div class="d-flex">
-											<img src="img/product/review-3.png" alt="">
-										</div>
-										<div class="media-body">
-											<h4>Blake Ruiz</h4>
-											<h5>12th Feb, 2018 at 05:56 pm</h5>
-											<a class="reply_btn" href="#">Reply</a>
-										</div>
-									</div>
-									<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-										dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-										commodo</p>
-								</div>
+			<% if (product) { %>
+				<div class="row s_product_inner">
+					<div class="col-lg-6">
+						<div class="product-image-wrapper">
+							<div class="img-zoom-container">
+								<img id="productImg" class="img-fluid" src="<%= product.productImage[0] %>" alt="<%= product.productName %>">
+								<div id="img-zoom-result"></div>
 							</div>
-						</div>
-						<div class="col-lg-6">
-							<div class="review_box">
-								<h4>Post a comment</h4>
-								<form class="row contact_form" action="contact_process.php" method="post" id="contactForm" novalidate="novalidate">
-									<div class="col-md-12">
-										<div class="form-group">
-											<input type="text" class="form-control" id="name" name="name" placeholder="Your Full name">
+							
+							<% if (product.productImage.length > 1) { %>
+								<div class="product-thumbnails mt-3">
+									<% product.productImage.forEach((image, index) => { %>
+										<div class="thumbnail d-inline-block mr-2" onclick="changeImage('<%= image %>')">
+											<img src="<%= image %>" alt="<%= product.productName %> thumbnail" class="img-fluid" style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;">
 										</div>
-									</div>
-									<div class="col-md-12">
-										<div class="form-group">
-											<input type="email" class="form-control" id="email" name="email" placeholder="Email Address">
-										</div>
-									</div>
-									<div class="col-md-12">
-										<div class="form-group">
-											<input type="text" class="form-control" id="number" name="number" placeholder="Phone Number">
-										</div>
-									</div>
-									<div class="col-md-12">
-										<div class="form-group">
-											<textarea class="form-control" name="message" id="message" rows="1" placeholder="Message"></textarea>
-										</div>
-									</div>
-									<div class="col-md-12 text-right">
-										<button type="submit" value="submit" class="btn primary-btn">Submit Now</button>
-									</div>
-								</form>
-							</div>
+									<% }) %>
+								</div>
+							<% } %>
 						</div>
 					</div>
-				</div>
-				<div class="tab-pane fade show active" id="review" role="tabpanel" aria-labelledby="review-tab">
-					<div class="row">
-						<div class="col-lg-6">
-							<div class="row total_rate">
-								<div class="col-6">
-									<div class="box_total">
-										<h5>Overall</h5>
-										<h4>4.0</h4>
-										<h6>(03 Reviews)</h6>
-									</div>
-								</div>
-								<div class="col-6">
-									<div class="rating_list">
-										<h3>Based on 3 Reviews</h3>
-										<ul class="list">
-											<li><a href="#">5 Star <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i
-													 class="fa fa-star"></i><i class="fa fa-star"></i> 01</a></li>
-											<li><a href="#">4 Star <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i
-													 class="fa fa-star"></i><i class="fa fa-star"></i> 01</a></li>
-											<li><a href="#">3 Star <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i
-													 class="fa fa-star"></i><i class="fa fa-star"></i> 01</a></li>
-											<li><a href="#">2 Star <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i
-													 class="fa fa-star"></i><i class="fa fa-star"></i> 01</a></li>
-											<li><a href="#">1 Star <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i
-													 class="fa fa-star"></i><i class="fa fa-star"></i> 01</a></li>
-										</ul>
-									</div>
-								</div>
-							</div>
-							<div class="review_list">
-								<div class="review_item">
-									<div class="media">
-										<div class="d-flex">
-											<img src="img/product/review-1.png" alt="">
-										</div>
-										<div class="media-body">
-											<h4>Blake Ruiz</h4>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-										</div>
-									</div>
-									<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-										dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-										commodo</p>
-								</div>
-								<div class="review_item">
-									<div class="media">
-										<div class="d-flex">
-											<img src="img/product/review-2.png" alt="">
-										</div>
-										<div class="media-body">
-											<h4>Blake Ruiz</h4>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-										</div>
-									</div>
-									<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-										dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-										commodo</p>
-								</div>
-								<div class="review_item">
-									<div class="media">
-										<div class="d-flex">
-											<img src="img/product/review-3.png" alt="">
-										</div>
-										<div class="media-body">
-											<h4>Blake Ruiz</h4>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-											<i class="fa fa-star"></i>
-										</div>
-									</div>
-									<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-										dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-										commodo</p>
-								</div>
-							</div>
-						</div>
-						<div class="col-lg-6">
-							<div class="review_box">
-								<h4>Add a Review</h4>
-								<p>Your Rating:</p>
-								<ul class="list">
-									<li><a href="#"><i class="fa fa-star"></i></a></li>
-									<li><a href="#"><i class="fa fa-star"></i></a></li>
-									<li><a href="#"><i class="fa fa-star"></i></a></li>
-									<li><a href="#"><i class="fa fa-star"></i></a></li>
-									<li><a href="#"><i class="fa fa-star"></i></a></li>
-								</ul>
-								<p>Outstanding</p>
-								<form class="row contact_form" action="contact_process.php" method="post" id="contactForm" novalidate="novalidate">
-									<div class="col-md-12">
-										<div class="form-group">
-											<input type="text" class="form-control" id="name" name="name" placeholder="Your Full name" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Your Full name'">
-										</div>
-									</div>
-									<div class="col-md-12">
-										<div class="form-group">
-											<input type="email" class="form-control" id="email" name="email" placeholder="Email Address" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Email Address'">
-										</div>
-									</div>
-									<div class="col-md-12">
-										<div class="form-group">
-											<input type="text" class="form-control" id="number" name="number" placeholder="Phone Number" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Phone Number'">
-										</div>
-									</div>
-									<div class="col-md-12">
-										<div class="form-group">
-											<textarea class="form-control" name="message" id="message" rows="1" placeholder="Review" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Review'"></textarea></textarea>
-										</div>
-									</div>
-									<div class="col-md-12 text-right">
-										<button type="submit" value="submit" class="primary-btn">Submit Now</button>
-									</div>
-								</form>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</section>
-	<!--================End Product Description Area =================-->
+					
+					<div class="col-lg-5 offset-lg-1">
+						<div class="s_product_text">
+							<h3><%=product.productName%></h3>
+							<h2>₹<%=product.salePrice.toFixed(2)%></h2>
 
-	<!-- Start related-product Area -->
+							<ul class="list">
+								<li><a class="active" href="#"><span>Category :</span><%=product.category.name%></a></li>
+								<li><a href="#"><span>Availibility</span> : In Stock</a></li>
+
+								<!-- DYNAMIC OFFER BADGE -->
+								<% 
+									const productOffer = product.offerPercentage || 0;
+									const categoryOffer = product.category?.categoryOffer || 0;
+									const bestOffer = Math.max(productOffer, categoryOffer);
+									const offerSource = productOffer > categoryOffer ? 'Product' : (categoryOffer > 0 ? 'Category' : null);
+								%>
+								<% if (bestOffer > 0) { %>
+									<li>
+										<div class="flipkart-offer">
+											<i class="ti-tag"></i>
+											<span><%= bestOffer %>% <%= offerSource %> Offer</span>
+										</div>
+									</li>
+								<% } %>
+							</ul>
+
+							<p><%=product.description%></p>
+							<div>
+								<button class="size-btn" onclick="selectSize(this)" data-size="6">6</button>
+								<button class="size-btn" onclick="selectSize(this)" data-size="7">7</button>
+								<button class="size-btn" onclick="selectSize(this)" data-size="8">8</button>
+								<button class="size-btn" onclick="selectSize(this)" data-size="9">9</button>
+							</div>
+							
+							<br>
+							<div class="product_count">
+								<label for="qty">Quantity:</label>
+								<input type="text" name="qty" id="sst" maxlength="12" value="1" title="Quantity:" class="input-text qty">
+								<button onclick="var result = document.getElementById('sst'); var sst = result.value; if( !isNaN( sst )) result.value++;return false;"
+								 class="increase items-count" type="button"><i class="lnr lnr-chevron-up"></i></button>
+								<button class="reduced items-count" type="button"><i class="lnr lnr-chevron-down"></i></button>
+							</div>
+							<div class="card_area d-flex align-items-center">
+								<button class="primary-btn" onclick="addToCart('<%= product._id %>')">Add to Cart</button>
+								<button class="primary-btn" onclick="addToWishlist('<%= product._id %>')">Add to Wishlist</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			<% } else { %>
+				<div class="no-product-container text-center my-5">
+					<div class="card p-5 shadow-sm">
+						<i class="fa fa-search-minus mb-3" style="font-size: 48px; color: #777;"></i>
+						<h2>No Product Found</h2>
+						<p class="text-muted">The product you're looking for is not available.</p>
+						<div class="mt-4">
+							<a href="/shop" class="primary-btn">Continue Shopping</a>
+						</div>
+					</div>
+				</div>
+			<% } %>
+		</div>
+	</div>
+	
+	<!-- Deels -->
 	<section class="related-product-area section_gap_bottom">
 		<div class="container">
 			<div class="row justify-content-center">
 				<div class="col-lg-6 text-center">
 					<div class="section-title">
 						<h1>Deals of the Week</h1>
-						<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore
-							magna aliqua.</p>
+						<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
 					</div>
 				</div>
 			</div>
 			<div class="row">
 				<div class="col-lg-9">
 					<div class="row">
-						<div class="col-lg-4 col-md-4 col-sm-6 mb-20">
-							<div class="single-related-product d-flex">
-								<a href="#"><img src="img/r1.jpg" alt=""></a>
-								<div class="desc">
-									<a href="#" class="title">Black lace Heels</a>
-									<div class="price">
-										<h6>$189.00</h6>
-										<h6 class="l-through">$210.00</h6>
+						<% if (deals && deals.length > 0) { %>
+							<% deals.forEach(product => { %>
+								<div class="col-lg-4 col-md-4 col-sm-6 mb-20">
+									<div class="single-related-product d-flex">
+										<a href="/product?id=<%= product._id %>">
+											<img src="<%= product.productImage[0] %>" alt="<%= product.productName %>">
+										</a>
+										<div class="desc">
+											<a href="/product?id=<%= product._id %>" class="title"><%= product.productName %></a>
+											<div class="price">
+												<h6>₹<%= product.salePrice.toFixed(2) %></h6>
+												<% if (product.regularPrice > product.salePrice) { %>
+													<h6 class="l-through">₹<%= product.regularPrice.toFixed(2) %></h6>
+												<% } %>
+											</div>
+										</div>
 									</div>
 								</div>
+							<% }) %>
+						<% } else { %>
+							<div class="col-12 text-center py-5">
+								<p class="text-muted">No deals available at the moment.</p>
 							</div>
-						</div>
-						<div class="col-lg-4 col-md-4 col-sm-6 mb-20">
-							<div class="single-related-product d-flex">
-								<a href="#"><img src="img/r2.jpg" alt=""></a>
-								<div class="desc">
-									<a href="#" class="title">Black lace Heels</a>
-									<div class="price">
-										<h6>$189.00</h6>
-										<h6 class="l-through">$210.00</h6>
-									</div>
-								</div>
-							</div>
-						</div>
-						<div class="col-lg-4 col-md-4 col-sm-6 mb-20">
-							<div class="single-related-product d-flex">
-								<a href="#"><img src="img/r3.jpg" alt=""></a>
-								<div class="desc">
-									<a href="#" class="title">Black lace Heels</a>
-									<div class="price">
-										<h6>$189.00</h6>
-										<h6 class="l-through">$210.00</h6>
-									</div>
-								</div>
-							</div>
-						</div>
-						<div class="col-lg-4 col-md-4 col-sm-6 mb-20">
-							<div class="single-related-product d-flex">
-								<a href="#"><img src="img/r5.jpg" alt=""></a>
-								<div class="desc">
-									<a href="#" class="title">Black lace Heels</a>
-									<div class="price">
-										<h6>$189.00</h6>
-										<h6 class="l-through">$210.00</h6>
-									</div>
-								</div>
-							</div>
-						</div>
-						<div class="col-lg-4 col-md-4 col-sm-6 mb-20">
-							<div class="single-related-product d-flex">
-								<a href="#"><img src="img/r6.jpg" alt=""></a>
-								<div class="desc">
-									<a href="#" class="title">Black lace Heels</a>
-									<div class="price">
-										<h6>$189.00</h6>
-										<h6 class="l-through">$210.00</h6>
-									</div>
-								</div>
-							</div>
-						</div>
-						<div class="col-lg-4 col-md-4 col-sm-6 mb-20">
-							<div class="single-related-product d-flex">
-								<a href="#"><img src="img/r7.jpg" alt=""></a>
-								<div class="desc">
-									<a href="#" class="title">Black lace Heels</a>
-									<div class="price">
-										<h6>$189.00</h6>
-										<h6 class="l-through">$210.00</h6>
-									</div>
-								</div>
-							</div>
-						</div>
-						<div class="col-lg-4 col-md-4 col-sm-6">
-							<div class="single-related-product d-flex">
-								<a href="#"><img src="img/r9.jpg" alt=""></a>
-								<div class="desc">
-									<a href="#" class="title">Black lace Heels</a>
-									<div class="price">
-										<h6>$189.00</h6>
-										<h6 class="l-through">$210.00</h6>
-									</div>
-								</div>
-							</div>
-						</div>
-						<div class="col-lg-4 col-md-4 col-sm-6">
-							<div class="single-related-product d-flex">
-								<a href="#"><img src="img/r10.jpg" alt=""></a>
-								<div class="desc">
-									<a href="#" class="title">Black lace Heels</a>
-									<div class="price">
-										<h6>$189.00</h6>
-										<h6 class="l-through">$210.00</h6>
-									</div>
-								</div>
-							</div>
-						</div>
-						<div class="col-lg-4 col-md-4 col-sm-6">
-							<div class="single-related-product d-flex">
-								<a href="#"><img src="img/r11.jpg" alt=""></a>
-								<div class="desc">
-									<a href="#" class="title">Black lace Heels</a>
-									<div class="price">
-										<h6>$189.00</h6>
-										<h6 class="l-through">$210.00</h6>
-									</div>
-								</div>
-							</div>
-						</div>
+						<% } %>
 					</div>
 				</div>
 				<div class="col-lg-3">
 					<div class="ctg-right">
-						<a href="#" target="_blank">
-							<img class="img-fluid d-block mx-auto" src="img/category/c5.jpg" alt="">
+						<a href="/shop" target="_blank">
+							<img class="img-fluid d-block mx-auto" src="img/category/c5.jpg" alt="Shop Now">
 						</a>
 					</div>
 				</div>
 			</div>
 		</div>
 	</section>
-   <script>
-     function changeImage(imageSrc) {
-        document.getElementById('productImg').src = imageSrc;
-    }
-    
-   
-    document.addEventListener('DOMContentLoaded', function() {
-        const container = document.querySelector('.img-zoom-container');
-        const img = document.getElementById('productImg');
-		initializeClock();
-        
-        if (container && img) {
-            container.addEventListener('mousemove', function(e) {
-                const rect = container.getBoundingClientRect();
-                const x = (e.clientX - rect.left) / rect.width;
-                const y = (e.clientY - rect.top) / rect.height;
-                
-                container.style.setProperty('--x', x * 100 + '%');
-                container.style.setProperty('--y', y * 100 + '%');
-            });
-        }
-    });
 
-	function selectSize(button) {
-    document.querySelectorAll('.size-btn').forEach(btn => btn.classList.remove('selected'));
-    button.classList.add('selected');
-}
+	<script>
+		function changeImage(imageSrc) {
+			document.getElementById('productImg').src = imageSrc;
+		}
 
-function addToCart(productId) {
-    const selectedSizeBtn = document.querySelector('.size-btn.selected');
-    
-    if (!selectedSizeBtn) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Size Required',
-            text: 'Please select a size before adding to cart',
-            confirmButtonColor: '#3085d6'
-        });
-        return;
-    }
+		document.addEventListener('DOMContentLoaded', function() {
+			const container = document.querySelector('.img-zoom-container');
+			const img = document.getElementById('productImg');
+			
+			if (container && img) {
+				container.addEventListener('mousemove', function(e) {
+					const rect = container.getBoundingClientRect();
+					const x = (e.clientX - rect.left) / rect.width;
+					const y = (e.clientY - rect.top) / rect.height;
+					
+					container.style.setProperty('--x', x * 100 + '%');
+					container.style.setProperty('--y', y * 100 + '%');
+				});
+			}
+		});
 
-    const selectedSize = selectedSizeBtn.getAttribute('data-size');
-    const quantity = parseInt(document.getElementById('sst').value) || 1;
+		function selectSize(button) {
+			document.querySelectorAll('.size-btn').forEach(btn => btn.classList.remove('selected'));
+			button.classList.add('selected');
+		}
 
-    fetch("/cart/add", {
-        method: "POST",
-        headers: { 
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify({ 
-            productId, 
-            size: selectedSize,
-            quantity: quantity 
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Added to Cart!',
-                text: 'Product has been added to your cart',
-                showConfirmButton: true,
-                showCancelButton: true,
-                confirmButtonText: 'View Cart',
-                cancelButtonText: 'Continue Shopping',
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#6c757d'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = '/cart';
-                }
-            });
-        } else {
-            throw new Error(data.message);
-        }
-    })
-    .catch(error => {
-        Swal.fire({
-            icon: 'error',
-            title: 'Oops...',
-            text: error.message || 'Failed to add item to cart',
-            confirmButtonColor: '#3085d6'
-        });
-    });
-}
+		function addToCart(productId) {
+			const selectedSizeBtn = document.querySelector('.size-btn.selected');
+			if (!selectedSizeBtn) {
+				Swal.fire({icon:'warning',title:'Size Required',text:'Please select a size before adding to cart',confirmButtonColor:'#3085d6'});
+				return;
+			}
+			const selectedSize = selectedSizeBtn.getAttribute('data-size');
+			const quantity = parseInt(document.getElementById('sst').value) || 1;
 
+			fetch("/cart/add", {
+				method: "POST",
+				headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+				body: JSON.stringify({ productId, size: selectedSize, quantity })
+			})
+			.then(r => r.json())
+			.then(data => {
+				if (data.success) {
+					Swal.fire({
+						icon:'success',title:'Added to Cart!',text:'Product has been added to your cart',
+						showConfirmButton:true,showCancelButton:true,confirmButtonText:'View Cart',cancelButtonText:'Continue Shopping',
+						confirmButtonColor:'#3085d6',cancelButtonColor:'#6c757d'
+					}).then(res => { if (res.isConfirmed) location.href='/cart'; });
+				} else throw new Error(data.message);
+			})
+			.catch(err => {
+				Swal.fire({icon:'error',title:'Oops...',text:err.message||'Failed to add item to cart',confirmButtonColor:'#3085d6'});
+			});
+		}
 
-    function addToWishlist(productId) {
-        fetch("/wishlist-add", {
-            method: "POST",
-            headers: { 
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            },
-            body: JSON.stringify({ productId })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Added to Wishlist!',
-                    text: data.message,
-                    showConfirmButton: true,
-                    showCancelButton: true,
-                    confirmButtonText: 'View Wishlist',
-                    cancelButtonText: 'Continue Shopping',
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#6c757d'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = '/wishlist';
-                    }
-                });
-            } else {
-                throw new Error(data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Wishlist error:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: error.message || 'Failed to add to wishlist',
-                confirmButtonColor: '#3085d6'
-            });
-        });
-    }
-   </script>
+		function addToWishlist(productId) {
+			fetch("/wishlist-add", {
+				method: "POST",
+				headers: { "Content-Type": "application/json", "Accept": "application/json" },
+				body: JSON.stringify({ productId })
+			})
+			.then(r => r.json())
+			.then(data => {
+				if (data.success) {
+					Swal.fire({
+						icon:'success',title:'Added to Wishlist!',text:data.message,
+						showConfirmButton:true,showCancelButton:true,confirmButtonText:'View Wishlist',cancelButtonText:'Continue Shopping',
+						confirmButtonColor:'#3085d6',cancelButtonColor:'#6c757d'
+					}).then(res => { if (res.isConfirmed) location.href='/wishlist'; });
+				} else throw new Error(data.message);
+			})
+			.catch(err => {
+				Swal.fire({icon:'error',title:'Oops...',text:err.message||'Failed to add to wishlist',confirmButtonColor:'#3085d6'});
+			});
+		}
+	</script>
 
 <%-include("../../views/partials/user/footer")%>

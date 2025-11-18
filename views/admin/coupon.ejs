@@ -486,7 +486,7 @@
                 </svg>
             </button>
         </div>
-        <form action="/admin/coupons" method="POST">
+        <form id="newCouponFormElement" action="/admin/coupons" method="POST">
             <div class="form-grid">
                 <div class="form-group">
                     <label class="form-label">Coupon Code*</label>
@@ -632,12 +632,51 @@
     // Set default expiry date to 30 days from now
     document.addEventListener('DOMContentLoaded', function() {
         const expiryDateInput = document.getElementById('expiryDate');
-        if (expiryDateInput) {
+        if (expiryDateInput && !expiryDateInput.value) {
             const date = new Date();
             date.setDate(date.getDate() + 30);
             const formattedDate = date.toISOString().split('T')[0];
             expiryDateInput.value = formattedDate;
             expiryDateInput.min = new Date().toISOString().split('T')[0];
+        }
+    });
+
+    // AJAX form submission for Create Coupon
+    document.getElementById('newCouponFormElement').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+
+        try {
+            const response = await fetch('/admin/coupons', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: result.message,
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
+                    location.reload();
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    text: result.message
+                });
+            }
+        } catch (err) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Something went wrong. Please try again.'
+            });
         }
     });
 </script>

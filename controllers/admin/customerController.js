@@ -25,6 +25,7 @@ const customerInfo = async (req,res)=>{
 
             ],
        })
+       .sort({createdAt: -1})
        .limit(limit*1)
        .skip((page-1)*limit)
        .exec();
@@ -46,7 +47,6 @@ const customerInfo = async (req,res)=>{
             totalPages,
             currentPage: page,
             searchQuery: search
-
         });
 
 

@@ -5,14 +5,14 @@
 <style>
     /* Custom CSS for error messages and form styling */
     .error-message {
-        color: #dc3545; /* Red color for error messages */
-        font-size: 0.875em; /* Slightly smaller font size */
-        margin-top: 0.25rem; /* Space above the error message */
-        display: block; /* Ensure it takes up its own line */
+        color: #dc3545;
+        font-size: 0.875em;
+        margin-top: 0.25rem;
+        display: block;
     }
 
     .form-control {
-        border: 1px solid #ced4da; /* Default border color */
+        border: 1px solid #ced4da;
         padding: 0.5rem;
         border-radius: 4px;
         width: 100%;
@@ -20,21 +20,21 @@
     }
 
     .form-control:invalid {
-        border-color: #dc3545; /* Red border for invalid inputs */
+        border-color: #dc3545;
     }
 
     .form-control:focus:invalid {
-        border-color: #dc3545; /* Red border for focused invalid inputs */
-        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25); /* Red glow for focused invalid inputs */
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
     }
 
     .form-label {
-        font-weight: bold; /* Make labels bold */
-        margin-bottom: 0.5rem; /* Space below the label */
+        font-weight: bold;
+        margin-bottom: 0.5rem;
     }
 
     .form-select {
-        border: 1px solid #ced4da; /* Default border color */
+        border: 1px solid #ced4da;
         padding: 0.5rem;
         border-radius: 4px;
         width: 100%;
@@ -42,16 +42,16 @@
     }
 
     .form-select:invalid {
-        border-color: #dc3545; /* Red border for invalid selects */
+        border-color: #dc3545;
     }
 
     .form-select:focus:invalid {
-        border-color: #dc3545; /* Red border for focused invalid selects */
-        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25); /* Red glow for focused invalid selects */
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
     }
 
     .btn {
-        margin-top: 1rem; /* Space above the button */
+        margin-top: 1rem;
         padding: 0.5rem 1rem;
         background-color: #007bff;
         color: white;
@@ -65,7 +65,7 @@
     }
 
     .preview-container {
-        margin-top: 1rem; /* Space above the preview container */
+        margin-top: 1rem;
     }
 
     .cropped-preview {
@@ -77,7 +77,7 @@
     }
 
     .remove-btn {
-        margin-top: 0.5rem; /* Space above the remove button */
+        margin-top: 0.5rem;
         background-color: #dc3545;
         color: white;
         border: none;
@@ -129,16 +129,6 @@
                             <input type="text" placeholder="Type here" name="productName" class="form-control" id="product_name">
                             <span id="productName-error" class="error-message"></span>
                         </div>
-                        <!-- <div class="col-lg-4 mb-4">
-                            <label class="form-label">Brand</label>
-                            <select class="form-select" name="brand" required>
-                                <option value="">Select Brand</option>
-                                <option value="Nike">Nike</option>
-                                <option value="Adidas">Adidas</option>
-                                <option value="Puma">Puma</option>
-                            </select>
-                            <span id="brand-error" class="error-message"></span>
-                        </div> -->
                         <div class="mb-4">
                             <label class="form-label">Full description</label>
                             <textarea placeholder="Type here" id="descriptionid" name="description" class="form-control" rows="4"></textarea>
@@ -182,7 +172,6 @@
                                     <label for="size-9">Size 9 Quantity:</label>
                                     <input type="number" id="size-9" name="sizes[9]" min="0" class="form-control">
                                 
-                                    <!-- Size validation error message -->
                                     <small id="size-error" class="text-danger"></small>
                                 </div>
                             </div>
@@ -435,107 +424,23 @@
         return true;
     }
 
-
+    // Auto-update total quantity when size inputs change
     document.querySelectorAll('input[name^="sizes"]').forEach(input => {
         input.addEventListener('input', updateTotalQuantity);
     });
 
-
     document.getElementById("totalQuantity").addEventListener('input', validateTotalQuantity);
 
+    // Initialize first image input
     document.addEventListener('DOMContentLoaded', () => {
         addNewImage();
     });
 
-    // Update the form submission handler
+    // === ONLY ONE SUBMIT HANDLER (DUPLICATE REMOVED) ===
     document.getElementById('productForm').addEventListener('submit', async function(event) {
         event.preventDefault();
-        
-        try {
-            const formData = new FormData(this);
-            
-            const response = await fetch('/admin/addProducts', {
-                method: 'POST',
-                body: formData
-            });
 
-            const data = await response.json();
-            console.log('Response:', data);
-
-            if (data.success) {
-                await Swal.fire({
-                    icon: 'success',
-                    title: 'Success!',
-                    text: 'Product added successfully',
-                    showConfirmButton: true
-                });
-                window.location.href = '/admin/products';
-            } else {
-                throw new Error(data.message || 'Failed to add product');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: error.message || 'Failed to save product'
-            });
-        }
-    });
-
-    // Add form validation function
-    function validateFormData() {
-        const productName = document.getElementById('product_name').value.trim();
-        const description = document.getElementById('descriptionid').value.trim();
-        const regularPrice = document.querySelector('input[name="regularPrice"]').value.trim();
-        const salePrice = document.querySelector('input[name="salePrice"]').value.trim();
-        const quantity = document.getElementById('totalQuantity').value.trim();
-        const category = document.querySelector('select[name="category"]').value;
-        const fileInputs = document.querySelectorAll('input[name="productImages"]');
-
-        let errors = [];
-
-        // Validate each field
-        if (!productName) errors.push('Product name is required');
-        if (!description) errors.push('Description is required');
-        if (!regularPrice || isNaN(regularPrice)) errors.push('Valid regular price is required');
-        if (!salePrice || isNaN(salePrice)) errors.push('Valid sale price is required');
-        if (!quantity || isNaN(quantity)) errors.push('Valid quantity is required');
-        if (!category) errors.push('Category is required');
-
-        // Check if any images are selected
-        let hasImages = false;
-        fileInputs.forEach(input => {
-            if (input.files.length > 0) hasImages = true;
-        });
-        if (!hasImages) errors.push('At least one product image is required');
-
-        if (errors.length > 0) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Validation Error',
-                html: errors.join('<br>'),
-                confirmButtonText: 'OK'
-            });
-            return false;
-        }
-
-        return true;
-    }
-
-    function clearErrors() {
-        document.getElementById("productName-error").textContent = "";
-        document.getElementById("description-error").textContent = "";
-        document.getElementById("regularPrice-error").textContent = "";
-        document.getElementById("salePrice-error").textContent = "";
-        document.getElementById("quantity-error").textContent = "";
-        document.getElementById("category-error").textContent = "";
-        document.getElementById("size-error").textContent = "";
-    }
-
-
-    document.getElementById('productForm').addEventListener('submit', function(event) {
-
+        // Clear all error messages
         document.getElementById("productName-error").textContent = "";
         document.getElementById("description-error").textContent = "";
         document.getElementById("regularPrice-error").textContent = "";
@@ -547,7 +452,6 @@
         let hasErrors = false;
         let errors = [];
 
-
         const productName = document.getElementById("product_name").value.trim();
         const description = document.getElementById("descriptionid").value.trim();
         const regularPrice = document.querySelector('input[name="regularPrice"]').value.trim();
@@ -557,137 +461,129 @@
         const sizes = document.querySelectorAll('input[name^="sizes"]');
         const fileInputs = document.querySelectorAll('input[name="productImages"]');
 
-
+        // Product Name
         if (!productName) {
             errors.push("Product Name is required.");
             document.getElementById("productName-error").textContent = "Product Name is required.";
             hasErrors = true;
-        } else if (productName.length < 3) {
-            errors.push("Product Name must be at least 3 characters long.");
-            document.getElementById("productName-error").textContent = "Product Name must be at least 3 characters long.";
+        } else if (productName.length < 3 || productName.length > 15) {
+            errors.push("Product Name must be 3-15 characters long.");
+            document.getElementById("productName-error").textContent = "Product Name must be 3-15 characters long.";
             hasErrors = true;
-        } else if (!/^[a-zA-Z0-9\s]+$/.test(productName)) {
-            errors.push("Product Name can only contain letters, numbers, and spaces.");
-            document.getElementById("productName-error").textContent = "Product Name can only contain letters, numbers, and spaces.";
+        } else if (!/^[a-zA-Z0-9\s\-_.,()]+$/.test(productName)) {
+            errors.push("Product Name can only contain letters, numbers, spaces and basic punctuation.");
+            document.getElementById("productName-error").textContent = "Product Name can only contain letters, numbers, spaces and basic punctuation.";
             hasErrors = true;
         }
 
-
+        // Description
         if (!description) {
             errors.push("Description is required.");
             document.getElementById("description-error").textContent = "Description is required.";
             hasErrors = true;
-        } else if (description.length < 10) {
-            errors.push("Description must be at least 10 characters long.");
-            document.getElementById("description-error").textContent = "Description must be at least 10 characters long.";
+        } else if (description.length < 10 || description.length > 2000) {
+            errors.push("Description must be between 10 and 2000 characters.");
+            document.getElementById("description-error").textContent = "Description must be between 10 and 2000 characters.";
             hasErrors = true;
         }
 
-
-        if (!regularPrice) {
-            errors.push("Regular Price is required.");
-            document.getElementById("regularPrice-error").textContent = "Regular Price is required.";
-            hasErrors = true;
-        } else if (isNaN(regularPrice) || parseFloat(regularPrice) <= 0) {
+        // Regular Price
+        const regPrice = parseFloat(regularPrice);
+        if (!regularPrice || isNaN(regPrice) || regPrice <= 0) {
             errors.push("Regular Price must be a positive number.");
             document.getElementById("regularPrice-error").textContent = "Regular Price must be a positive number.";
             hasErrors = true;
         }
 
-
-        if (!salePrice) {
-            errors.push("Sale Price is required.");
-            document.getElementById("salePrice-error").textContent = "Sale Price is required.";
-            hasErrors = true;
-        } else if (isNaN(salePrice) || parseFloat(salePrice) <= 0) {
+        // Sale Price
+        const salPrice = parseFloat(salePrice);
+        if (!salePrice || isNaN(salPrice) || salPrice <= 0) {
             errors.push("Sale Price must be a positive number.");
             document.getElementById("salePrice-error").textContent = "Sale Price must be a positive number.";
             hasErrors = true;
-        } else if (parseFloat(salePrice) >= parseFloat(regularPrice)) {
+        } else if (salPrice >= regPrice) {
             errors.push("Sale Price must be less than Regular Price.");
             document.getElementById("salePrice-error").textContent = "Sale Price must be less than Regular Price.";
             hasErrors = true;
         }
 
-        
-        if (!quantity) {
-            errors.push("Quantity is required.");
-            document.getElementById("quantity-error").textContent = "Quantity is required.";
-            hasErrors = true;
-        } else if (isNaN(quantity) || parseInt(quantity) <= 0) {
-            errors.push("Quantity must be a positive integer.");
-            document.getElementById("quantity-error").textContent = "Quantity must be a positive integer.";
+        // Quantity
+        const qty = parseInt(quantity, 10);
+        if (!quantity || isNaN(qty) || qty <= 0 || qty > 10000) {
+            errors.push("Quantity must be a positive integer (max 10,000).");
+            document.getElementById("quantity-error").textContent = "Quantity must be a positive integer (max 10,000).";
             hasErrors = true;
         }
 
-        
+        // Category
         if (!category) {
             errors.push("Category is required.");
             document.getElementById("category-error").textContent = "Category is required.";
             hasErrors = true;
         }
 
-        let sizeValid = false;
+        // Sizes
         let totalSizeStock = 0;
+        let hasSize = false;
         sizes.forEach(input => {
-            const value = input.value.trim();
-            if (value !== "" && !isNaN(value) && parseInt(value) > 0) {
-                sizeValid = true;
-                totalSizeStock += parseInt(value);
-            } else if (value !== "" && (isNaN(value) || parseInt(value) < 0)) {
-                errors.push(`Size ${input.name.match(/\d+/)[0]} quantity must be a non-negative integer.`);
-                document.getElementById("size-error").textContent = `Size ${input.name.match(/\d+/)[0]} quantity must be a non-negative integer.`;
+            const val = input.value.trim();
+            const sizeQty = parseInt(val, 10);
+            if (val !== "" && !isNaN(sizeQty) && sizeQty > 0) {
+                hasSize = true;
+                totalSizeStock += sizeQty;
+            } else if (val !== "" && (isNaN(sizeQty) || sizeQty < 0)) {
+                errors.push(`Size ${input.id.split('-')[1]} quantity must be a non-negative integer.`);
+                document.getElementById("size-error").textContent = `Invalid size quantity.`;
                 hasErrors = true;
             }
         });
 
-        if (!sizeValid) {
-            errors.push("At least one size quantity is required.");
-            document.getElementById("size-error").textContent = "At least one size quantity is required.";
+        if (!hasSize) {
+            errors.push("At least one size with quantity > 0 is required.");
+            document.getElementById("size-error").textContent = "At least one size with quantity > 0 is required.";
             hasErrors = true;
-        } else if (totalSizeStock > parseInt(quantity)) {
-            errors.push("Total size stock cannot exceed total quantity.");
-            document.getElementById("size-error").textContent = "Total size stock cannot exceed total quantity.";
+        } else if (totalSizeStock > qty) {
+            errors.push("Total size quantity cannot exceed total quantity.");
+            document.getElementById("size-error").textContent = "Total size quantity cannot exceed total quantity.";
             hasErrors = true;
         }
 
-        
+        // Images
         let hasImages = false;
         fileInputs.forEach(input => {
-            if (input.files.length > 0) {
-                hasImages = true;
-            }
+            if (input.files && input.files.length > 0) hasImages = true;
         });
         if (!hasImages) {
             errors.push("At least one product image is required.");
             hasErrors = true;
         }
 
-        
+        // Show errors
         if (hasErrors) {
-            event.preventDefault();
             Swal.fire({
                 icon: 'error',
                 title: 'Validation Error',
                 html: errors.join('<br>'),
                 confirmButtonText: 'OK'
             });
+            return;
         }
-    });
 
-    document.getElementById('productForm').addEventListener('submit', async function(event) {
-        event.preventDefault();
-        
+        // Submit via AJAX
         try {
             const formData = new FormData(this);
-            
             const response = await fetch('/admin/addProducts', {
                 method: 'POST',
                 body: formData
             });
 
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await response.text();
+                throw new Error('Server error. Please try again.');
+            }
+
             const data = await response.json();
-            console.log('Response:', data);
 
             if (data.success) {
                 await Swal.fire({
@@ -701,7 +597,7 @@
                 throw new Error(data.message || 'Failed to add product');
             }
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Submit error:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Error',

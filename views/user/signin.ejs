@@ -84,6 +84,11 @@
       padding: 10px;
       border-radius: 8px;
     }
+
+    .is-invalid {
+      border-color: #dc3545 !important;
+      box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    }
   </style>
 </head>
 <body>
@@ -97,19 +102,32 @@
     <div class="form-section">
       <h2>Sign In to Emporium</h2>
 
-      <!-- Flash Error Message -->
-      <% if (typeof error !== 'undefined' && error.length > 0) { %>
-        <div class="alert alert-danger text-center" id="error-alert">
-          <%= error[0] %>
+      
+      <% if (errorMessage && errorMessage.length > 0) { %>
+        <div class="alert alert-danger text-center" id="error-alert" role="alert">
+          <%= errorMessage[0] %>
         </div>
       <% } %>
 
       <form action="/signin" method="POST">
         <div class="mb-3">
-          <input type="text" name="email" class="form-control" placeholder="Email" required />
+          <input 
+            type="text" 
+            name="email" 
+            class="form-control <% if (errorMessage && errorMessage.length > 0) { %>is-invalid<% } %>" 
+            placeholder="Email" 
+            value="<%= (old && old.email !== undefined) ? old.email : '' %>" 
+            required 
+          />
         </div>
         <div class="mb-3">
-          <input type="password" name="password" class="form-control" placeholder="Password" required />
+          <input 
+            type="password" 
+            name="password" 
+            class="form-control <% if (errorMessage && errorMessage.length > 0) { %>is-invalid<% } %>" 
+            placeholder="Password" 
+            required 
+          />
         </div>
         <button type="submit" class="btn btn-primary w-100">Sign In</button>
       </form>
@@ -131,34 +149,20 @@
   </div>
 
   <script>
-    // Prevent back button from returning to sign-in after login
-    window.history.pushState(null, '', window.location.href);
-    window.onpopstate = function () {
-      window.history.pushState(null, '', window.location.href);
-    };
-
-    // Reload page if restored from bfcache
-    window.onpageshow = function (event) {
-      if (event.persisted) {
-        window.location.reload();
-      }
-    };
-
-    // Reset form on load
-    window.onload = function () {
-      document.querySelector('form').reset();
-    };
-
-    // Set login state
-    document.querySelector('form').addEventListener('submit', function () {
-      sessionStorage.setItem('isLoggedIn', 'true');
-    });
-
-    // Auto-hide error alert after 3 seconds
+    
     setTimeout(() => {
       const alertBox = document.getElementById('error-alert');
-      if (alertBox) alertBox.style.display = 'none';
-    }, 3000);
+      if (alertBox) {
+        alertBox.style.transition = 'opacity 0.5s';
+        alertBox.style.opacity = '0';
+        setTimeout(() => alertBox.style.display = 'none', 500);
+      }
+    }, 4000);
+
+    
+    window.history.pushState(null, '', window.location.href);
+    window.onpopstate = () => window.history.pushState(null, '', window.location.href);
+    window.onpageshow = (e) => { if (e.persisted) window.location.reload(); };
   </script>
 </body>
 </html>

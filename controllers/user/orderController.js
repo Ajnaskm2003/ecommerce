@@ -1,4 +1,10 @@
 const Order = require('../../models/orderSchema');
+const mongoose = require('mongoose');
+const User = require('../../models/userSchema');
+const WalletTransaction = require('../../models/walletSchema')
+
+
+
 
 const getUserOrders = async (req, res) => {
     try {
@@ -52,6 +58,7 @@ const getUserOrders = async (req, res) => {
     }
 };
 
+
 const viewOrderDetails = async (req, res) => {
     try {
         const orderId = req.params.id;
@@ -73,28 +80,107 @@ const viewOrderDetails = async (req, res) => {
     }
 };
 
-const cancelOrder = async (req, res) => {
-    try {
-        const orderId = req.params.id;
-        const order = await Order.findById(orderId);
 
-        if (!order) {
-            return res.status(404).send('Order not found');
-        }
+const cancelOrder = async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const order = await Order.findById(orderId);
+    if (!order) return res.status(404).send('Order not found');
+
+    if (!['Pending', 'Processing'].includes(order.status))
+      return res.status(400).send('Cannot cancel order at this stage');
+
+    const refundAmount = order.totalAmount;
 
     
-        if (['Pending', 'Processing'].includes(order.status)) {
-            order.status = 'Cancelled';
-            await order.save();
-            return res.redirect('/order-details/' + orderId);
-        } else {
-            return res.status(400).send('Order cannot be cancelled at this stage');
-        }
-    } catch (err) {
-        console.error('Error cancelling order:', err);
-        res.status(500).send('Internal Server Error');
+    if (['Online Payment', 'Wallet Payment'].includes(order.paymentMethod)) {
+      const user = await User.findById(order.userId);
+      user.wallet = (user.wallet || 0) + refundAmount;
+      await user.save();
+
+      await WalletTransaction.create({
+        userId: user._id,
+        type: 'Credit',
+        amount: refundAmount,
+        description: `Full refund for cancelled Order #${order.orderId}`,
+        orderId: order._id,
+      });
     }
+
+    
+    order.orderItems.forEach(item => {
+      item.status = 'Cancelled';
+    });
+
+    order.status = 'Cancelled';
+    
+    await order.save();
+
+    req.flash?.('success', 'Order fully cancelled and refunded.');
+    return res.redirect(`/order-details/${orderId}`);
+
+  } catch (err) {
+    console.error('Error cancelling order:', err);
+    return res.status(500).send('Server Error');
+  }
 };
+
+
+
+const cancelItem = async (req, res) => {
+  try {
+    const { orderId, itemId } = req.params;
+    const order = await Order.findById(orderId);
+    if (!order) return res.status(404).send('Order not found');
+
+
+    if (order.userId.toString() !== req.session.user.id.toString())
+      return res.status(403).send('Unauthorized');
+
+    if (!['Pending', 'Processing'].includes(order.status))
+      return res.status(400).send('Order cannot be cancelled at this stage');
+
+    const item = order.orderItems.id(itemId);
+    if (!item) return res.status(404).send('Item not found');
+
+    if (item.status === 'Cancelled')
+      return res.status(400).send('Item already cancelled');
+
+    const refundAmount = item.price * item.quantity;
+
+    if (['Online Payment', 'Wallet Payment'].includes(order.paymentMethod)) {
+      const user = await User.findById(order.userId);
+      user.wallet = (user.wallet || 0) + refundAmount;
+      await user.save();
+
+      await WalletTransaction.create({
+        userId: user._id,
+        type: 'Credit',
+        amount: refundAmount,
+        description: `Refund for cancelled item in Order #${order.orderId}`,
+        orderId: order._id,
+      });
+    }
+
+    order.totalAmount -= refundAmount;
+    item.status = 'Cancelled';
+
+    const allCancelled = order.orderItems.every(i => i.status === 'Cancelled');
+    if (allCancelled) {
+      order.status = 'Cancelled';
+    }
+
+    await order.save();
+
+    req.flash?.('success', `Item cancelled. ₹${refundAmount} refunded.`);
+    return res.redirect(`/order-details/${orderId}`);
+
+  } catch (err) {
+    console.error('Error cancelling item:', err);
+    return res.status(500).send('Server Error');
+  }
+};
+
 
 
 const submitReturnRequest = async (req, res) => {
@@ -171,9 +257,69 @@ const submitReturnRequest = async (req, res) => {
   }
 };
 
+
+
+const returnItem = async (req, res) => {
+  try {
+    const { orderId, itemId } = req.params;               
+    const { returnReason } = req.body;                    
+
+    if (!returnReason?.trim()) {
+      return res.status(400).json({ success: false, message: "Return reason is required" });
+    }
+
+    const order = await Order.findById(orderId).populate("orderItems.product", "productName");
+    if (!order) return res.status(404).json({ success: false, message: "Order not found" });
+
+  
+    if (order.userId.toString() !== req.session.user.id.toString())
+      return res.status(403).json({ success: false, message: "Unauthorized" });
+
+    
+    if (order.status !== "Delivered")
+      return res.status(400).json({ success: false, message: "Only delivered orders can be returned" });
+
+    const item = order.orderItems.id(itemId);
+    if (!item) return res.status(404).json({ success: false, message: "Item not found" });
+
+    
+    if (item.returnRequest)
+      return res.status(400).json({ success: false, message: "Return already requested for this item" });
+
+    
+    item.returnRequest = true;
+    item.returnStatus   = "Pending";
+    item.returnReason   = returnReason.trim();
+    item.returnRequestDate = new Date();
+    await order.save();
+
+    
+    const io = req.app.get("io");
+    const notification = {
+      orderId: order.orderId,
+      itemId: item._id.toString(),
+      productName: item.product?.productName || "Deleted",
+      userName: req.session.user.name || "Unknown User",
+      userEmail: req.session.user.email || "N/A",
+      returnReason: returnReason.trim(),
+      returnStatus: "Pending",
+      timestamp: new Date().toISOString(),
+    };
+    io.emit("returnNotification", notification);
+
+    res.json({ success: true, message: "Return request submitted successfully" });
+
+  } catch (err) {
+    console.error("Error submitting item return:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
 module.exports = {
     getUserOrders,
     viewOrderDetails,
     cancelOrder,
+    cancelItem,
     submitReturnRequest,
+    returnItem
 }

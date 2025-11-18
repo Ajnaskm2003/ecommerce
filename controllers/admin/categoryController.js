@@ -7,36 +7,39 @@ const mongoose = require('mongoose');
 
 
 
-const categoryInfo = async (req,res) =>{
+const categoryInfo = async (req, res) => {
     console.log("i am get");
-    
 
     try {
-        
         const page = parseInt(req.query.page) || 1;
         const limit = 4;
-        const skip = (page -1)*limit
+        const skip = (page - 1) * limit;
+        const search = req.query.search || '';
 
-        const categoryData = await Category.find({})
-        .sort({createdAt:-1})
-        .skip(skip) 
-        .limit(limit);
 
-        const totalCategories = await Category.countDocuments();
+        const searchQuery = search 
+            ? { name: { $regex: search, $options: 'i' } } 
+            : {};
+
+        const categoryData = await Category.find(searchQuery)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const totalCategories = await Category.countDocuments(searchQuery);
         const totalPages = Math.ceil(totalCategories / limit);
-        console.log(categoryData);
-        
-        res.render('category',{
-            cat:categoryData,
-            currentPage:page,
-            totalPages : totalPages,
-            totalCategories : totalCategories
 
+        res.render('category', {
+            cat: categoryData,
+            currentPage: page,
+            totalPages: totalPages,
+            totalCategories: totalCategories,
+            search: search 
         });
 
     } catch (error) {
         console.error(error);
-        
+        res.status(500).send("Server Error");
     }
 };
 
@@ -46,31 +49,67 @@ const addCategory = async (req, res) => {
         const { name, description } = req.body;
 
         if (!name || !description) {
-            return res.status(400).json({ error: "Name and description are required" });
+            return res.status(400).json({ 
+                status: false, 
+                message: "Category name and description are required." 
+            });
+        };
+
+        const trimmedName = name.trim();
+        const trimmedDescription = description.trim();
+
+        if (trimmedName.length < 3 || trimmedName.length > 30) {
+            return res.status(400).json({ 
+                status: false, 
+                message: "Category name must be between 3 and 30 characters long." 
+            });
         }
 
-    
-        const existingCategory = await Category.findOne({ name: { $regex: new RegExp("^" + name + "$", "i") } });
+        if (trimmedDescription.length < 10 || trimmedDescription.length > 200) {
+            return res.status(400).json({ 
+                status: false, 
+                message: "Description must be between 10 and 200 characters long." 
+            });
+        }
+
+        const validName = /^[A-Za-z0-9\s]+$/;
+        if (!validName.test(trimmedName)) {
+            return res.status(400).json({ 
+                status: false, 
+                message: "Category name can only contain letters, numbers, and spaces." 
+            });
+        }
+
+        const existingCategory = await Category.findOne({ 
+            name: { $regex: new RegExp("^" + trimmedName + "$", "i") } 
+        });
 
         if (existingCategory) {
-            return res.status(400).json({ error: "Category already exists" });
+            return res.status(400).json({ 
+                status: false, 
+                message: "Category already exists." 
+            });
         }
 
         const newCategory = new Category({
-            name,
-            description,
+            name: trimmedName,
+            description: trimmedDescription,
         });
 
         await newCategory.save();
-        return res.status(201).json({ message: "Category added successfully" });
+        return res.status(201).json({ 
+            status: true, 
+            message: "Category added successfully." 
+        });
 
     } catch (error) {
         console.error("Error adding category:", error);
-        return res.status(500).json({ error: "Internal server error" });
+        return res.status(500).json({ 
+            status: false, 
+            message: "Internal server error." 
+        });
     }
 };
-
-
 
 const getListCategory = async (req,res)=>{
     try {
@@ -88,57 +127,92 @@ const getUnlistCategory = async (req,res)=>{
     try {
         
         let id = req.query.id;
+        
         await Category.updateOne({_id:id},{$set:{isListed:true}});
         res.redirect('/admin/category');
 
+        
+
     } catch (error) {
         console.error(error);
         
     }
 }
 
-const getEditCategory = async (req,res)=>{
-    try {
-        
-        let id = req.query.id;
-        const category = await Category.findOne({_id:id});
-        res.render("edit-category",{
-            category:category
-        });
+const getEditCategory = async (req, res) => {
+  try {
+    const id = req.query.id;
 
-    } catch (error) {
-        console.error(error);
-        
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      return res.redirect('/admin/category?error=Invalid+ID');
     }
+
+    const category = await Category.findById(id);
+    if (!category) {
+      return res.redirect('/admin/category?error=Category+not+found');
+    }
+
+    res.render("edit-category", { category });
+
+  } catch (error) {
+    console.error("getEditCategory error:", error);
+    res.redirect('/admin/category?error=Server+error');
+  }
 };
 
 
-const editCategory = async (req,res)=>{
-    try {
-        
-        const id = req.params.id;
-        const {categoryName,description} = req.body;
-        const existingCategory = await Category.findOne({name:categoryName});
+const updateCategory = async (req, res) => {
+  try {
+    const { id, name, description } = req.body;
 
-        if(existingCategory){
-            return res.status(400).json({error:"Catogory exist, please choose another name"})
-        }
-        const updateCategory = await Category.findByIdAndUpdate(id,{
-            name:categoryName,
-            description:description,
-        },{new:true});
 
-        if(updateCategory){
-            res.redirect('/admin/category');
-        }else{
-            res.status(400).json({error:"Category not found"})
-        }
-
-    } catch (error) {
-        res.status(500).json({error:"internal server error"});
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid category ID' });
     }
-}
 
+    
+    if (!name || name.trim().length === 0) {
+      return res.status(400).json({ error: 'Category name is required' });
+    }
+
+    if (!description || description.trim().length === 0) {
+      return res.status(400).json({ error: 'Description is required' });
+    }
+
+    const trimmedName = name.trim();
+    const trimmedDesc = description.trim();
+
+    
+    const existingCategory = await Category.findOne({
+      name: { $regex: `^${trimmedName}$`, $options: 'i' },  
+      _id: { $ne: id }
+    });
+
+    if (existingCategory) {
+      return res.status(400).json({
+        error: 'Category name already exists. Please choose another.'
+      });
+    }
+
+
+    const updatedCategory = await Category.findByIdAndUpdate(
+      id,
+      { name: trimmedName, description: trimmedDesc },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedCategory) {
+      return res.status(404).json({ error: 'Category not found' });
+    }
+
+    
+    res.redirect('/admin/category?success=Category+updated+successfully');
+
+  } catch (error) {
+    console.error('updateCategory error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
 
 
 const addCategoryOffer = async (req, res) => {
@@ -146,7 +220,9 @@ const addCategoryOffer = async (req, res) => {
         const percentage = parseInt(req.body.percentage);
         const categoryId = req.body.categoryId;
 
-        console.log("Received:", req.body);
+        if (isNaN(percentage) || percentage < 0 || percentage > 90) {
+            return res.status(400).json({ status: false, message: "Offer must be 0–90%" });
+        }
 
         const category = await Category.findById(categoryId);
         if (!category) {
@@ -156,78 +232,113 @@ const addCategoryOffer = async (req, res) => {
         const products = await Product.find({ category: category._id });
 
         
-        const hasHigherProductOffer = products.some(
-            (product) => product.productOffer > percentage
-        );
-
+        const hasHigherProductOffer = products.some(p => (p.offerPercentage || 0) > percentage);
         if (hasHigherProductOffer) {
-            return res.json({ 
-                status: false, 
-                message: "One or more products already have a higher product offer" 
+            return res.json({
+                status: false,
+                message: "Cannot apply: Some products have higher individual offers"
             });
         }
 
         
-        await Category.updateOne(
-            { _id: categoryId },
-            { $set: { categoryOffer: percentage } }
-        );
+        await Category.updateOne({ _id: categoryId }, { $set: { categoryOffer: percentage } });
 
-        
+
         await Product.updateMany(
             { category: category._id },
-            { 
-                $set: { 
-                    productOffer: 0,
-                    salesPrice: { 
-                        $subtract: [
-                            "$regularPrice",
-                            { $multiply: ["$regularPrice", percentage / 100] }
-                        ]
+            [
+                {
+                    $set: {
+                        
+                        offerPercentage: {
+                            $cond: [
+                                { $gt: ["$offerPercentage", percentage] },
+                                "$offerPercentage",
+                                0
+                            ]
+                        },
+                        
+                        salePrice: {
+                            $round: [
+                                {
+                                    $subtract: [
+                                        "$regularPrice",
+                                        {
+                                            $multiply: [
+                                                "$regularPrice",
+                                                {
+                                                    $divide: [
+                                                        { $max: ["$offerPercentage", percentage] },
+                                                        100
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                2
+                            ]
+                        }
                     }
                 }
-            }
+            ]
         );
 
         res.json({ status: true, message: "Category offer applied successfully" });
 
     } catch (error) {
-        console.error("Error in addCategoryOffer:", error);
-        res.status(500).json({ status: false, message: "Internal server error" });
+        console.error("Error:", error);
+        res.status(500).json({ status: false, message: "Server error" });
     }
 };
 
 
-const removeCategoryOffer = async(req,res)=>{
+
+const removeCategoryOffer = async (req, res) => {
     try {
-        const categoryId=req.body.categoryId;
-        const category=await Category.findById(categoryId) 
-        if(!category){
-            return res.status(404).json({status:false,message:"Category not found"})
+        const { categoryId } = req.body;
+
+        const category = await Category.findById(categoryId);
+        if (!category) {
+            return res.status(404).json({ status: false, message: "Category not found" });
         }
 
-        const percentage=category.categoryOffer;
-        const products=await Product.find({category:category._id})
+    
+        await Category.updateOne({ _id: categoryId }, { $set: { categoryOffer: 0 } });
 
-        if(products.length>0){
+        
+        await Product.updateMany(
+            { category: categoryId },
+            [
+                {
+                    $set: {
+                        salePrice: {
+                            $round: [
+                                {
+                                    $subtract: [
+                                        "$regularPrice",
+                                        {
+                                            $multiply: [
+                                                "$regularPrice",
+                                                { $divide: ["$offerPercentage", 100] }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                2
+                            ]
+                        }
+                    }
+                }
+            ]
+        );
 
-            for(const product of products){
-                product.salePrice+=Math.floor(product.regularPrice * (percentage/100))
-                product.productOffer=0;
-                await product.save();
-
-            }
-
-            category.categoryOffer=0;
-            await category.save()
-            res.json({status:true})
-
-        }
-
+        res.json({ status: true, message: "Category offer removed" });
     } catch (error) {
-        res.status(500).json({status:false,message:"Internal Server Error"})
+        console.error(error);
+        res.status(500).json({ status: false, message: "Server error" });
     }
-}
+};
 
 
 
@@ -237,7 +348,7 @@ module.exports = {
     getListCategory,
     getUnlistCategory,
     getEditCategory,
-    editCategory,
+    updateCategory,
     addCategoryOffer,
     removeCategoryOffer,
 }

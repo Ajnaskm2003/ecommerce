@@ -1,6 +1,7 @@
 const Order = require("../../models/orderSchema");
 const User = require("../../models/userSchema");
 const Product = require('../../models/productSchema');
+const WalletTransaction = require('../../models/walletSchema');
 let returnRequests = [];
 
 const getAllOrders = async (req, res) => {
@@ -73,7 +74,6 @@ const updateOrderStatus = async (req, res) => {
         const orderId = req.params.orderId;
         const { status } = req.body;
 
-        // Define valid statuses and their hierarchy
         const statusHierarchy = {
             Pending: 1,
             Processing: 2,
@@ -86,22 +86,21 @@ const updateOrderStatus = async (req, res) => {
 
         const validStatuses = Object.keys(statusHierarchy);
 
-        // Validate the new status
         if (!validStatuses.includes(status)) {
             return res.status(400).json({ error: 'Invalid status' });
         }
 
-        // Find the order
+        
         const order = await Order.findOne({ orderId });
         if (!order) {
             return res.status(404).json({ error: 'Order not found' });
         }
 
-        // Get the current and new status hierarchy values
+        
         const currentStatusValue = statusHierarchy[order.status];
         const newStatusValue = statusHierarchy[status];
 
-        // Prevent rollback for Processing, Shipped, or Delivered
+        
         if (
             ['Processing', 'Shipped', 'Delivered'].includes(order.status) &&
             newStatusValue < currentStatusValue
@@ -111,7 +110,7 @@ const updateOrderStatus = async (req, res) => {
             });
         }
 
-        // Update the order status
+        
         order.status = status;
         await order.save();
 
@@ -135,8 +134,9 @@ const getReturnOrders = async (req, res) => {
     })
       .populate("orderItems.product", "productName")
       .populate("userId", "name email")
-      .select("orderId orderItems userId")
-      .sort({ "orderItems.returnRequestDate": -1 }); 
+      .select("orderId orderItems userId totalAmount")
+      .sort({ "orderItems.returnRequestDate": -1 });
+
     console.log('Return Orders:', JSON.stringify(returnOrders, null, 2));
 
     res.render("returnorders", {
@@ -144,7 +144,7 @@ const getReturnOrders = async (req, res) => {
         ...order.toObject(),
         orderItems: order.orderItems
           .filter(item => item.returnRequest)
-          .sort((a, b) => new Date(b.returnRequestDate) - new Date(a.returnRequestDate)) 
+          .sort((a, b) => new Date(b.returnRequestDate) - new Date(a.returnRequestDate))
       }))
     });
   } catch (error) {
@@ -159,36 +159,73 @@ const getReturnOrders = async (req, res) => {
 const acceptReturn = async (req, res) => {
   try {
     const { orderId, itemId } = req.params;
-    const order = await Order.findById(orderId).populate("orderItems.product", "productName");
 
+    const order = await Order.findById(orderId).populate(
+      "orderItems.product",
+      "productName"
+    );
     if (!order) {
       return res.status(404).json({ success: false, message: "Order not found" });
     }
 
-    const item = order.orderItems.find(item => item._id.toString() === itemId);
+    const item = order.orderItems.find(i => i._id.toString() === itemId);
     if (!item) {
       return res.status(404).json({ success: false, message: "Order item not found" });
     }
 
-    item.returnStatus = 'Accepted';
-    item.status = 'Returned';
-
-    const allReturnedOrCancelled = order.orderItems.every(
-      (i) => i.status === 'Returned' || i.status === 'Cancelled'
+    
+    const nonReturnedItems = order.orderItems.filter(
+      i => i._id.toString() !== itemId && 
+           !["Returned", "Cancelled"].includes(i.status)
     );
 
-    if (allReturnedOrCancelled) {
-      order.status = 'Returned';
+    const isFullReturn = nonReturnedItems.length === 0;   
+
+    let refundAmount = 0;
+
+    if (isFullReturn) {
+      
+      refundAmount = order.totalAmount;   
+
+      console.log(
+        `FULL REFUND → Order:${orderId}\n` +
+        `  Total Paid: ₹${order.totalAmount}\n` +
+        `  Refund Amount: ₹${refundAmount}`
+      );
+    } else {
+      
+      const itemOriginalTotal = item.price * item.quantity;
+      const discountRatio = itemOriginalTotal / order.totalPrice;
+      const proratedDiscount = Math.round(order.discount * discountRatio * 100) / 100;
+      refundAmount = itemOriginalTotal - proratedDiscount;
+
+      console.log(
+        `PARTIAL REFUND → Order:${orderId} Item:${itemId}\n` +
+        `  Original: ₹${itemOriginalTotal}\n` +
+        `  Prorated Discount: ₹${proratedDiscount}\n` +
+        `  Refund Amount: ₹${refundAmount}`
+      );
     }
 
+    
+    item.returnStatus = "Accepted";
+    item.status = "Returned";
+
+    const allReturnedOrCancelled = order.orderItems.every(
+      i => i.status === "Returned" || i.status === "Cancelled"
+    );
+    if (allReturnedOrCancelled) order.status = "Returned";
+
+    
     const user = await User.findById(order.userId);
     if (user) {
-      user.wallet = (user.wallet || 0) + item.price * item.quantity;
+      user.wallet = (user.wallet || 0) + refundAmount;
       await user.save();
     } else {
       console.error("User not found for ID:", order.userId);
     }
 
+    
     const product = await Product.findById(item.product);
     if (product) {
       product.sizes[item.size] = (product.sizes[item.size] || 0) + item.quantity;
@@ -199,9 +236,25 @@ const acceptReturn = async (req, res) => {
 
     await order.save();
 
+    
+    try {
+      await WalletTransaction.create({
+        userId: order.userId,
+        type: "Credit",
+        amount: refundAmount,
+        description: `Refund for ${isFullReturn ? "full order" : "returned item"} "${
+          item.product?.productName || "Unknown"
+        }" (Order ID: ${orderId})`,
+        orderId: order._id,
+      });
+    } catch (walletError) {
+      console.error("Wallet transaction failed (non-critical):", walletError);
+    }
+
+  
     const io = req.app.get("io");
     io.emit("returnStatusUpdate", {
-      orderId: order.orderId,
+      orderId,
       itemId: item._id.toString(),
       returnStatus: "Accepted",
       productName: item.product?.productName || "Deleted",
@@ -210,13 +263,12 @@ const acceptReturn = async (req, res) => {
       userEmail: user?.email || "N/A",
     });
 
-    res.json({ success: true, message: "Return accepted and order updated successfully" });
+    res.json({ success: true, message: "Return accepted and wallet updated" });
   } catch (error) {
     console.error("Error accepting return:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
-
 
 
 

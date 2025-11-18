@@ -8,13 +8,14 @@ const getSalesReport = async (req, res) => {
         const { period, from, to } = req.query;
         let filter = { status: "Delivered" };
 
+    
         if (from && to) {
             filter.createdOn = {
                 $gte: new Date(from),
                 $lte: new Date(to + "T23:59:59")
             };
         } else if (period) {
-            let now = new Date();
+            const now = new Date();
             let startDate;
             if (period === 'day') {
                 startDate = new Date(now.setDate(now.getDate() - 1));
@@ -23,18 +24,19 @@ const getSalesReport = async (req, res) => {
             } else if (period === 'month') {
                 startDate = new Date(now.setMonth(now.getMonth() - 1));
             }
-            if (startDate) {
-                filter.createdOn = { $gte: startDate };
-            }
+            if (startDate) filter.createdOn = { $gte: startDate };
         }
 
-        console.log('Filter applied:', filter);
+        console.log('filterrrr applly:', filter);
+
+        
         const orders = await Order.find(filter)
             .populate('orderItems.product', 'productName')
             .sort({ createdOn: -1 });
 
-        console.log('Fetched orders:', orders.length);
+        console.log('geting orders:', orders.length);
 
+        
         const sales = orders.map(order => ({
             orderId: order.orderId,
             items: order.orderItems.map(item => ({
@@ -42,18 +44,29 @@ const getSalesReport = async (req, res) => {
                 quantity: item.quantity,
             })),
             price: order.totalAmount,
+            discount: order.discount || 0,
             date: order.createdOn
         }));
 
-        console.log('Sales data:', sales);
+    
+        const orderCount   = orders.length;
+        const totalRevenue = orders.reduce((sum, o) => sum + o.totalAmount, 0);
+        const totalDiscount = orders.reduce((sum, o) => sum + (o.discount || 0), 0);
+
+        console.log('Aggregates ->', { orderCount, totalRevenue, totalDiscount });
+
         res.set('Cache-Control', 'no-store');
-        res.render('salesReport', { sales, query: req.query });
+        res.render('salesReport', {
+            sales,
+            query: req.query,
+            summary: { orderCount, totalRevenue, totalDiscount }
+        });
+
     } catch (error) {
         console.error('Error loading sales report:', error.message, error.stack);
         res.status(500).render('error', { message: 'Failed to load sales report. Please try again later.' });
     }
 };
-
 
 const downloadSalesReport = async (req, res) => {
   try {
@@ -63,17 +76,17 @@ const downloadSalesReport = async (req, res) => {
     if (from && to) {
       filter.createdOn = {
         $gte: new Date(from),
-        $lte: new Date(to + "T23:59:59"),
+        $lte: new Date(to + "T23:59:59.999Z"),
       };
     } else if (period) {
       let now = new Date();
       let startDate;
 
-      if (period === 'day') {
+      if (period === "day") {
         startDate = new Date(now.setDate(now.getDate() - 1));
-      } else if (period === 'week') {
+      } else if (period === "week") {
         startDate = new Date(now.setDate(now.getDate() - 7));
-      } else if (period === 'month') {
+      } else if (period === "month") {
         startDate = new Date(now.setMonth(now.getMonth() - 1));
       }
 
@@ -84,78 +97,174 @@ const downloadSalesReport = async (req, res) => {
       .populate("orderItems.product", "productName")
       .sort({ createdOn: -1 });
 
-    const doc = new PDFDocument({ margin: 30, size: "A4" });
+    const doc = new PDFDocument({ margin: 50, size: "A4" });
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", "attachment; filename=sales-report.pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=sales-report-${new Date().toISOString().slice(0, 10)}.pdf`
+    );
 
     doc.pipe(res);
 
+    // Title
+    doc
+      .fontSize(24)
+      .fillColor("#2c3e50")
+      .text("Sales Report", { align: "center" });
     
-    doc.fontSize(18).fillColor("#333").text("Sales Report", { align: "center" });
-    doc.moveDown(2);
-
-    
-   
-    const tableTop = doc.y;
-    const orderIdX = 50;
-    const dateX = 150;
-    const totalPriceX = 300;
-    const itemsX = 400;
-
-    doc.fontSize(10).fillColor("#fff");
-    doc.rect(orderIdX, tableTop, 500, 20).fill("#007BFF").stroke();
-    doc.fillColor("#fff").text("Order ID", orderIdX + 5, tableTop + 5);
-    doc.text("Date", dateX + 5, tableTop + 5);
-    doc.text("Total Price", totalPriceX + 5, tableTop + 5);
-    doc.text("Items", itemsX + 5, tableTop + 5);
-
-    doc.moveDown(1.5);
-
-    
-    doc.fillColor("#000");
-
-    
-    let currentY = tableTop + 25;
-    orders.forEach((order, i) => {
-      const itemsText = order.orderItems
-        .map(item => `${item.product?.productName || "Deleted"} x${item.quantity}`)
-        .join(", ");
-      
-      
-      const rowHeight = Math.max(
-        doc.heightOfString(order.orderId, { width: 90 }) + 10,
-        doc.heightOfString(order.createdOn.toDateString(), { width: 140 }) + 10,
-        doc.heightOfString(`₹${order.totalAmount.toFixed(2)}`, { width: 90 }) + 10,
-        doc.heightOfString(itemsText, { width: 140 }) + 10
+    doc
+      .fontSize(12)
+      .fillColor("#7f8c8d")
+      .text(
+        `Generated on: ${new Date().toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+        })}`,
+        { align: "center" }
       );
 
-      doc.fontSize(10);
-      doc.text(order.orderId, orderIdX + 5, currentY, { width: 90 });
-      doc.text(order.createdOn.toDateString(), dateX + 5, currentY, { width: 140 });
-      doc.text(`₹${order.totalAmount.toFixed(2)}`, totalPriceX + 5, currentY, { width: 90 });
-      doc.text(itemsText, itemsX + 5, currentY, { width: 140 });
+    doc.moveDown(2);
 
-      
-      doc.moveTo(orderIdX, currentY + rowHeight)
-        .lineTo(orderIdX + 500, currentY + rowHeight)
-        .strokeColor("#ddd")
+    // Table Headers
+    const tableTop = doc.y;
+    const col1 = 50;   // Date
+    const col2 = 140;  // Items
+    const col3 = 320;  // Total Amount
+    const col4 = 400;  // Discount
+    const col5 = 480;  // Revenue
+
+    // Header Background
+    doc
+      .rect(50, tableTop, 500, 25)
+      .fill("#3498db")
+      .stroke();
+
+    doc.fontSize(11).fillColor("#ffffff").font("Helvetica-Bold");
+
+    doc.text("Date", col1 + 5, tableTop + 7);
+    doc.text("Items Ordered", col2 + 5, tableTop + 7, { width: 170 });
+    doc.text("Total Amount", col3 + 5, tableTop + 7, { align: "right" });
+    doc.text("Discount", col4 + 5, tableTop + 7, { align: "right" });
+    doc.text("Revenue", col5 + 5, tableTop + 7, { align: "right" });
+
+    let yPosition = tableTop + 30;
+
+    let totalAmount = 0;
+    let totalDiscount = 0;
+    let netRevenue = 0;
+
+    orders.forEach((order, index) => {
+      const itemsText = order.orderItems
+        .map(
+          (item) =>
+            `${item.product?.productName || "Product Deleted"} x${item.quantity}`
+        )
+        .join(", ");
+
+      const orderTotal = order.totalAmount || 0;
+      const orderDiscount = order.discount || 0;
+      const revenue = orderTotal - orderDiscount;
+
+      totalAmount += orderTotal;
+      totalDiscount += orderDiscount;
+      netRevenue += revenue;
+
+      // Alternating row background
+      if (index % 2 === 0) {
+        doc
+          .rect(50, yPosition - 3, 500, 30)
+          .fill("#f8f9fa")
+          .stroke();
+      }
+
+      const rowHeight = Math.max(
+        30,
+        doc.heightOfString(itemsText, { width: 170 }) + 15
+      );
+
+      doc.fillColor("#2c3e50").fontSize(10).font("Helvetica");
+
+      // Date
+      doc.text(
+        new Date(order.createdOn).toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        }),
+        col1 + 5,
+        yPosition + 5
+      );
+
+      // Items
+      doc.text(itemsText, col2 + 5, yPosition + 5, {
+        width: 170,
+        lineGap: 2,
+      });
+
+      // Amounts (right aligned)
+      doc.text(`₹${orderTotal.toFixed(2)}`, col3 + 5, yPosition + 5, {
+        width: 70,
+        align: "right",
+      });
+      doc.text(`₹${orderDiscount.toFixed(2)}`, col4 + 5, yPosition + 5, {
+        width: 70,
+        align: "right",
+      });
+      doc.fillColor("#27ae60").font("Helvetica-Bold");
+      doc.text(`₹${revenue.toFixed(2)}`, col5 + 5, yPosition + 5, {
+        width: 70,
+        align: "right",
+      });
+
+      // Bottom line
+      doc
+        .moveTo(50, yPosition + rowHeight + 5)
+        .lineTo(550, yPosition + rowHeight + 5)
+        .lineWidth(0.5)
+        .strokeColor("#bdc3c7")
         .stroke();
 
-      currentY += rowHeight + 5;
+      yPosition += rowHeight + 10;
+
+      // Page break if needed
+      if (yPosition > 750) {
+        doc.addPage();
+        yPosition = 50;
+      }
     });
 
-    
-    const totalOrders = orders.length;
-    const totalAmount = orders.reduce((sum, order) => sum + order.totalAmount, 0);
-    doc.moveDown(2);
-    doc.fontSize(12).fillColor("#000").text("Summary:", { align: "left" });
-    doc.text(`Total Orders: ${totalOrders}`);
-    doc.text(`Total Sales: ₹${totalAmount.toFixed(2)}`);
+    // Summary Section
+    doc.moveDown(3);
+    doc
+      .rect(50, doc.y, 500, 80)
+      .fill("#ecf0f1")
+      .stroke();
+
+    doc.fillColor("#2c3e50").fontSize(14).font("Helvetica-Bold");
+    doc.text("Summary", 60, doc.y + 15);
+
+    doc.fontSize(12).font("Helvetica");
+    doc.text(`Total Orders Delivered: ${orders.length}`, 60, doc.y + 25);
+    doc.text(`Gross Sales (Total Amount):     ₹${totalAmount.toFixed(2)}`, 60, doc.y + 45);
+    doc.text(`Total Discount Given:           - ₹${totalDiscount.toFixed(2)}`, 60, doc.y + 65);
+
+    doc.fillColor("#e74c3c").font("Helvetica-Bold");
+    doc.text(`Net Revenue:                    ₹${netRevenue.toFixed(2)}`, 60, doc.y + 90);
+
+    // Footer
+    doc.moveDown(5);
+    doc
+      .fontSize(10)
+      .fillColor("#95a5a6")
+      .text("Thank you for your business!", { align: "center" });
 
     doc.end();
   } catch (error) {
-    console.error("Error downloading report:", error.message);
-    res.status(500).send("Failed to download sales report.");
+    console.error("Error generating sales report:", error);
+    if (!res.headersSent) {
+      res.status(500).json({ message: "Failed to generate sales report" });
+    }
   }
 };
 

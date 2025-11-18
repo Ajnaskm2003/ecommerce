@@ -2,222 +2,218 @@
 <html lang="zxx" class="no-js">
 
 <head>
-    <!-- Mobile Specific Meta -->
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <!-- Favicon-->
     <link rel="shortcut icon" href="img/fav.png">
-    <!-- Author Meta -->
     <meta name="author" content="CodePixar">
-    <!-- Meta Description -->
-    <meta name="description" content="">
-    <!-- Meta Keyword -->
-    <meta name="keywords" content="">
-
-    <!-- meta character set -->
     <meta charset="UTF-8">
-    <!-- Site Title -->
     <title>Karma Shop</title>
+
     <!-- CSS -->
     <link rel="stylesheet" href="css/linearicons.css">
     <link rel="stylesheet" href="css/font-awesome.min.css">
     <link rel="stylesheet" href="css/themify-icons.css">
     <link rel="stylesheet" href="css/bootstrap.css">
-    <link rel="stylesheet" href="css/owl.carousel.css">
-    <link rel="stylesheet" href="css/nice-select.css">
-    <link rel="stylesheet" href="css/nouislider.min.css">
-    <link rel="stylesheet" href="css/ion.rangeSlider.css" />
-    <link rel="stylesheet" href="css/ion.rangeSlider.skinFlat.css" />
-    <link rel="stylesheet" href="css/magnific-popup.css">
     <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+
     <style>
         .emplogo {
-            width: 120px;
+            width: 130px;
             height: auto;
+            transition: transform 0.3s ease;
         }
+        .emplogo:hover {
+            transform: scale(1.08);
+        }
+
         .header_area {
             background-color: #fff;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             transition: all 0.3s ease;
+            padding: 10px 0;
         }
         .header_area.sticky-header {
             position: fixed;
             top: 0;
             width: 100%;
             z-index: 1000;
-            background-color: #fff;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 8px 0;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
         }
-        .main_menu .navbar {
-            padding: 15px 0;
+
+        /* Reduced Width Container */
+        .header-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 15px;
         }
-        .navbar-brand img {
-            transition: transform 0.3s ease;
-        }
-        .navbar-brand img:hover {
-            transform: scale(1.1);
-        }
+
         .navbar-nav .nav-item {
-            margin: 0 15px;
+            margin: 0 18px;
         }
         .navbar-nav .nav-link {
-            font-size: 1.1em;
+            font-size: 1.05rem;
+            font-weight: 500;
             color: #333;
+            padding: 8px 0 !important;
+            position: relative;
             transition: color 0.3s ease;
         }
-        .navbar-nav .nav-link:hover {
-            color: #e74c3c;
+        .navbar-nav .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 50%;
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
+            transition: width 0.3s ease, left 0.3s ease;
+            border-radius: 2px;
         }
+        .navbar-nav .nav-link:hover::after,
+        .navbar-nav .nav-item.active .nav-link::after {
+            width: 100%;
+            left: 0;
+        }
+        .navbar-nav .nav-link:hover,
         .navbar-nav .nav-item.active .nav-link {
             color: #e74c3c;
-            font-weight: bold;
         }
+
+        /* SMALLER ICONS */
         .navbar-right .nav-item {
-            margin-left: 20px;
-            display: flex;
-            align-items: center;
+            margin-left: 20px; /* Reduced spacing */
         }
-        .navbar-right .cart span,
-        .navbar-right .wishlist span {
-            font-size: 1.5em;
-            color: #333;
-            transition: color 0.3s ease;
+        .navbar-right .nav-link {
+            font-size: 1.35rem !important; /* SMALLER ICONS */
+            color: #444;
+            transition: all 0.3s ease;
+            position: relative;
         }
-        .navbar-right .cart span:hover,
-        .navbar-right .wishlist span:hover {
+        .navbar-right .nav-link:hover {
             color: #e74c3c;
+            transform: translateY(-2px) scale(1.08);
         }
-        .navbar-right .search button {
-            background: none;
-            border: none;
-            font-size: 1.5em;
-            color: #333;
-            transition: color 0.3s ease;
-        }
-        .navbar-right .search button:hover {
-            color: #e74c3c;
-        }
-        .search_input {
-            display: none;
+
+        /* Tooltip for Smaller Icons */
+        .navbar-right .nav-link::before {
+            content: attr(data-tooltip);
             position: absolute;
-            top: 100%;
-            left: 0;
-            width: 100%;
-            background-color: #fff;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            z-index: 999;
-        }
-        .search_input.show {
-            display: block;
-        }
-        .search_input form {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .search_input input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1em;
-        }
-        .search_input button {
-            background-color: #e74c3c;
+            bottom: -28px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
             color: #fff;
-            border: none;
-            border-radius: 5px;
-            padding: 10px 20px;
-            font-size: 1em;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         }
-        .search_input button:hover {
-            background-color: #c0392b;
+        .navbar-right .nav-link:hover::before {
+            opacity: 1;
+            visibility: visible;
         }
-        .search_input .lnr-cross {
-            font-size: 1.5em;
-            color: #333;
-            cursor: pointer;
-            transition: color 0.3s ease;
-        }
-        .search_input .lnr-cross:hover {
-            color: #e74c3c;
-        }
+
         .user-profile {
-            width: 30px;
-            height: 30px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            cursor: pointer;
+            object-fit: cover;
+            border: 2px solid #eee;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .user-profile:hover {
+            border-color: #e74c3c;
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(231, 60, 60, 0.25);
+        }
+
+        @media (max-width: 991px) {
+            .navbar-nav .nav-item {
+                margin: 10px 0;
+            }
+            .navbar-right .nav-item {
+                margin-left: 16px;
+            }
+            .navbar-right .nav-link {
+                font-size: 1.25rem !important;
+            }
+            .user-profile {
+                width: 34px;
+                height: 34px;
+            }
+            .header-container {
+                max-width: 100%;
+            }
         }
     </style>
 </head>
 
 <body>
-    <!-- Start Header Area -->
+
     <header class="header_area sticky-header">
         <div class="main_menu">
-            <nav class="navbar navbar-expand-lg navbar-light main_box">
-                <div class="container">
-                    <!-- Brand and toggle get grouped for better mobile display -->
-                    <a class="navbar-brand logo_h" href="index.html"><img class="emplogo" src="/img/emplogo.png" alt=""></a>
-                    <!-- Collect the nav links, forms, and other content for toggling -->
-                    <div class="collapse navbar-collapse offset" id="navbarSupportedContent">
-                        <ul class="nav navbar-nav menu_nav ml-auto">
+            <nav class="navbar navbar-expand-lg navbar-light">
+                <div class="header-container d-flex justify-content-between align-items-center w-100">
+
+                    <!-- Logo -->
+                    <a class="navbar-brand logo_h" href="/">
+                        <img class="emplogo" src="/img/emplogo.png" alt="Karma Shop">
+                    </a>
+
+                    <!-- Toggler -->
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <!-- Nav Links -->
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="nav navbar-nav menu_nav mx-auto">
                             <li class="nav-item active"><a class="nav-link" href="/">HOME</a></li>
-                            <li class="nav-item submenu dropdown">
-                                <a href="/shop" class="nav-link dropdown-toggle" role="button" aria-haspopup="true" aria-expanded="false">SHOP</a>
-                            </li>
-                            <li class="nav-item submenu dropdown">
-                                <a href="#" class="nav-link dropdown-toggle" role="button" aria-haspopup="true" aria-expanded="false">ABOUT</a>
-                            </li>
-                            <li class="nav-item"><a class="nav-link" href="contact.html">CONTACT</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/shop">SHOP</a></li>
+
+                            <!-- Auth -->
                             <% if (typeof user !== 'undefined' && user) { %>
-                                <li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+                                <li class="nav-item"><a class="nav-link" href="/logout">LOGOUT</a></li>
                             <% } else { %>
-                                <li class="nav-item"><a class="nav-link" href="/signup">Sign Up</a></li>
+                                <li class="nav-item"><a class="nav-link" href="/signup">SIGN UP</a></li>
                             <% } %>
                         </ul>
-                        <ul class="nav navbar-nav navbar-right">
-                            <li class="nav-item"><a href="/cart" class="cart"><span class="ti-bag"></span></a></li>
-                            <li class="nav-item"><a href="/wishlist" class="wishlist"><span class="ti-heart"></span></a></li> <!-- Wishlist Icon -->
+
+                        <!-- Right Icons (SMALLER + TOOLTIPS) -->
+                        <ul class="nav navbar-nav navbar-right d-flex align-items-center">
                             <li class="nav-item">
-                                <button class="search"><span class="lnr lnr-magnifier" id="search"></span></button>
+                                <a href="/cart" class="nav-link" data-tooltip="My Cart">
+                                    <span class="ti-shopping-cart"></span>
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a href="/userProfile"><img class="user-profile" src="/img/logo prf.jpg" alt="User Profile"></a>
+                                <a href="/wishlist" class="nav-link" data-tooltip="Wishlist">
+                                    <span class="ti-heart"></span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="/userProfile">
+                                    <img class="user-profile" src="/img/logo prf.jpg" alt="Profile" data-tooltip="My Profile">
+                                </a>
                             </li>
                         </ul>
                     </div>
                 </div>
             </nav>
         </div>
-        <div class="search_input" id="search_input_box">
-            <div class="container">
-                <form class="d-flex justify-content-between">
-                    <input type="text" class="form-control" id="search_input" placeholder="Search Here">
-                    <button type="submit" class="btn">Search</button>
-                    <span class="lnr lnr-cross" id="close_search" title="Close Search"></span>
-                </form>
-            </div>
-        </div>
     </header>
-    <!-- End Header Area -->
 
+    <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            $('#search').click(function() {
-                $('#search_input_box').toggleClass('show');
-            });
-            $('#close_search').click(function() {
-                $('#search_input_box').removeClass('show');
-            });
-        });
-    </script>
 </body>
 
 </html>

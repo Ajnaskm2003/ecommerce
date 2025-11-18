@@ -6,6 +6,7 @@ const Address = require("../../models/addressSchema");
 const PDFDocument = require("pdfkit");
 const mongoose = require("mongoose");
 const Coupon = require('../../models/coupenSchema');
+const { v4: uuidv4 } = require('uuid');
 
 const getCheckoutPage = async (req, res) => {
   try {
@@ -191,177 +192,174 @@ const addAddress = async (req, res) => {
   }
 };
 
+
+
 const placedOrder = async (req, res) => {
   try {
-    const { addressId, paymentMethod, coupon, totalAmount, discount } =
-      req.body;
+    const { addressId, paymentMethod, coupon, totalAmount, discount } = req.body;
     const userId = req.session.user?.id;
 
     if (!userId) {
-      return res
-        .status(401)
-        .json({ success: false, message: "User not authenticated" });
+      return res.status(401).json({ success: false, message: "User not authenticated" });
     }
 
+    
     if (paymentMethod === "Wallet Payment") {
       const user = await User.findById(userId);
-      if (!user) {
-        return res
-          .status(400)
-          .json({ success: false, message: "User not found" });
-      }
-
-      if (typeof user.wallet !== "number" || isNaN(user.wallet)) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Invalid wallet balance" });
-      }
-
-      if (user.wallet < totalAmount) {
+      if (!user || user.wallet < totalAmount) {
         return res.status(400).json({
           success: false,
-          message: `Insufficient wallet balance. Your balance: ₹${user.wallet}, Order total: ₹${totalAmount}`,
+          message: `Insufficient wallet balance. Available: ₹${user?.wallet || 0}`,
         });
       }
-
       user.wallet -= totalAmount;
       await user.save();
     }
 
-    const addressDoc = await Address.findOne({
-      userId,
-      "address._id": addressId,
-    });
+    
+    const addressDoc = await Address.findOne({ userId, "address._id": addressId });
     if (!addressDoc) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Address not found" });
+      return res.status(400).json({ success: false, message: "Address not found" });
     }
 
-    const selectedAddress = addressDoc.address.find(
-      (addr) => addr._id.toString() === addressId
-    );
+    const selectedAddress = addressDoc.address.find(addr => addr._id.toString() === addressId);
     if (!selectedAddress) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Address not found inside array" });
+      return res.status(400).json({ success: false, message: "Selected address not found" });
     }
 
+    
     const cart = await Cart.findOne({ userId }).populate("items.productId");
     if (!cart || cart.items.length === 0) {
       return res.status(400).json({ success: false, message: "Cart is empty" });
     }
 
-    const placedOrders = [];
-    const cartTotal = cart.items.reduce(
-      (sum, item) => sum + item.quantity * item.price,
-      0
-    );
-    const discountPerRupee = discount ? discount / cartTotal : 0;
     const validSizes = ["6", "7", "8", "9"];
+    const orderItems = [];
+    let cartSubtotal = 0;
 
+  
     for (let item of cart.items) {
       const product = item.productId;
       const selectedSize = item.size;
       const orderedQty = item.quantity;
 
+      
       if (!validSizes.includes(selectedSize)) {
         return res.status(400).json({
           success: false,
-          message: `Invalid size ${selectedSize} for product ${product.productName}`,
+          message: `Invalid size ${selectedSize} for ${product.productName}`,
         });
       }
 
+      
       const updatedProduct = await Product.findOneAndUpdate(
         {
           _id: product._id,
           [`sizes.${selectedSize}`]: { $gte: orderedQty },
           quantity: { $gte: orderedQty },
+          isBlocked: false
         },
         {
           $inc: {
             [`sizes.${selectedSize}`]: -orderedQty,
-            quantity: -orderedQty,
-          },
+            quantity: -orderedQty
+          }
         },
         { new: true }
       );
 
+      
       if (!updatedProduct) {
         return res.status(400).json({
           success: false,
-          message: `Not enough stock for size ${selectedSize} of product ${product.productName}`,
+          message: `Not enough stock for size ${selectedSize} of ${product.productName}. Please refresh your cart.`,
         });
       }
 
-      const totalQuantity = Object.values(updatedProduct.sizes).reduce(
-        (sum, qty) => sum + qty,
-        0
+      
+      const totalSizeStock = Object.values(updatedProduct.sizes).reduce(
+        (sum, qty) => sum + (qty || 0), 0
       );
-      updatedProduct.quantity = totalQuantity;
-      await updatedProduct.save();
 
-      const itemTotal = item.quantity * item.price;
-      const itemDiscount = Math.round(itemTotal * discountPerRupee * 100) / 100;
-      const finalAmount = itemTotal - itemDiscount;
+      if (updatedProduct.quantity !== totalSizeStock) {
+        updatedProduct.quantity = totalSizeStock;
+        await updatedProduct.save();
+      }
 
-      const newOrder = new Order({
-        userId,
-        orderItems: [
-          {
-            product: item.productId._id,
-            size: item.size,
-            quantity: item.quantity,
-            price: item.price,
-          },
-        ],
-        totalPrice: itemTotal,
-        discount: itemDiscount,
-        totalAmount: finalAmount,
-        paymentMethod,
-        ...(paymentMethod === "Wallet Payment" && {
-          walletTransactionId: uuidv4(),
-        }),
-        address: {
-          fullname: selectedAddress.fullname,
-          street: selectedAddress.street,
-          city: selectedAddress.city,
-          state: selectedAddress.state,
-          zipCode: selectedAddress.zipCode,
-          phone: selectedAddress.phone,
-        },
-        status: "Pending",
-        couponApplied: !!coupon,
+      
+      orderItems.push({
+        product: product._id,
+        size: selectedSize,
+        quantity: orderedQty,
+        price: item.price,
       });
 
-      await newOrder.save();
-      placedOrders.push(newOrder);
+      cartSubtotal += orderedQty * item.price;
     }
 
+    
+    const discountAmount = discount || 0;
+    const finalTotal = cartSubtotal - discountAmount;
+
+    
+    const newOrder = new Order({
+      userId,
+      orderItems,
+      totalPrice: cartSubtotal,
+      discount: discountAmount,
+      totalAmount: finalTotal,
+      paymentMethod,
+      ...(paymentMethod === "Wallet Payment" && { walletTransactionId: uuidv4() }),
+      address: {
+        fullname: selectedAddress.fullname,
+        phone: selectedAddress.phone,
+        street: selectedAddress.street,
+        city: selectedAddress.city,
+        landmark: selectedAddress.landmark || "",
+        state: selectedAddress.state,
+        zipCode: selectedAddress.zipCode,
+      },
+      status: "Pending",
+      couponApplied: !!coupon,
+      coupon: coupon || null,
+    });
+
+    await newOrder.save();
+
+    
     cart.items = [];
     await cart.save();
 
+    
     req.session.orderPlaced = true;
     delete req.session.cartAccess;
 
-    res.json({
+  
+    const response = {
       success: true,
-      orders: placedOrders.map((order) => order._id),
-      message: "Orders placed successfully",
-      ...(paymentMethod === "Wallet Payment" && {
-        walletBalance: (await User.findById(userId)).wallet,
-      }),
-    });
+      orderId: newOrder._id,
+      message: "Order placed successfully",
+    };
+
+    if (paymentMethod === "Wallet Payment") {
+      const updatedUser = await User.findById(userId);
+      response.walletBalance = updatedUser.wallet;
+    }
+
+    res.json(response);
+
   } catch (error) {
-    console.error("Order placement error:", error.message, error.stack);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: `Order placement failed: ${error.message}`,
-      });
+    console.error("Order placement error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Order placement failed",
+      error: error.message,
+    });
   }
 };
+
+
+
 
 const viewOrder = async (req, res) => {
   try {
@@ -555,10 +553,11 @@ const getAddress = async (req, res) => {
 const editAddress = async (req, res) => {
   try {
     const userId = req.session.user?.id;
-    const { id, fullname, phone, street, city, landmark, state, zipCode } =
-      req.body;
+    const addressId = req.params.id; 
 
-    if (!id || !userId) {
+    const { fullname, phone, street, city, landmark, state, zipCode } = req.body;
+
+    if (!addressId || !userId) {
       return res.status(400).json({
         success: false,
         message: "Missing required fields",
@@ -567,7 +566,7 @@ const editAddress = async (req, res) => {
 
     const addressDoc = await Address.findOne({
       userId,
-      "address._id": id,
+      "address._id": addressId,
     });
 
     if (!addressDoc) {
@@ -578,7 +577,7 @@ const editAddress = async (req, res) => {
     }
 
     const addressIndex = addressDoc.address.findIndex(
-      (addr) => addr._id.toString() === id
+      (addr) => addr._id.toString() === addressId
     );
 
     if (addressIndex === -1) {

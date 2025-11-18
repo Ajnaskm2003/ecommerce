@@ -34,6 +34,7 @@ app.use(
 );
 
 app.use(flash());
+
 app.use((req, res, next) => {
   res.locals.successMessage = req.flash("success");
   res.locals.errorMessage = req.flash("error");
@@ -42,7 +43,6 @@ app.use((req, res, next) => {
 
 app.use(passport.initialize());
 app.use(passport.session());
-
 
 app.set("io", io);
 

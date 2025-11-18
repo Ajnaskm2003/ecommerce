@@ -49,7 +49,13 @@ const upload = multer({
 router.get('/login',authMiddleware.isLogin,adminController.loadsignin);
 router.post('/login',adminController.adminSignIn);
 router.get('/logout',adminController.adminLogout);
+
+
 router.get("/dashboard", authMiddleware.checkSession, adminController.loadDashboard);
+router.get("/api/sales",          adminController.getSalesTrend);
+router.get("/api/top-products",   adminController.getTopProducts);
+router.get("/api/top-categories", adminController.getTopCategories);
+
 
 router.get("/customers",authMiddleware.checkSession,customerController.customerInfo);
 router.get("/blockCustomer",authMiddleware.checkSession,customerController.customerBlocked);
@@ -61,9 +67,9 @@ router.post('/addCategory',categoryController.addCategory);
 router.get("/listCategory",authMiddleware.checkSession,categoryController.getListCategory);
 router.get('/unlistCategory',authMiddleware.checkSession,categoryController.getUnlistCategory);
 router.get('/editCategory',authMiddleware.checkSession,categoryController.getEditCategory);
-router.post('/editCategory/:id',categoryController.editCategory);
+router.post('/updateCategory',categoryController.updateCategory);
 router.post('/addCategoryOffer',categoryController.addCategoryOffer);
-router.post('/removeCategoryOffer',categoryController.removeCategoryOffer)
+router.post('/removeCategoryOffer',categoryController.removeCategoryOffer);
 
 
 router.get('/products',productController.getProductPage);
@@ -105,7 +111,7 @@ router.get('/sales-report/download-excel', salesController.downloadSalesReportEx
 
 
 router.get('/coupons', coupenController.getCoupons); 
-router.post('/coupons', coupenController.addCoupon);
+router.post('/coupons', upload.none(), coupenController.addCoupon); 
 router.post('/coupons/delete/:id', coupenController.deleteCoupon);
 router.post('/coupons/edit/:id', coupenController.editCoupon);
 

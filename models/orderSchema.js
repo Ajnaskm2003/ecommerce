@@ -118,7 +118,11 @@ const orderSchema = new Schema({
     couponApplied: {
         type: Boolean,
         default: false
-    }
+    },
+    coupon: {
+    type: String,
+    default: null
+},
 });
 
 const Order = mongoose.model("Order", orderSchema);

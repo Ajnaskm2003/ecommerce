@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Cart = require('../models/cartSchema'); 
+const User = require('../models/userSchema');
 
 const checkSession = (req, res, next) => {
     

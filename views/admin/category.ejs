@@ -1,6 +1,7 @@
 <%- include("../../views/partials/admin/header") %>
 <head>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     :root {
         --primary-color: #4361ee;
@@ -242,6 +243,12 @@
         border-top: 1px solid #e2e8f0;
     }
 
+    .error-message {
+        color: #dc2626;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+
     @media (max-width: 768px) {
         .content-main {
             padding: 1rem;
@@ -255,6 +262,7 @@
 
         .btn {
             padding: 0.5rem 1rem;
+            font-size: 0.875rem;
         }
     }
   </style>
@@ -265,12 +273,20 @@
       <h2 class="content-title">Categories Management</h2>
     </div>
 
+    <!-- Search -->
     <div class="search-container">
       <form action="/admin/category/" method="get" class="search-input">
-        <input type="text" class="form-control" placeholder="Search categories..." name="search"/>
+        <input 
+          type="text" 
+          class="form-control" 
+          placeholder="Search categories..." 
+          name="search" 
+          value="<%= search || '' %>"
+        />
       </form>
     </div>
 
+    <!-- Categories Table -->
     <div class="card categories-table">
       <div class="card-body">
         <table class="table">
@@ -278,383 +294,265 @@
             <tr>
               <th>Name</th>
               <th>Description</th>
-              <th>Offer Price</th>
+              <th>Offer %</th>
               <th>Offer</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            <%cat.reverse().forEach((category,index)=>{%>
+            <% cat.reverse().forEach((category) => { %>
             <tr>
-              <td class="text-start"><%=category.name%></td>
-              <td class="text-start"><%=category.description%></td>
+              <td><%= category.name %></td>
+              <td><%= category.description %></td>
               <td>
-                <% if (category.categoryOffer) { %>
-                  <%= category.categoryOffer %>%
+                <% if (category.categoryOffer > 0) { %>
+                  <strong><%= category.categoryOffer %>%</strong>
                 <% } else { %>
                   0%
                 <% } %>
               </td>
-              <td class="text-start">
-                <button class="btn btn-primary btn-sm" 
-                          onclick="openOfferModal('<%= category._id %>')">
-                    Add Offer
+              <td>
+                <button class="btn btn-primary btn-sm" onclick="openOfferModal('<%= category._id %>')">
+                  Add Offer
+                </button>
+                <% if (category.categoryOffer > 0) { %>
+                  <button class="btn btn-danger btn-sm mt-1" onclick="removeCategoryOffer('<%= category._id %>')">
+                    Remove
                   </button>
-                  <% if (category.categoryOffer) { %>
-                    <button class="btn btn-danger btn-sm mt-2" 
-                            onclick="removeCategoryOffer('<%= category._id %>')">
-                      Remove Offer
-                    </button>
-                  <% } %>
+                <% } %>
               </td>
-              <td class="text-start">
-                <%if(category.isListed){%>
-                <span class="badge rounded-pill alert-success" style="width: 60px">Listed</span>
-                <%}else{%>
-                <span class="badge rounded-pill alert-danger" style="width: 60px">Unlisted</span>
-                <%}%>
+              <td>
+                <% if(category.isListed){ %>
+                  <span class="badge rounded-pill alert-success">Listed</span>
+                <% } else { %>
+                  <span class="badge rounded-pill alert-danger">Unlisted</span>
+                <% } %>
               </td>
-              <td class="text-start">
-                <%if(category.isListed){%>
-                <button class="btn btn-danger" style="width: 70px">
-                  <a href="/admin/listCategory?id=<%=category._id%>" class="text-white">Unlist</a>
-                </button>
-                <%}else{%>
-                <button class="btn btn-success" style="width: 70px">
-                  <a href="/admin/unlistCategory?id=<%=category._id%>" class="text-white">List</a>
-                </button>
-                <%}%>
-                <a href="/admin/editCategory?id=<%=category._id%>" class="btn btn-info text-white">Edit</a>
+              <td>
+                <% if(category.isListed){ %>
+                  <a href="/admin/listCategory?id=<%=category._id%>" class="btn btn-danger btn-sm">Unlist</a>
+                <% } else { %>
+                  <a href="/admin/unlistCategory?id=<%=category._id%>" class="btn btn-success btn-sm">List</a>
+                <% } %>
+                <a href="/admin/editCategory?id=<%=category._id%>" class="btn btn-info btn-sm text-white">Edit</a>
               </td>
             </tr>
-            <%})%>
+            <% }) %>
           </tbody>
         </table>
       </div>
     </div>
 
+    <!-- Add New Category Form -->
     <div class="add-category-form">
-      <h3 class="mb-4">Add New Category</h3>
+      <h3>Add New Category</h3>
       <form method="post" action="/admin/addCategory" onsubmit="return handleFormSubmit(event)">
         <div class="row">
-          <div class="col-md-6 mb-4">
+          <div class="col-md-6 mb-3">
             <label class="form-label">Category Name</label>
-            <input type="text" name="name" placeholder="Enter category name" class="form-control" id="product_name" required/>
+            <input type="text" name="name" id="categoryName" class="form-control" required />
             <div id="name-error" class="error-message"></div>
           </div>
-          <div class="col-md-6 mb-4">
+          <div class="col-md-6 mb-3">
             <label class="form-label">Description</label>
-            <textarea placeholder="Enter category description" name="description" class="form-control" id="descriptionId" required></textarea>
-            <div id="description-error" class="error-message"></div>
+            <textarea name="description" id="categoryDesc" class="form-control" rows="3" required></textarea>
+            <div id="desc-error" class="error-message"></div>
           </div>
         </div>
         <div class="text-end">
-          <button class="btn btn-primary" type="submit">
-            Add Category
-          </button>
+          <button type="submit" class="btn btn-primary">Add Category</button>
         </div>
       </form>
     </div>
 
+    <!-- Pagination -->
     <div class="pagination-container">
-        <% if (currentPage > 1) { %>
-        <a href="?page=<%= currentPage - 1 %>">&laquo; Previous</a>
-        <% } %> <% for (let i = 1; i <= totalPages; i++) { %> <% if (i ===
-        currentPage) { %>
-        <span class="current-page"><%= i %></span>
+      <% const query = search ? `&search=${encodeURIComponent(search)}` : ''; %>
+      <% if (currentPage > 1) { %>
+        <a href="?page=<%= currentPage - 1 %><%= query %>">Previous</a>
+      <% } %>
+      <% for (let i = 1; i <= totalPages; i++) { %>
+        <% if (i === currentPage) { %>
+          <span class="current-page"><%= i %></span>
         <% } else { %>
-        <a href="?page=<%= i %>"><%= i %></a>
-        <% } %> <% } %> <% if (currentPage < totalPages) { %>
-        <a href="?page=<%= currentPage + 1 %>">Next &raquo;</a>
+          <a href="?page=<%= i %><%= query %>"><%= i %></a>
         <% } %>
-      </div>
-  
+      <% } %>
+      <% if (currentPage < totalPages) { %>
+        <a href="?page=<%= currentPage + 1 %><%= query %>">Next</a>
+      <% } %>
+    </div>
   </section>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
-  <script>
-
-    function handleFormSubmit(event){
-
-        event.preventDefault();
-        if(!validateForm()){
-            return 
-        }
-
-        const name = document.getElementsByName("name")[0].value;
-        const description = document.getElementById ("descriptionId").value;
-
-        fetch('/admin/addCategory',{
-        method:'POST',
-        headers:{
-            'content-type':'application/json'
-        },
-        body:JSON.stringify({name,description})
-        })
-        .then(response=>{
-        if(!response.ok){
-            return response.json().then(err =>{
-                throw new Error(err.error);
-            })
-        }
-        return response.json();
-        })
-        .then(data => {
-        Swal.fire({
-            icon: 'success',
-            title: 'Success!',
-            text: 'Category added successfully',
-            confirmButtonColor: '#3085d6',
-            confirmButtonText: 'OK'
-            })
-        })
-        .then(data=>{
-            location.reload();
-        })
-        .catch(error=>{
-            if(error.message ==="Category already exist") {
-                Swal.fire({
-
-                    icon:'error',
-                    title:"Oops",
-                    text:"Category already exist"
-
-                })
-            }else{
-                Swal.fire({
-                    icon:'error',
-                    title:"oops",
-                    text:"AN error occured whiloe adding the cateory",
-
-                })
-            }
-        })
-
-    
-    }
-
-    
-
-   
-
-    function validateForm() {
-        clearErrorMessage();
-        const name = document.getElementsByName("name")[0].value.trim();
-        const description = document.getElementById("descriptionId").value.trim();
-        isValid = true;
-
-        if(name===""){
-            displayErrorMessage("name-error","plaese enter a name ");
-            isValid = false;
-        }else if(!/^[a-zA-Z\s]+$/.test(name)){  
-            displayErrorMessage("name-error","Category name should be only contained alphabetic characters");
-            isValid=false;
-
-        }
-        if(description===""){
-            displayErrorMessage("description-error","please enter a description");
-            isValid=flase;
-        }
-        return isValid;
-
-
-
-
-
-    }
-
-
-    function displayErrorMessage(elementId,message){
-        var errorElement = document.getElementById(elementId);
-        errorElement.innerText = message;
-        errorElement.style.display = "block"
-    }
-
-
-    function clearErrorMessage(){
-        const errorElements = document.getElementsByClassName("error-message");
-        Array.from(errorElements).forEach((element)=>{
-            element.innerText="";
-            element.style.display ="none";          
-        })
-    }
-
-    async function addCategoryOffer(event, categoryId) {
-      event.preventDefault();
-      const percentage = event.target.percentage.value;
-
-      try {
-        const response = await fetch('/admin/addCategoryOffer', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ categoryId, percentage }),
-        });
-
-        const data = await response.json();
-        if (data.status) {
-          alert('Offer added successfully');
-          location.reload();
-        } else {
-          alert(data.message);
-        }
-      } catch (error) {
-        console.error('Error adding offer:', error);
-        alert('Failed to add offer');
-      }
-    }
-
-
-    async function removeCategoryOffer(categoryId) {
-    const result = await Swal.fire({
-        title: 'Remove Offer?',
-        text: 'Are you sure you want to remove this offer?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, remove it!'
-    });
-
-    if (!result.isConfirmed) return;
-
-    try {
-        const response = await fetch('/admin/removeCategoryOffer', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ categoryId }),
-        });
-
-        const data = await response.json();
-        
-        if (data.status) {
-            await Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: 'Offer removed successfully',
-                timer: 1500,
-                showConfirmButton: false
-            });
-            location.reload();
-        } else {
-            throw new Error(data.message || 'Failed to remove offer');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message || 'Failed to remove offer',
-            confirmButtonColor: '#3085d6'
-        });
-    }
-}
-
-function openOfferModal(categoryId) {
-    document.getElementById('categoryId').value = categoryId;
-    document.getElementById('offerPercentage').value = '';
-    const modal = new bootstrap.Modal(document.getElementById('addOfferModal'));
-    modal.show();
-}
-
-
-async function submitOffer() {
-    try {
-        const categoryId = document.getElementById('categoryId').value;
-        const percentage = parseInt(document.getElementById('offerPercentage').value);
-
-        // Validate percentage
-        if (isNaN(percentage) || percentage < 0 || percentage > 90) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Invalid Percentage',
-                text: 'Please enter a valid percentage between 0 and 90',
-                confirmButtonColor: '#3085d6'
-            });
-            return;
-        }
-
-        // Show loading
-        Swal.fire({
-            title: 'Processing...',
-            text: 'Adding category offer',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
-
-        const response = await fetch('/admin/addCategoryOffer', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                categoryId, 
-                percentage 
-            }),
-        });
-
-        const data = await response.json();
-
-        // Close the modal
-        bootstrap.Modal.getInstance(document.getElementById('addOfferModal')).hide();
-
-        if (data.status) {
-            await Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: 'Offer added successfully',
-                timer: 1500,
-                showConfirmButton: false
-            });
-            location.reload();
-        } else {
-            throw new Error(data.message || 'Failed to add offer');
-        }
-
-    } catch (error) {
-        console.error('Error:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message || 'Failed to add offer',
-            confirmButtonColor: '#3085d6'
-        });
-    }
-}
-
-  </script>
-
-<div class="modal fade" id="addOfferModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Add Category Offer</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <form id="offerForm">
+  <!-- Add Offer Modal -->
+  <div class="modal fade" id="addOfferModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Add Category Offer</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
           <input type="hidden" id="categoryId">
           <div class="mb-3">
-            <label for="offerPercentage" class="form-label">Offer Percentage</label>
-            <input type="number" 
-                   class="form-control" 
-                   id="offerPercentage" 
-                   min="0" 
-                   max="90" 
-                   required>
-            <div class="form-text">Enter a value between 0 and 90</div>
+            <label class="form-label">Offer Percentage (0-90)</label>
+            <input type="number" class="form-control" id="offerPercentage" min="0" max="90" required>
+            <div class="form-text">Enter discount percentage</div>
           </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary" onclick="submitOffer()">Add Offer</button>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" onclick="submitOffer()">Apply Offer</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+  <script>
+    // Form Validation & Submit
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      if (!validateForm()) return;
+
+      const name = document.getElementById('categoryName').value.trim();
+      const description = document.getElementById('categoryDesc').value.trim();
+
+      fetch('/admin/addCategory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, description })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status) {
+          Swal.fire('Success', data.message, 'success').then(() => location.reload());
+        } else {
+          Swal.fire('Error', data.message || 'Failed to add category', 'error');
+        }
+      })
+      .catch(err => {
+        console.error('Fetch error:', err);
+        Swal.fire('Error', 'Something went wrong. Please try again.', 'error');
+      });
+    }
+
+    function validateForm() {
+      clearErrors();
+      const name = document.getElementById('categoryName').value.trim();
+      const desc = document.getElementById('categoryDesc').value.trim();
+      let valid = true;
+
+      // Name: 3–30 chars, letters, numbers, spaces
+      if (!name) {
+        showError('name-error', 'Name is required');
+        valid = false;
+      } else if (name.length < 3 || name.length > 30) {
+        showError('name-error', 'Name must be 3–30 characters');
+        valid = false;
+      } else if (!/^[A-Za-z0-9\s]+$/.test(name)) {
+        showError('name-error', 'Only letters, numbers, and spaces allowed');
+        valid = false;
+      }
+
+      // Description: 10–200 chars
+      if (!desc) {
+        showError('desc-error', 'Description is required');
+        valid = false;
+      } else if (desc.length < 10 || desc.length > 200) {
+        showError('desc-error', 'Description must be 10–200 characters');
+        valid = false;
+      }
+
+      return valid;
+    }
+
+    function showError(id, msg) {
+      const el = document.getElementById(id);
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
+    function clearErrors() {
+      document.querySelectorAll('.error-message').forEach(el => {
+        el.textContent = '';
+        el.style.display = 'none';
+      });
+    }
+
+    // Open Modal
+    function openOfferModal(id) {
+      document.getElementById('categoryId').value = id;
+      document.getElementById('offerPercentage').value = '';
+      new bootstrap.Modal(document.getElementById('addOfferModal')).show();
+    }
+
+    // Submit Offer
+    async function submitOffer() {
+      const categoryId = document.getElementById('categoryId').value;
+      const percentage = parseInt(document.getElementById('offerPercentage').value);
+
+      if (isNaN(percentage) || percentage < 0 || percentage > 90) {
+        return Swal.fire('Invalid', 'Enter 0–90%', 'error');
+      }
+
+      Swal.fire({ title: 'Applying...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+      try {
+        const res = await fetch('/admin/addCategoryOffer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ categoryId, percentage })
+        });
+        const data = await res.json();
+
+        bootstrap.Modal.getInstance(document.getElementById('addOfferModal')).hide();
+
+        if (data.status) {
+          Swal.fire('Success', data.message, 'success').then(() => location.reload());
+        } else {
+          Swal.fire('Failed', data.message, 'error');
+        }
+      } catch (err) {
+        Swal.fire('Error', 'Failed to apply offer', 'error');
+      }
+    }
+
+    // Remove Offer
+    async function removeCategoryOffer(categoryId) {
+      const { isConfirmed } = await Swal.fire({
+        title: 'Remove Offer?',
+        text: 'All products will revert to regular price or individual offers.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, remove'
+      });
+
+      if (!isConfirmed) return;
+
+      try {
+        const res = await fetch('/admin/removeCategoryOffer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ categoryId })
+        });
+        const data = await res.json();
+
+        if (data.status) {
+          Swal.fire('Removed', data.message, 'success').then(() => location.reload());
+        } else {
+          Swal.fire('Failed', data.message, 'error');
+        }
+      } catch (err) {
+        Swal.fire('Error', 'Failed to remove offer', 'error');
+      }
+    }
+  </script>
 
 <%- include("../../views/partials/admin/footer") %>
 </body>
-

@@ -163,7 +163,7 @@ const placeOrderWithWallet = async (req, res) => {
 
         const address = await Address.findOne({ userId });
         if (!address || !address.address) {
-            return res.json({ success: false, message: 'No addresses found' });
+            return res.json({ success: false, message: '|No addresses found' });
         }
 
         const selectedAddress = address.address.find(addr => addr._id.toString() === addressId);
@@ -196,7 +196,7 @@ const placeOrderWithWallet = async (req, res) => {
                 state: selectedAddress.state,
                 zipCode: selectedAddress.zipCode,
                 phone: selectedAddress.phone,
-                landmark: selectedAddress.landmark,
+                landmark: selectedAddress.landmark || '',
             },
             status: 'Pending',
             couponApplied: !!coupon,
@@ -204,6 +204,7 @@ const placeOrderWithWallet = async (req, res) => {
 
         await order.save();
 
+        
         user.wallet -= totalAmount;
         const walletTransaction = new Wallet({
             userId: new mongoose.Types.ObjectId(userId),
@@ -216,9 +217,39 @@ const placeOrderWithWallet = async (req, res) => {
 
         await walletTransaction.save();
         await user.save();
-        await Cart.deleteOne({ userId });
 
         
+        for (const item of order.orderItems) {
+            const product = await Product.findById(item.product);
+            if (!product) continue;
+
+            const sizeKey = item.size.toString(); 
+            const orderedQty = item.quantity;
+
+            
+            if (product.sizes && product.sizes[sizeKey] !== undefined) {
+                if (product.sizes[sizeKey] < orderedQty) {
+                    console.warn(`Low stock warning: Product ${product._id}, size ${sizeKey}`);
+                } else {
+                    product.sizes[sizeKey] -= orderedQty;
+                }
+            }
+
+            
+            product.quantity -= orderedQty;
+
+            
+            if (product.quantity <= 0) {
+                product.quantity = 0;
+                product.status = 'Out of Stock';
+            }
+
+            await product.save();
+        }
+        
+
+        await Cart.deleteOne({ userId });
+
         delete req.session.cartAccess;
         req.session.orderPlaced = true;
 

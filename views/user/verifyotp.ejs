@@ -130,7 +130,7 @@
     </div>
 
     <script>
-      let countdown = 15;
+      let countdown = 60;
       let timer;
 
       // Start Countdown Timer
@@ -152,49 +152,11 @@
           }
         }, 1000);
       }
-      // async function resendOtp() {
-      // try {
-      //   console.log('in the resend')
-        
-      //     const response = await fetch('/resend-otp', { method: 'POST' });
-      //     const data = await response.json();
-
-      //     if (response.ok) {
-      //       document.getElementById('message').innerText = data.message;
-      //       countdown = 30; // Reset Timer
-      //       document.getElementById('timer').style.display = 'block';
-      //       document.getElementById('resendBtn').style.display = 'none';
-      //       startTimer();
-      //     } else {
-      //       document.getElementById('message').innerText = "Failed to resend OTP. Try again.";
-      //     }
-      //   } catch (error) {
-      //     console.error("Error resending OTP:", error);
-      //     document.getElementById('message').innerText = "Error occurred. Please try again.";
-      //   }
-      // }
+      
 
 
 
-      // Automatically start the timer on page load
       window.onload = startTimer;
-
-
-      // function validateOTPForm(){
-      //   const otpInput = document.getElementById("otp").value;
-
-      //   $.ajax({
-      //     type:"POST",
-      //     url:"verifyOtp",
-      //     data:{otp:otpInput},
-      //     success: function(response){
-      //       if(response.success){
-      //         req.flash("")
-      //       }
-      //     }
-      //   })
-      // }
-
 
     </script>
   </body>

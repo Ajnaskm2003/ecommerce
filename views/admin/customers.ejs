@@ -1,76 +1,171 @@
 <%- include("../../views/partials/admin/header") %>
 
-<div class="content-header row">
+<style>
+    .card {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .table thead {
+        background: #f8f9fa;
+    }
+
+    .table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        color: #555;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #f1f3f5;
+        transition: 0.2s ease-in-out;
+    }
+
+    .search-box {
+        max-width: 500px;
+        border-radius: 50px;
+        overflow: hidden;
+        border: 1px solid #ddd;
+    }
+
+    .search-box input {
+        border: none;
+        box-shadow: none;
+    }
+
+    .search-box input:focus {
+        outline: none;
+        box-shadow: none;
+    }
+
+    .search-box button {
+        border: none;
+        background: #343a40;
+        color: white;
+        border-radius: 0 50px 50px 0;
+    }
+
+    .action-btn a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .btn {
+        border-radius: 50px;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .pagination .page-link {
+        border-radius: 50px !important;
+        color: #343a40;
+        font-weight: 500;
+    }
+
+    .pagination .active .page-link {
+        background-color: #343a40;
+        color: white !important;
+        border: none;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+</style>
+
+<div class="content-header row mb-4">
     <div class="d-flex justify-content-between align-items-center">
         <h2 class="content-title card-title fw-bold">Customers</h2>
     </div>
 </div>
 
-<div class="card shadow-sm p-4 mt-3 bg-white">
-    <header class="card-header text-center mb-4">
-        <form action="/admin/users/" method="get" class="d-inline">
-            <div class="input-group input-group-sm border border-1 border-grey rounded-pill mx-auto" style="max-width: 500px;">
-                <input type="text" class="form-control border-0 rounded-pill px-3" placeholder="Search customers..." name="search">
-                <button class="btn btn-outline-dark border-0 rounded-pill px-4" type="submit">Search</button>
-            </div>
-        </form>
-    </header>
+<div class="card p-4 bg-white">
+    <header class="text-center mb-4">
+    <form action="/admin/customers" method="get" class="mx-auto">
+        <div class="input-group search-box">
+            <input 
+                type="text" 
+                class="form-control px-3" 
+                placeholder="Search customers..." 
+                name="search"
+                value="<%= searchQuery || '' %>"
+            >
+            <button class="btn" type="submit">Search</button>
+        </div>
+    </form>
+</header>
 
-    <div class="table-responsive mt-4">
-        <table class="table table-hover text-center">
-            <thead class="bg-light">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle text-center">
+            <thead>
                 <tr>
-                    <th scope="col"><b>Name</b></th>
-                    <th scope="col"><b>Email</b></th>
-                    <th scope="col"><b>Phone No</b></th>
-                    <th scope="col"><b>Action</b></th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone No</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
                 <% if (data && data.length > 0) { %>
-                    <% for (let i = 0; i < data.length; i++) { %>
+                    <% data.forEach(customer => { %>
                     <tr>
-                        <td><%= data[i].name %></td>
-                        <td><%= data[i].email %></td>
-                        <td><%= data[i].phone %></td>
+                        <td class="fw-semibold"><%= customer.name %></td>
+                        <td><%= customer.email %></td>
+                        <td><%= customer.phone %></td>
                         <td>
-                            <% if (!data[i].isBlocked) { %>
-                                <button class="btn btn-outline-danger px-3 py-1 me-2 shadow-sm">
-                                    <a href="/admin/blockCustomer?id=<%= data[i]._id %>" class="text-decoration-none fw-semibold">Block</a>
+                            <% if (!customer.isBlocked) { %>
+                                <button class="btn btn-outline-danger px-4 py-1 shadow-sm action-btn">
+                                    <a href="/admin/blockCustomer?id=<%= customer._id %>">Block</a>
                                 </button>
                             <% } else { %>
-                                <button class="btn btn-outline-success px-3 py-1 shadow-sm">
-                                    <a href="/admin/unblockCustomer?id=<%= data[i]._id %>" class="text-decoration-none fw-semibold">Unblock</a>
+                                <button class="btn btn-outline-success px-4 py-1 shadow-sm action-btn">
+                                    <a href="/admin/unblockCustomer?id=<%= customer._id %>">Unblock</a>
                                 </button>
                             <% } %>
                         </td>
                     </tr>
-                    <% } %>
+                    <% }) %>
                 <% } else { %>
                     <tr>
-                        <td colspan="4" class="text-center text-muted">No customers found</td>
+                        <td colspan="4" class="text-muted py-4">
+                            <i class="bi bi-person-x fs-3 d-block mb-2"></i>
+                            No customers found
+                        </td>
                     </tr>
                 <% } %>
             </tbody>
         </table>
     </div>
 
-    <div class="container mt-3">
-        <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-center">
+    <div class="mt-4">
+        <nav>
+            <ul class="pagination justify-content-center mb-0">
+                <% 
+                const url = (page) => {
+                    const params = new URLSearchParams();
+                    if (searchQuery) params.append('search', searchQuery);
+                    params.append('page', page);
+                    return `?${params.toString()}`;
+                };
+                %>
+
                 <% if (currentPage > 1) { %>
                     <li class="page-item">
-                        <a class="page-link text-dark fw-semibold" href="?page=<%= currentPage - 1 %>">Previous</a>
+                        <a class="page-link" href="<%= url(currentPage - 1) %>">Previous</a>
                     </li>
                 <% } %>
+
                 <% for (let i = 1; i <= totalPages; i++) { %>
                     <li class="page-item <%=(i === currentPage) ? 'active' : '' %>">
-                        <a class="page-link text-dark fw-semibold" href="?page=<%= i %>"><%= i %></a>
+                        <a class="page-link" href="<%= url(i) %>"><%= i %></a>
                     </li>
                 <% } %>
+
                 <% if (currentPage < totalPages) { %>
                     <li class="page-item">
-                        <a class="page-link text-dark fw-semibold" href="?page=<%= currentPage + 1 %>">Next</a>
+                        <a class="page-link" href="<%= url(currentPage + 1) %>">Next</a>
                     </li>
                 <% } %>
             </ul>
