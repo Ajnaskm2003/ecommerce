@@ -91,203 +91,162 @@ const getProducts = async (req, res) => {
     }
 };
 
-const addProducts = async (req, res) => {
+
+const editProduct = async (req, res) => {
     try {
-        
-        res.setHeader('Content-Type', 'application/json');
-        res.setHeader('Cache-Control', 'no-store');
+        const id = req.params.id;
+        const data = req.body;
 
-        const { productName, description, category, regularPrice, salePrice, quantity, sizes } = req.body;
-
-        
-        console.log('Received product data:', { productName, description, category, regularPrice, salePrice, quantity });
+        console.log('Request body:', data);
 
         
-        if (!productName || !description || !category || !regularPrice || !salePrice || !quantity) {
-            return res.status(400).json({
+        const product = await Product.findById(id).populate('category');
+        if (!product) {
+            return res.status(404).json({
                 success: false,
-                message: 'All fields are required'
+                message: "Product not found",
+                type: "error"
             });
         }
 
         
-        if (typeof productName !== 'string' || productName.trim().length < 3 || productName.trim().length > 15) {
+        const regularPrice = parseFloat(data.regularPrice);
+        if (isNaN(regularPrice) || regularPrice <= 0) {
             return res.status(400).json({
                 success: false,
-                message: 'Product name must be 3-15 characters long.'
-            });
-        }
-        if (!/^[a-zA-Z0-9\s\-_.,()]+$/.test(productName.trim())) {
-            return res.status(400).json({
-                success: false,
-                message: 'Product name can only contain letters, numbers, spaces and basic punctuation (-_.,()).'
+                message: 'Invalid regular price',
+                type: 'error'
             });
         }
 
-
-        if (typeof description !== 'string' || description.trim().length < 10 || description.trim().length > 2000) {
+        const offerPercentage = parseFloat(data.offerPercentage) || 0;
+        if (isNaN(offerPercentage) || offerPercentage < 0 || offerPercentage > 100) {
             return res.status(400).json({
                 success: false,
-                message: 'Description must be between 10 and 2000 characters.'
+                message: 'Invalid offer percentage (0–100)',
+                type: 'error'
             });
         }
 
-        
-        if (typeof category !== 'string' || category.trim().length < 2 || category.trim().length > 50) {
-            return res.status(400).json({
-                success: false,
-                message: 'Category name must be 2-50 characters.'
-            });
-        }
+        const discountAmount = regularPrice * (offerPercentage / 100);
+        const salePrice = regularPrice - discountAmount;
+        const finalSalePrice = Math.round(salePrice * 100) / 100;
 
-        
-        const regPrice = parseFloat(regularPrice);
-        const salPrice = parseFloat(salePrice);
+       
+        const sizes = data.sizes || {};
+        let formattedSizes = {};
+        let totalSizeStock = 0;
 
-        if (isNaN(regPrice) || regPrice <= 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'Regular price must be a positive number.'
-            });
-        }
-        if (isNaN(salPrice) || salPrice <= 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'Sale price must be a positive number.'
-            });
-        }
-        if (salPrice >= regPrice) {
-            return res.status(400).json({
-                success: false,
-                message: 'Sale price must be less than regular price.'
-            });
-        }
-
-    
-        const qty = parseInt(quantity, 10);
-        if (isNaN(qty) || qty <= 0 || qty > 10000) {
-            return res.status(400).json({
-                success: false,
-                message: 'Quantity must be a positive integer (max 10 000).'
-            });
-        }
-
-        
-        if (sizes && typeof sizes === 'object' && sizes !== null) {
-            for (const [size, q] of Object.entries(sizes)) {
-                if (typeof size !== 'string' || size.trim().length < 1 || size.trim().length > 10) {
+        for (let key in sizes) {
+            if (sizes[key].trim() !== "") {
+                const sizeQty = parseInt(sizes[key], 10);
+                if (isNaN(sizeQty) || sizeQty < 0) {
                     return res.status(400).json({
                         success: false,
-                        message: `Size label "${size}" must be 1-10 characters.`
+                        message: 'Invalid size stock values',
+                        type: 'error'
                     });
                 }
-                const sq = parseInt(q, 10);
-                if (isNaN(sq) || sq < 0) {
-                    return res.status(400).json({
-                        success: false,
-                        message: `Quantity for size "${size}" must be a non-negative integer.`
-                    });
-                }
+                formattedSizes[key] = sizeQty;
+                totalSizeStock += sizeQty;
             }
-        }
-
-        
-
-        
-        const categoryDoc = await Category.findOne({ name: category });
-        if (!categoryDoc) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid category'
-            });
         }
 
        
-        const images = [];
-        const uploadDir = path.join(__dirname, '../../public/uploads/products');
-
-        
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-        }
-
-        
-        if (!req.files || req.files.length === 0) {
+        if (totalSizeStock > parseInt(data.quantity)) {
             return res.status(400).json({
                 success: false,
-                message: 'At least one product image is required'
+                message: 'Size stock cannot exceed total stock',
+                type: 'error'
             });
         }
 
         
-        for (const file of req.files) {
-            try {
-                const filename = `${Date.now()}-${file.originalname.replace(/[^a-zA-Z0-9.]/g, '')}`;
-                const processedPath = path.join(uploadDir, filename);
 
-                
-                await sharp(file.path)
-                    .resize(800, 800, {
-                        fit: 'contain',
-                        background: { r: 255, g: 255, b: 255, alpha: 1 }
-                    })
-                    .jpeg({ quality: 90 })
-                    .toFile(processedPath);
+        const newImages = [];
+        const uploadDir = path.join(__dirname, '../../public/uploads/products');
 
-                images.push(`/uploads/products/${filename}`);
-            } catch (err) {
-                console.error('Image processing error:', err);
-                continue;
+        if (!fs.existsSync(uploadDir)) {
+            await fsp.mkdir(uploadDir, { recursive: true });
+        }
+
+        if (req.files && req.files.length > 0) {
+            for (const file of req.files) {
+                try {
+                    const filename = `${Date.now()}-${file.originalname.replace(/[^a-zA-Z0-9.]/g, '')}`;
+
+                    const processedPath = path.join(uploadDir, filename);
+
+                    await sharp(file.path)
+                        .resize(440, 440, { fit: 'cover' })
+                        .jpeg({ quality: 90 })
+                        .toFile(processedPath);
+
+                    newImages.push(`/uploads/products/${filename}`);
+
+                    await fsp.unlink(file.path);
+                } catch (err) {
+                    console.error('Error processing new image:', err);
+                    return res.status(500).json({
+                        success: false,
+                        message: 'Error processing images',
+                        type: 'error'
+                    });
+                }
             }
         }
 
+
         
-        if (images.length === 0) {
+        const updatedImages = [...product.productImage, ...newImages];
+        if (updatedImages.length === 0) {
             return res.status(400).json({
                 success: false,
-                message: 'Failed to process any images'
+                message: 'At least one image is required',
+                type: 'error'
             });
         }
 
         
-        const formattedSizes = {};
-        if (typeof sizes === 'object' && sizes !== null) {
-            Object.entries(sizes).forEach(([size, quantity]) => {
-                if (quantity && !isNaN(quantity)) {
-                    formattedSizes[size] = parseInt(quantity);
-                }
+        const categoryDoc = await Category.findById(data.category);
+        if (!categoryDoc) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid category ID',
+                type: 'error'
             });
         }
 
         
-        const newProduct = new Product({
-            productName,
-            description,
-            category: categoryDoc._id,
-            regularPrice: parseFloat(regularPrice),
-            salePrice: parseFloat(salePrice),
-            quantity: parseInt(quantity),
-            sizes: formattedSizes,
-            productImage: images,
-            status: 'Available'
-        });
+        const updatedProduct = await Product.findByIdAndUpdate(
+            id,
+            {
+                productName: data.productName,
+                description: data.description,
+                brand: data.brand || product.brand,
+                category: categoryDoc._id,
+                regularPrice: regularPrice,
+                offerPercentage: offerPercentage,
+                salePrice: finalSalePrice,
+                quantity: parseInt(data.quantity),
+                sizes: formattedSizes,
+                productImage: updatedImages,
+                updatedAt: new Date()
+            },
+            { new: true }
+        );
 
-        await newProduct.save();
-        console.log('Product saved successfully:', newProduct._id);
-
-        
-        return res.status(200).json({
+        return res.json({
             success: true,
-            message: 'Product added successfully',
-            productId: newProduct._id
+            message: 'Product updated successfully',
+            product: updatedProduct
         });
 
     } catch (error) {
-        console.error("Error saving product:", error);
+        console.error("Error updating product:", error);
         return res.status(500).json({
             success: false,
-            message: 'Failed to save product',
-            error: error.message
+            message: error.message || 'Failed to update product'
         });
     }
 };
