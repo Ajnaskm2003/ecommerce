@@ -96,9 +96,9 @@
     <form action="" method="get">
         <div class="input-group input-group-sm search-container border rounded-pill" style="width: 500px;">
             <input type="text" class="form-control border-0 rounded-pill"
-       placeholder="Search products or brands"
-       name="search"
-       value="<%= pagination?.search || '' %>">
+                   placeholder="Search products"
+                   name="search"
+                   value="<%= pagination?.search || '' %>">
             <button class="btn btn-primary border-0" type="submit"><i class="fas fa-search"></i> Search</button>
         </div>
     </form>
@@ -109,7 +109,6 @@
         <thead>
             <tr>
                 <th>Product Name</th>
-                <th>Brand</th>
                 <th>Category</th>
                 <th>Sale Price</th>
                 <th>Quantity</th>
@@ -122,11 +121,8 @@
             <% products.forEach(product => { %>
             <tr>
                 <td><%= product.productName %></td>
-                <td><%= product.brand %></td>
-                <td>
-                    <%= product.category ? product.category.name : 'Uncategorized' %>
-                </td>
-                <td>$<%= product.salePrice %></td>
+                <td><%= product.category ? product.category.name : 'Uncategorized' %></td>
+                <td>₹<%= product.salePrice %></td>
                 <td><%= product.quantity %></td>
                 <td>
                     <% if (product.productImage.length > 0) { %>
@@ -153,40 +149,40 @@
             <% }); %>
         </tbody>
     </table>
-        <!-- ==================== PAGINATION ==================== -->
-<% if (pagination && pagination.pages > 1) { %>
-<div class="d-flex justify-content-center mt-4">
-    <nav aria-label="Page navigation">
-        <ul class="pagination">
 
-            <!-- Previous -->
-            <li class="page-item <%= !pagination.hasPrev ? 'disabled' : '' %>">
-                <a class="page-link" href="?page=<%= pagination.current-1 %>&search=<%= pagination.search %>"
-                   tabindex="-1" aria-disabled="<%= !pagination.hasPrev %>">Previous</a>
-            </li>
+    <!-- ==================== PAGINATION ==================== -->
+    <% if (pagination && pagination.pages > 1) { %>
+    <div class="d-flex justify-content-center mt-4">
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
 
-            <!-- Page numbers (show max 5 around current) -->
-            <% 
-                const start = Math.max(1, pagination.current - 2);
-                const end   = Math.min(pagination.pages, pagination.current + 2);
-            %>
-            <% for(let i = start; i <= end; i++) { %>
-                <li class="page-item <%= i === pagination.current ? 'active' : '' %>">
-                    <a class="page-link" href="?page=<%= i %>&search=<%= pagination.search %>"><%= i %></a>
+                <!-- Previous -->
+                <li class="page-item <%= !pagination.hasPrev ? 'disabled' : '' %>">
+                    <a class="page-link" href="?page=<%= pagination.current-1 %>&search=<%= pagination.search %>"
+                       tabindex="-1" aria-disabled="<%= !pagination.hasPrev %>">Previous</a>
                 </li>
-            <% } %>
 
-            <!-- Next -->
-            <li class="page-item <%= !pagination.hasNext ? 'disabled' : '' %>">
-                <a class="page-link" href="?page=<%= pagination.current+1 %>&search=<%= pagination.search %>"
-                   aria-disabled="<%= !pagination.hasNext %>">Next</a>
-            </li>
+                <!-- Page numbers (show max 5 around current) -->
+                <% 
+                    const start = Math.max(1, pagination.current - 2);
+                    const end   = Math.min(pagination.pages, pagination.current + 2);
+                %>
+                <% for(let i = start; i <= end; i++) { %>
+                    <li class="page-item <%= i === pagination.current ? 'active' : '' %>">
+                        <a class="page-link" href="?page=<%= i %>&search=<%= pagination.search %>"><%= i %></a>
+                    </li>
+                <% } %>
 
-        </ul>
-    </nav>
-</div>
-<% } %>
+                <!-- Next -->
+                <li class="page-item <%= !pagination.hasNext ? 'disabled' : '' %>">
+                    <a class="page-link" href="?page=<%= pagination.current+1 %>&search=<%= pagination.search %>"
+                       aria-disabled="<%= !pagination.hasNext %>">Next</a>
+                </li>
 
+            </ul>
+        </nav>
+    </div>
+    <% } %>
 
 </div>
 
@@ -204,7 +200,6 @@
         });
     }
 </script>
-
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -243,4 +238,3 @@
         });
     });
 </script>
-

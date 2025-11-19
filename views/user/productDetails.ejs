@@ -38,13 +38,6 @@
 		.size-btn:hover{transform:translateY(-1.5px);box-shadow:0 4px 10px rgba(0,0,0,.13);}
 		.size-btn.selected{background:#333;color:#fff;transform:translateY(1px);box-shadow:inset 0 1.5px 3px rgba(0,0,0,.3),0 2px 5px rgba(0,0,0,.08);}
 
-		/* ────── QUANTITY COUNTER (minimal) ────── */
-		.product_count{display:flex;align-items:center;gap:8px;margin:15px 0;}
-		.product_count label{font-weight:600;color:#444;font-size:14px;margin:0;}
-		.input-text.qty{width:52px;height:36px;text-align:center;border:1.3px solid #ccc;border-radius:5px;font-size:14px;font-weight:600;padding:0 5px;}
-		.items-count{width:30px;height:30px;border-radius:50%;background:#fafafa;border:1.3px solid #ccc;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s ease;font-size:13px;}
-		.items-count:hover{background:#333;color:#fff;border-color:#333;}
-
 		/* ────── ACTION BUTTONS (sleek) ────── */
 		.card_area{margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;}
 		.primary-btn{padding:9px 20px;font-weight:600;font-size:13.5px;text-transform:uppercase;letter-spacing:.7px;border-radius:25px;transition:all .25s ease;box-shadow:0 2px 7px rgba(0,0,0,.07);}
@@ -99,8 +92,6 @@
 		/* ────── RESPONSIVE ────── */
 		@media (max-width:768px){
 			.size-btn{width:32px;height:32px;font-size:12px;margin:0 4px 5px 0;}
-			.input-text.qty{width:48px;height:32px;font-size:13px;}
-			.items-count{width:28px;height:28px;font-size:12px;}
 			.primary-btn{padding:8px 18px;font-size:13px;}
 			.product_image_area{padding-bottom:50px !important;}
 			.related-product-area{padding-top:50px !important;}
@@ -196,13 +187,9 @@
 							</div>
 							
 							<br>
-							<div class="product_count">
-								<label for="qty">Quantity:</label>
-								<input type="text" name="qty" id="sst" maxlength="12" value="1" title="Quantity:" class="input-text qty">
-								<button onclick="var result = document.getElementById('sst'); var sst = result.value; if( !isNaN( sst )) result.value++;return false;"
-								 class="increase items-count" type="button"><i class="lnr lnr-chevron-up"></i></button>
-								<button class="reduced items-count" type="button"><i class="lnr lnr-chevron-down"></i></button>
-							</div>
+							
+							<!-- QUANTITY COUNTER REMOVED COMPLETELY -->
+
 							<div class="card_area d-flex align-items-center">
 								<button class="primary-btn" onclick="addToCart('<%= product._id %>')">Add to Cart</button>
 								<button class="primary-btn" onclick="addToWishlist('<%= product._id %>')">Add to Wishlist</button>
@@ -309,7 +296,7 @@
 				return;
 			}
 			const selectedSize = selectedSizeBtn.getAttribute('data-size');
-			const quantity = parseInt(document.getElementById('sst').value) || 1;
+			const quantity = 1; // default quantity since counter is removed
 
 			fetch("/cart/add", {
 				method: "POST",

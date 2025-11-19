@@ -164,7 +164,7 @@
                                     </td>
                                 </tr>
                             <% } else if (item.returnRequest) { %>
-                                <!-- Show non-pending (already processed) returns -->
+                                
                                 <tr data-order-id="<%= order._id %>" data-item-id="<%= item._id.toString() %>">
                                     <td data-label="Order ID"><code style="background:#f1f5f9;padding:0.25rem 0.5rem;border-radius:6px;font-size:0.8rem;"><%= order.orderId %></code></td>
                                     <td data-label="Customer">
@@ -254,7 +254,7 @@
         });
     });
 
-    // STATUS UPDATE (Accept/Reject)
+    
     socket.on("returnStatusUpdate", (update) => {
         const row = document.querySelector(
             `tr[data-order-id="${update.orderId}"][data-item-id="${update.itemId}"]`

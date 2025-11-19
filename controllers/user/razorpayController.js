@@ -165,7 +165,7 @@ const verifyPayment = async (req, res) => {
             .digest("hex");
 
         if (generatedSignature === razorpay_signature) {
-            // Step 1: Update all orders to Paid
+        
             await Promise.all(orderIds.map(orderId => 
                 Order.findByIdAndUpdate(
                     orderId,
@@ -178,7 +178,7 @@ const verifyPayment = async (req, res) => {
                 )
             ));
 
-            // Step 2: Deduct stock from products (THIS WAS MISSING)
+    
             for (const orderId of orderIds) {
                 const order = await Order.findById(orderId)
                     .populate({
@@ -192,23 +192,23 @@ const verifyPayment = async (req, res) => {
                     const product = item.product;
                     if (!product) continue;
 
-                    const sizeKey = item.size.toString(); // e.g., "8"
+                    const sizeKey = item.size.toString(); 
                     const orderedQty = item.quantity;
 
-                    // Reduce size-specific stock
+                    
                     if (product.sizes && product.sizes[sizeKey] !== undefined) {
                         if (product.sizes[sizeKey] < orderedQty) {
-                            // Optional: you can throw error or log, but for now just skip deduction
+                            
                             console.warn(`Insufficient stock for product ${product._id}, size ${sizeKey}`);
                         } else {
                             product.sizes[sizeKey] -= orderedQty;
                         }
                     }
 
-                    // Reduce total quantity
+                    
                     product.quantity -= orderedQty;
 
-                    // Update status if out of stock
+                    
                     if (product.quantity <= 0) {
                         product.quantity = 0;
                         product.status = 'Out of Stock';
@@ -218,7 +218,7 @@ const verifyPayment = async (req, res) => {
                 }
             }
 
-            // Clear session
+            
             delete req.session.cartAccess;
             req.session.orderPlaced = true;
 
@@ -228,7 +228,7 @@ const verifyPayment = async (req, res) => {
                 orderIds: orderIds 
             });
         } else {
-            // Payment failed
+            
             await Promise.all(orderIds.map(orderId => 
                 Order.findByIdAndUpdate(orderId, {
                     paymentStatus: "Failed",
