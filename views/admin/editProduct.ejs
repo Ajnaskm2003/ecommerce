@@ -345,7 +345,7 @@ async function handleFormSubmit(event) {
     }
 }
 
-// Image deletion
+
 async function deleteSingleImage(imagePath, productId) {
     const result = await Swal.fire({
         title: 'Are you sure?',
@@ -399,7 +399,7 @@ async function deleteSingleImage(imagePath, productId) {
     }
 }
 
-// Image preview
+
 function viewImage1(event) {
     const imgView = document.getElementById('imgView1');
     if (event.target.files && event.target.files[0]) {
@@ -407,7 +407,7 @@ function viewImage1(event) {
     }
 }
 
-// Initialize event listeners
+
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('regularPrice')?.addEventListener('input', calculateSalePrice);
     document.getElementById('offerPercentage')?.addEventListener('input', calculateSalePrice);
