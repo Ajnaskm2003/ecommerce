@@ -360,7 +360,7 @@ const editProduct = async (req, res) => {
             });
         }
 
-        // Validate Regular Price
+        
         const regularPrice = parseFloat(data.regularPrice);
         if (isNaN(regularPrice) || regularPrice <= 0) {
             return res.status(400).json({
@@ -369,7 +369,7 @@ const editProduct = async (req, res) => {
             });
         }
 
-        // Offer Calculation
+        
         const offerPercentage = parseFloat(data.offerPercentage) || 0;
         if (offerPercentage < 0 || offerPercentage > 100) {
             return res.status(400).json({
@@ -380,7 +380,7 @@ const editProduct = async (req, res) => {
 
         const salePrice = Math.round((regularPrice - (regularPrice * (offerPercentage / 100))) * 100) / 100;
 
-        // Size Validation
+        
         const sizes = data.sizes || {};
         let formattedSizes = {};
         let totalSizeStock = 0;
@@ -400,7 +400,7 @@ const editProduct = async (req, res) => {
             });
         }
 
-        // Image Upload Fix — SAME FOLDER as ADD PRODUCT
+        
         const uploadDir = path.join(__dirname, "../../public/uploads/products");
 
         if (!fs.existsSync(uploadDir)) {
@@ -442,7 +442,7 @@ const editProduct = async (req, res) => {
             });
         }
 
-        // Final Update
+        
         const updatedProduct = await Product.findByIdAndUpdate(
             id,
             {

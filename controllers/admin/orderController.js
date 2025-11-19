@@ -173,7 +173,6 @@ const acceptReturn = async (req, res) => {
       return res.status(404).json({ success: false, message: "Order item not found" });
     }
 
-    
     const nonReturnedItems = order.orderItems.filter(
       i => i._id.toString() !== itemId && 
            !["Returned", "Cancelled"].includes(i.status)
@@ -184,30 +183,14 @@ const acceptReturn = async (req, res) => {
     let refundAmount = 0;
 
     if (isFullReturn) {
-      
       refundAmount = order.totalAmount;   
-
-      console.log(
-        `FULL REFUND → Order:${orderId}\n` +
-        `  Total Paid: ₹${order.totalAmount}\n` +
-        `  Refund Amount: ₹${refundAmount}`
-      );
     } else {
-      
       const itemOriginalTotal = item.price * item.quantity;
       const discountRatio = itemOriginalTotal / order.totalPrice;
       const proratedDiscount = Math.round(order.discount * discountRatio * 100) / 100;
       refundAmount = itemOriginalTotal - proratedDiscount;
-
-      console.log(
-        `PARTIAL REFUND → Order:${orderId} Item:${itemId}\n` +
-        `  Original: ₹${itemOriginalTotal}\n` +
-        `  Prorated Discount: ₹${proratedDiscount}\n` +
-        `  Refund Amount: ₹${refundAmount}`
-      );
     }
 
-    
     item.returnStatus = "Accepted";
     item.status = "Returned";
 
@@ -216,27 +199,20 @@ const acceptReturn = async (req, res) => {
     );
     if (allReturnedOrCancelled) order.status = "Returned";
 
-    
     const user = await User.findById(order.userId);
     if (user) {
       user.wallet = (user.wallet || 0) + refundAmount;
       await user.save();
-    } else {
-      console.error("User not found for ID:", order.userId);
     }
 
-    
     const product = await Product.findById(item.product);
     if (product) {
       product.sizes[item.size] = (product.sizes[item.size] || 0) + item.quantity;
       await product.save();
-    } else {
-      console.error("Product not found for ID:", item.product);
     }
 
     await order.save();
 
-    
     try {
       await WalletTransaction.create({
         userId: order.userId,
@@ -244,7 +220,7 @@ const acceptReturn = async (req, res) => {
         amount: refundAmount,
         description: `Refund for ${isFullReturn ? "full order" : "returned item"} "${
           item.product?.productName || "Unknown"
-        }" (Order ID: ${orderId})`,
+        }" (Order ID: ${order.orderId})`,
         orderId: order._id,
       });
     } catch (walletError) {
@@ -254,7 +230,7 @@ const acceptReturn = async (req, res) => {
   
     const io = req.app.get("io");
     io.emit("returnStatusUpdate", {
-      orderId,
+      orderId: order._id.toString(),           
       itemId: item._id.toString(),
       returnStatus: "Accepted",
       productName: item.product?.productName || "Deleted",
