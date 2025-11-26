@@ -31,57 +31,86 @@ const getActiveCoupons = async (req, res) => {
     }
 };
 
+// POST /apply-coupon
 const applyCoupon = async (req, res) => {
     try {
-        const { code, totalAmount } = req.body;  
-        console.log("Received Coupon Code:", code);
-        console.log("Received Total Amount:", totalAmount);
+        const { code, totalAmount } = req.body;
+        const userId = req.session.user?.id;
 
-        const coupon = await Coupon.findOne({ code });
+        if (!userId) {
+            return res.status(401).json({ success: false, message: "Please login to apply coupon" });
+        }
+
+        if (!code || !totalAmount) {
+            return res.status(400).json({ success: false, message: "Coupon code and total amount required" });
+        }
+
+        const coupon = await Coupon.findOne({
+            code: code.trim().toUpperCase(),
+            isActive: true,
+            expiryDate: { $gte: new Date() }
+        });
 
         if (!coupon) {
-            return res.status(400).json({ message: "❌ Invalid coupon code" });
+            return res.status(400).json({ success: false, message: "Invalid or expired coupon" });
         }
 
-        
-        if (coupon.expiryDate < new Date()) {
-            return res.status(400).json({ message: "❌ Coupon expired" });
-        }
-
-        
+        // Check global usage limit (only read, don't modify)
         if (coupon.usageLimit > 0 && coupon.usedCount >= coupon.usageLimit) {
-            return res.status(400).json({ message: "❌ Coupon usage limit reached" });
+            return res.status(400).json({ success: false, message: "Coupon usage limit has been reached" });
         }
 
-        
+        // Check per-user usage limit
+        if (coupon.perUserLimit > 0) {
+            const usedCountByUser = await Order.countDocuments({
+                userId,
+                coupon: coupon.code,
+                status: { $nin: ["Cancelled", "Returned", "Failed"] }
+            });
+
+            if (usedCountByUser >= coupon.perUserLimit) {
+                return res.status(400).json({ success: false, message: "You have already used this coupon" });
+            }
+        }
+
         const cartTotal = parseFloat(totalAmount);
 
-    
         if (cartTotal < coupon.minPurchase) {
-            return res.status(400).json({ message: `❌ Minimum purchase should be ₹${coupon.minPurchase}` });
+            return res.status(400).json({
+                success: false,
+                message: `Minimum purchase of ₹${coupon.minPurchase} required for this coupon`
+            });
         }
 
-        
         let discountAmount = 0;
         if (coupon.type === "percentage") {
             discountAmount = (cartTotal * coupon.discount) / 100;
-            if (coupon.maxDiscount > 0 && discountAmount > coupon.maxDiscount) {
-                discountAmount = coupon.maxDiscount; 
+            if (coupon.maxDiscount && discountAmount > coupon.maxDiscount) {
+                discountAmount = coupon.maxDiscount;
             }
         } else {
-            discountAmount = coupon.discount; 
+            discountAmount = coupon.discount;
         }
 
-        
-        const newTotal = cartTotal - discountAmount;
+        const newTotal = Math.max(0, cartTotal - discountAmount);
 
-        
-        await Coupon.updateOne({ code }, { $inc: { usedCount: 1 } });
+        return res.json({
+            success: true,
+            message: "Coupon applied successfully!",
+            discountAmount: parseFloat(discountAmount.toFixed(2)),
+            newTotal: parseFloat(newTotal.toFixed(2)),
+            coupon: {
+                code: coupon.code,
+                type: coupon.type,
+                discount: coupon.discount,
+                maxDiscount: coupon.maxDiscount || null,
+                minPurchase: coupon.minPurchase
+            }
+        });
 
-        return res.json({ success: true, discountAmount, newTotal });
     } catch (error) {
-        console.error("Error applying coupon:", error);
-        return res.status(500).json({ message: "❌ Error applying coupon" });
+        console.error("Apply Coupon Error:", error);
+        return res.status(500).json({ success: false, message: "Server error. Please try again." });
     }
 };
 

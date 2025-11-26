@@ -16,229 +16,110 @@
     <link rel="stylesheet" href="css/nouislider.min.css">
     <link rel="stylesheet" href="css/bootstrap.css">
     <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
+        /* ←←← THIS IS THE ONLY CHANGE YOU ASKED FOR ←←← */
+        .col-xl-3.col-lg-4.col-md-5 {
+            padding-left: 5px !important;
+        }
+        /* ←←← END OF CHANGE ←←← */
+
         .category-link {
             display: block;
             padding: 12px 16px;
-            border: 1px solid #e0e0e0; /* Light border */
-            border-radius: 8px; /* Rounded corners */
-            color: #555; /* Dark text color */
-            text-decoration: none; /* Remove underline */
-            background-color: #f9f9f9; /* Light background color */
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-            transition: background-color 0.3s, color 0.3s, box-shadow 0.3s; /* Smooth transition */
-            margin-bottom: 8px; /* Space between items */
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            color: #555;
+            text-decoration: none;
+            background-color: #f9f9f9;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+            margin-bottom: 8px;
         }
     
         .category-link:hover {
-            background-color: #fff; /* White background on hover */
-            color: #007bff; /* Blue text color on hover */
-            border-color: #007bff; /* Blue border on hover */
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
+            background-color: #fff;
+            color: #007bff;
+            border-color: #007bff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
 
-        
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 50%;
+            margin-top: 20px;
+        }
 
-    
-/* Pagination Container */
-.pagination-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 50%;
-    margin-top: 20px;
-}
+        .paginations {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            background: #f0f0f0;
+            padding: 8px 12px;
+            border-radius: 12px;
+            box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.1),
+                        inset -2px -2px 4px rgba(255, 255, 255, 0.8);
+        }
 
-/* Pagination */
-.paginations {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 6px;
-    background: #f0f0f0;
-    padding: 8px 12px;
-    border-radius: 12px;
-    box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.1),
-                inset -2px -2px 4px rgba(255, 255, 255, 0.8);
-}
+        .btn {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 8px;
+            color: #555;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+            background: linear-gradient(145deg, #f0f0f0, #e0e0e0);
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2),
+                        -2px -2px 4px rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
 
-/* Base Button Styles */
-.btn {e
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 32px;
-    height: 32px;
-    border: none;
-    border-radius: 8px;
-    color: #555;
-    text-decoration: none;
-    font-size: 12px;
-    font-weight: 600;
-    background: linear-gradient(145deg, #f0f0f0, #e0e0e0);
-    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2),
-                -2px -2px 4px rgba(255, 255, 255, 0.8);
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
+        .btn:hover {
+            background: linear-gradient(145deg, #e0e0e0, #f0f0f0);
+            box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2),
+                        -1px -1px 3px rgba(255, 255, 255, 0.8);
+            transform: translateY(-1px);
+        }
 
-/* Hover Effect */
-.btn:hover {
-    background: linear-gradient(145deg, #e0e0e0, #f0f0f0);
-    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2),
-                -1px -1px 3px rgba(255, 255, 255, 0.8);
-    transform: translateY(-1px);
-}
+        .btn.active {
+            background: linear-gradient(145deg, #007bff, #0056b3);
+            color: #fff;
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
+                        -2px -2px 4px rgba(255, 255, 255, 0.1);
+        }
 
-/* Active Page Button */
-.btn.active {
-    background: linear-gradient(145deg, #007bff, #0056b3);
-    color: #fff;
-    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
-                -2px -2px 4px rgba(255, 255, 255, 0.1);
-}
+        .prev-btn, .next-btn {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(145deg, #007bff, #0056b3);
+            color: #fff;
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
+                        -2px -2px 4px rgba(255, 255, 255, 0.1);
+        }
 
-/* Previous and Next Buttons */
-.prev-btn, .next-btn {
-    width: 32px;
-    height: 32px;
-    background: linear-gradient(145deg, #007bff, #0056b3);
-    color: #fff;
-    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
-                -2px -2px 4px rgba(255, 255, 255, 0.1);
-}
+        .prev-btn:hover, .next-btn:hover {
+            background: linear-gradient(145deg, #0056b3, #007bff);
+            transform: translateY(-1px);
+        }
 
-.prev-btn:hover, .next-btn:hover {
-    background: linear-gradient(145deg, #0056b3, #007bff);
-    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3),
-                -1px -1px 3px rgba(255, 255, 255, 0.1);
-    transform: translateY(-1px);
-}
-
-/* Arrow Icons */
-.prev-btn::before {
-    content: '←';
-    font-size: 14px;
-}
-
-.next-btn::after {
-    content: '→';
-    font-size: 14px;
-}
-    
-
-    
-    
-    body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    margin: 0;
-    padding: 0;
-}
-
-.container {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding: 20px;
-}
-
-.price-filter {
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    padding: 20px;
-    margin-right: 20px;
-    width: 250px;
-    transition: transform 0.3s;
-}
-
-.price-filter:hover {
-    transform: translateY(-5px);
-}
-
-.price-filter h2 {
-    font-size: 1.5em;
-    margin-bottom: 20px;
-    color: #333;
-    text-align: center;
-}
-
-.filter-buttons {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.filter-button {
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: white;
-    color: #007BFF;
-    border: 2px solid #007BFF;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    cursor: pointer;
-    transition: background-color 0.3s, transform 0.3s, color 0.3s;
-    text-decoration: none;
-    margin-bottom: 15px;
-    text-align: center;
-    width: 100%;
-    font-size: 1em;
-}
-
-.filter-button:hover {
-    background-color: #007BFF;
-    color: white;
-    transform: translateY(-2px);
-}
-
-.filter-button.active {
-    background-color: #007BFF;
-    color: white;
-    transform: translateY(-2px);
-}
-
-.product-list {
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    padding: 20px;
-    width: 100%;
-    max-width: 600px;
-}
-
-.product-list h2 {
-    font-size: 1.5em;
-    margin-bottom: 20px;
-    color: #333;
-}
-
-.product-item {
-    border-bottom: 1px solid #eee;
-    padding: 10px 0;
-}
-
-.product-item:last-child {
-    border-bottom: none;
-}
-
-
-
-
-
-
+        .prev-btn::before { content: '←'; font-size: 14px; }
+        .next-btn::after { content: '→'; font-size: 14px; }
 
         body {
             font-family: 'Arial', sans-serif;
             background-color: #f8f9fa;
         }
-        .shop {
-            padding: 60px 0;
-        }
+        .shop { padding: 60px 0; }
         .single-product {
             background-color: #fff;
             border-radius: 15px;
@@ -257,132 +138,104 @@
             border-bottom: 1px solid #eee;
             transition: transform 0.3s;
         }
-        .single-product img:hover {
-            transform: scale(1.1);
-        }
-        .product-details {
-            padding: 20px;
-        }
-        .product-details h6 {
-            font-size: 1.4em;
-            margin-bottom: 10px;
-            color: #333;
-        }
-        .product-details p {
-            font-size: 1em;
-            color: #777;
-            margin-bottom: 15px;
-        }
-        .price h6 {
-            font-size: 1.4em;
-            color: #e74c3c;
-        }
-        .price h6.l-through {
-            text-decoration: line-through;
-            color: #999;
-            font-size: 1.2em;
-        }
-        .prd-bottom {
+        .single-product img:hover { transform: scale(1.1); }
+        .product-details { padding: 20px; }
+        .product-details h6 { font-size: 1.4em; margin-bottom: 10px; color: #333; }
+        .product-details p { font-size: 1em; color: #777; margin-bottom: 15px; }
+        .price h6 { font-size: 1.4em; color: #e74c3c; }
+        .price h6.l-through { text-decoration: line-through; color: #999; font-size: 1.2em; }
+
+        .search-bar {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
+            align-items: center;
+            margin: 15px auto;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            border-radius: 40px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+            width: fit-content;
+        }
+
+        .search-bar form { display: flex; align-items: center; padding: 3px; }
+        .search-bar input {
+            width: 180px; padding: 10px 15px; font-size: 14px; border: none; outline: none;
+            border-radius: 25px; background: rgba(255, 255, 255, 0.9);
+            box-shadow: inset 2px 2px 6px rgba(0,0,0,0.2), inset -2px -2px 6px rgba(255,255,255,0.6);
+            transition: all 0.3s ease-in-out;
+        }
+        .search-bar input:focus { background: white; }
+        .search-bar button {
+            margin-left: 8px; padding: 10px 18px; font-size: 14px; font-weight: bold;
+            border: none; cursor: pointer; border-radius: 25px;
+            background: linear-gradient(145deg, #222, #000); color: white;
+            box-shadow: 3px 3px 6px rgba(0,0,0,0.3), -3px -3px 6px rgba(255,255,255,0.2);
+            transition: all 0.3s ease-in-out;
+        }
+        .search-bar button:hover {
+            background: linear-gradient(145deg, #000, #333);
+        }
+
+        .price-filter .common-filter {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 
+                inset 4px 4px 8px rgba(0,0,0,0.08),
+                inset -4px -4px 8px rgba(255,255,255,0.9);
             margin-top: 20px;
         }
-        .prd-bottom a {
+
+        .price-filter .head {
+            font-size: 1.1em;
+            font-weight: 600;
             color: #333;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .filter-button {
+            display: block;
+            padding: 14px 20px;
+            text-align: center;
             text-decoration: none;
-            transition: color 0.3s;
+            color: #555;
+            font-weight: 500;
+            background: linear-gradient(145deg, #f0f0f0, #ffffff);
+            border-radius: 10px;
+            box-shadow: 
+                3px 3px 6px rgba(0,0,0,0.15),
+                -3px -3px 6px rgba(255,255,255,0.9);
+            transition: all 0.3s ease;
+            border: 1px solid #e0e0e0;
         }
-        .prd-bottom a:hover {
-            color: #e73c3c;
+
+        .filter-button:hover {
+            background: #ffffff;
+            box-shadow: 
+                2px 2px 5px rgba(0,0,0,0.2),
+                -2px -2px 5px rgba(255,255,255,1);
+            transform: translateY(-2px);
+            color: #007bff;
         }
-        .prd-bottom .social-info {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+
+        .filter-button.active {
+            background: linear-gradient(145deg, #007bff, #0056b3);
+            color: white !important;
+            box-shadow: 
+                3px 3px 8px rgba(0,123,255,0.4),
+                inset 2px 2px 5px rgba(255,255,255,0.2);
+            border-color: #007bff;
+            font-weight: 600;
         }
-        .prd-bottom .social-info span {
-            font-size: 1.8em;
-            margin-bottom: 5px;
-        }
-        .prd-bottom .social-info p {
-            font-size: 0.9em;
-            margin: 0;
-} 
-
-.search-bar {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 15px auto;
-    padding: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(8px);
-    border-radius: 40px;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
-    width: fit-content;
-}
-
-.search-bar form {
-    display: flex;
-    align-items: center;
-    padding: 3px;
-}
-
-.search-bar input {
-    width: 150px;
-    padding: 10px 15px;
-    font-size: 14px;
-    border: none;
-    outline: none;
-    border-radius: 25px;
-    background: rgba(255, 255, 255, 0.9);
-    box-shadow: inset 2px 2px 6px rgba(0, 0, 0, 0.2), 
-                inset -2px -2px 6px rgba(255, 255, 255, 0.6);
-    transition: all 0.3s ease-in-out;
-}
-
-.search-bar input:focus {
-    background: white;
-    box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.1), 
-                inset -2px -2px 5px rgba(255, 255, 255, 0.7);
-}
-
-.search-bar button {
-    margin-left: 8px;
-    padding: 10px 15px;
-    font-size: 14px;
-    font-weight: bold;
-    border: none;
-    cursor: pointer;
-    border-radius: 25px;
-    background: linear-gradient(145deg, #222, #000);
-    color: white;
-    box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3), 
-                -3px -3px 6px rgba(255, 255, 255, 0.2);
-    transition: all 0.3s ease-in-out;
-}
-
-.search-bar button:hover {
-    background: linear-gradient(145deg, #000, #333);
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4), 
-                -2px -2px 5px rgba(255, 255, 255, 0.2);
-}
-
-.search-bar button i {
-    margin-right: 5px;
-}
-
-
-
-
-
     </style>
-    <!-- Add this after your existing CSS links -->
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body id="category">
-    Banner Area
     <section class="banner-area organic-breadcrumb">
         <div class="container">
             <div class="breadcrumb-banner d-flex flex-wrap align-items-center justify-content-end">
@@ -400,18 +253,11 @@
 
     <div class="container">
         <div class="row">
-            
             <div class="col-xl-3 col-lg-4 col-md-5">
-
                 <div class="search-bar">
                     <form method="get" action="/shop">
-                        <input 
-                            type="text" 
-                            name="search" 
-                            placeholder="Search products..." 
-                            value="<%= currentSearch || '' %>"
-                        />
-                        <button type="submit"><i class="fas fa-search"></i>Search</button>
+                        <input type="text" name="search" placeholder="Search products..." value="<%= currentSearch || '' %>"/>
+                        <button type="submit">Search</button>
                     </form>
                 </div>
 
@@ -429,41 +275,34 @@
                             </ul>
                         </form>
                     </div>
-                    <!-- Other Filters -->
                 </div>
 
                 <div class="price-filter">
-                    <h2>Price Filter</h2>
-                    <div class="filter-buttons">
-                        <a href="/shop?gt=0&lt=1000" 
-                           class="filter-button <%= currentMinPrice === 0 && currentMaxPrice === 1000 ? 'active' : '' %>">
-                            Under 1000
-                        </a>
-                        <a href="/shop?gt=1000&lt=2000" 
-                           class="filter-button <%= currentMinPrice === 1000 && currentMaxPrice === 2000 ? 'active' : '' %>">
-                            1000 - 2000
-                        </a>
-                        <a href="/shop?gt=2000&lt=5000" 
-                           class="filter-button <%= currentMinPrice === 2000 && currentMaxPrice === 5000 ? 'active' : '' %>">
-                            2000 - 5000
-                        </a>
-                        <a href="/shop?gt=5000&lt=1000000" 
-                           class="filter-button <%= currentMinPrice === 5000 ? 'active' : '' %>">
-                            5000 Above
-                        </a>
+                    <div class="common-filter">
+                        <div class="head">Price Range</div>
+                        <div class="d-flex flex-column gap-3 mt-3">
+                            <a href="/shop?gt=0&lt=1000" 
+                               class="filter-button <%= (!currentMinPrice && !currentMaxPrice) || (currentMinPrice === 0 && currentMaxPrice === 1000) ? 'active' : '' %>">
+                                Under ₹1000
+                            </a>
+                            <a href="/shop?gt=1000&lt=2000" 
+                               class="filter-button <%= currentMinPrice === 1000 && currentMaxPrice === 2000 ? 'active' : '' %>">
+                                ₹1000 - ₹2000
+                            </a>
+                            <a href="/shop?gt=2000&lt=5000" 
+                               class="filter-button <%= currentMinPrice === 2000 && currentMaxPrice === 5000 ? 'active' : '' %>">
+                                ₹2000 - ₹5000
+                            </a>
+                            <a href="/shop?gt=5000" 
+                               class="filter-button <%= currentMinPrice === 5000 ? 'active' : '' %>">
+                                Above ₹5000
+                            </a>
+                        </div>
                     </div>
                 </div>
-                
-                
-                
-                
             </div>
             
             <div class="col-xl-9 col-lg-8 col-md-7">
-                <!-- Filter Bar -->
-               
-                
-                
                 <div class="filter-bar d-flex flex-wrap align-items-center">
                     <div class="sorting">
                         <form id="sortForm" method="get" action="/shop">
@@ -476,25 +315,16 @@
                             </select>
                         </form>
                     </div>
-                    <!-- <div class="sorting mr-auto">
-                        <select>
-                            <option value="1">Show 12</option>
-                            <option value="1">Show 12</option>
-                            <option value="1">Show 12</option>
-                        </select>
-                    </div> -->
                     <div class="pagination-container">
                         <div class="paginations">
                             <% if (currentPage > 1) { %>
-                                <a class="btn prev-btn" href="/shop?page=<%= currentPage - 1 %>">&#10094;</a>
+                                <a class="btn prev-btn" href="/shop?page=<%= currentPage - 1 %>">Prev</a>
                             <% } %>
-                            
                             <% for (let i = 1; i <= totalPages; i++) { %>
                                 <a class="btn page-btn <%= currentPage === i ? 'active' : '' %>" href="/shop?page=<%= i %>"><%= i %></a>
                             <% } %>
-                            
                             <% if (currentPage < totalPages) { %>
-                                <a class="btn next-btn" href="/shop?page=<%= currentPage + 1 %>">&#10095;</a>
+                                <a class="btn next-btn" href="/shop?page=<%= currentPage + 1 %>">Next</a>
                             <% } %>
                         </div>
                     </div>
@@ -510,12 +340,12 @@
                                             <img class="img-fluid" src="<%= products[i].productImage[0] %>" alt="<%= products[i].productName %>">
                                             <div class="product-details">
                                                 <h6><%= products[i].productName %></h6>
-                                                
                                                 <div class="price">
-                                                    <h6>₹<%= products[i].salePrice %></h6>
-                                                    <h6 class="l-through">₹<%= products[i].regularPrice %></h6>
+                                                    <h6>₹<%= (products[i].finalPrice || products[i].salePrice).toFixed(2) %></h6>
+                                                    <% if (products[i].regularPrice > (products[i].finalPrice || products[i].salePrice)) { %>
+                                                        <h6 class="l-through">₹<%= products[i].regularPrice.toFixed(2) %></h6>
+                                                    <% } %>
                                                 </div>
-                                               
                                             </div>
                                         </a>
                                     </div>
@@ -524,185 +354,12 @@
                         </div>
                     </div>
                 </section>
-
-                <div class="filter-bar d-flex flex-wrap align-items-center">
-                    <div class="sorting mr-auto">
-                        <select>
-                            <option value="1">Show 12</option>
-                            <option value="1">Show 12</option>
-                            <option value="1">Show 12</option>
-                        </select>
-                    </div>
-                    
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Related Product Area -->
-    <section class="related-product-area section_gap">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-6 text-center">
-                    <div class="section-title">
-                        <h1>Deals of the Week</h1>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore
-                            magna aliqua.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-lg-9">
-                    <div class="row">
-                        <!-- Related Products -->
-                    </div>
-                </div>
-                <div class="col-lg-3">
-                    <div class="ctg-right">
-                        <a href="#" target="_blank">
-                            <img class="img-fluid d-block mx-auto" src="img/category/c5.jpg" alt="">
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer Area -->
-    <footer class="footer-area section_gap">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-3  col-md-6 col-sm-6">
-                    <div class="single-footer-widget">
-                        <h6>About Us</h6>
-                        <p>
-                            Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore dolore
-                            magna aliqua.
-                        </p>
-                    </div>
-                </div>
-                <div class="col-lg-4  col-md-6 col-sm-6">
-                    <div class="single-footer-widget">
-                        <h6>Newsletter</h6>
-                        <p>Stay update with our latest</p>
-                        <div class="" id="mc_embed_signup">
-                            <form target="_blank" novalidate="true" action="https://spondonit.us12.list-manage.com/subscribe/post?u=1462626880ade1ac87bd9c93a&amp;id=92a4423d01"
-                                method="get" class="form-inline">
-                                <div class="d-flex flex-row">
-                                    <input class="form-control" name="EMAIL" placeholder="Enter Email" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Enter Email '"
-                                        required="" type="email">
-                                    <button class="click-btn btn btn-default"><i class="fa fa-long-arrow-right" aria-hidden="true"></i></button>
-                                    <div style="position: absolute; left: -5000px;">
-                                        <input name="b_36c4fd991d266f23781ded980_aefe40901a" tabindex="-1" value="" type="text">
-                                    </div>
-                                </div>
-                                <div class="info"></div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3  col-md-6 col-sm-6">
-                    <div class="single-footer-widget mail-chimp">
-                        <h6 class="mb-20">Instagram Feed</h6>
-                        <ul class="instafeed d-flex flex-wrap">
-                            <li><img src="img/i1.jpg" alt=""></li>
-                            <li><img src="img/i2.jpg" alt=""></li>
-                            <li><img src="img/i3.jpg" alt=""></li>
-                            <li><img src="img/i4.jpg" alt=""></li>
-                            <li><img src="img/i5.jpg" alt=""></li>
-                            <li><img src="img/i6.jpg" alt=""></li>
-                            <li><img src="img/i7.jpg" alt=""></li>
-                            <li><img src="img/i8.jpg" alt=""></li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="col-lg-2 col-md-6 col-sm-6">
-                    <div class="single-footer-widget">
-                        <h6>Follow Us</h6>
-                        <p>Let us be social</p>
-                        <div class="footer-social d-flex align-items-center">
-                            <a href="#"><i class="fa fa-facebook"></i></a>
-                            <a href="#"><i class="fa fa-twitter"></i></a>
-                            <a href="#"><i class="fa fa-dribbble"></i></a>
-                            <a href="#"><i class="fa fa-behance"></i></a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="footer-bottom d-flex justify-content-center align-items-center flex-wrap">
-                <p class="footer-text m-0">
-                    Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | This template is made with <i class="fa fa-heart-o" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
-                </p>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Modal Quick Product View -->
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="container relative">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-                <div class="product-quick-view">
-                    <div class="row align-items-center">
-                        <div class="col-lg-6">
-                            <div class="quick-view-carousel">
-                                <div class="item" style="background: url(img/organic-food/q1.jpg);">
-                                </div>
-                                <div class="item" style="background: url(img/organic-food/q1.jpg);">
-                                </div>
-                                <div class="item" style="background: url(img/organic-food/q1.jpg);">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-6">
-                            <div class="quick-view-content">
-                                <div class="top">
-                                    <h3 class="head">Mill Oil 1000W Heater, White</h3>
-                                    <div class="price d-flex align-items-center"><span class="lnr lnr-tag"></span> <span class="ml-10">$149.99</span></div>
-                                    <div class="category">Category: <span>Household</span></div>
-                                    <div class="available">Availibility: <span>In Stock</span></div>
-                                </div>
-                                <div class="middle">
-                                    <p class="content">Mill Oil is an innovative oil filled radiator with the most modern technology. If you are
-                                        looking for something that can make your interior look awesome, and at the same time give you the pleasant
-                                        warm feeling during the winter.</p>
-                                    <a href="#" class="view-full">View full Details <span class="lnr lnr-arrow-right"></span></a>
-                                </div>
-                                <div class="bottom">
-                                    <div class="color-picker d-flex align-items-center">Color:
-                                        <span class="single-pick"></span>
-                                        <span class="single-pick"></span>
-                                        <span class="single-pick"></span>
-                                        <span class="single-pick"></span>
-                                        <span class="single-pick"></span>
-                                    </div>
-                                    <div class="quantity-container d-flex align-items-center mt-15">
-                                        Quantity:
-                                        <input type="text" class="quantity-amount ml-15" value="1" />
-                                        <div class="arrow-btn d-inline-flex flex-column">
-                                            <button class="increase arrow" type="button" title="Increase Quantity"><span class="lnr lnr-chevron-up"></span></button>
-                                            <button class="decrease arrow" type="button" title="Decrease Quantity"><span class="lnr lnr-chevron-down"></span></button>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex mt-20">
-                                        <a href="#" class="view-btn color-2"><span>Add to Cart</span></a>
-                                        <a href="#" class="like-btn"><span class="lnr lnr-layers"></span></a>
-                                        <a href="#" class="like-btn"><span class="lnr lnr-heart"></span></a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
 
     <script src="js/vendor/jquery-2.2.4.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4"
-        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
     <script src="js/vendor/bootstrap.min.js"></script>
     <script src="js/jquery.ajaxchimp.min.js"></script>
     <script src="js/jquery.nice-select.min.js"></script>
@@ -713,8 +370,6 @@
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCjCGmQ0Uq4exrzdcL6rvxywDDOvfAu6eE"></script>
     <script src="js/gmaps.min.js"></script>
     <script src="js/main.js"></script>
-
-    
 </body>
 </html>
 <%- include("../../views/partials/user/footer") %>

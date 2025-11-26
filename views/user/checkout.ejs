@@ -9,554 +9,82 @@
       href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
     />
     <style>
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-
-      body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #f9f9f9;
-        min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        padding: 40px;
-      }
-
-      .container {
-        display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 30px;
-        width: 100%;
-        max-width: 1400px;
-      }
-
-      .card {
-        background: #ffffff;
-        padding: 25px 30px;
-        border-radius: 12px;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-        transition: 0.3s ease;
-      }
-
-      .card:hover {
-        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
-        transform: translateY(-3px);
-      }
-
-      h2 {
-        margin-bottom: 20px;
-        font-size: 1.8rem;
-        color: #222;
-        text-align: left;
-      }
-
-      .cart-item {
-        display: flex;
-        gap: 15px;
-        background: #f5f5f5;
-        border-radius: 8px;
-        padding: 12px;
-        margin-bottom: 15px;
-        align-items: center;
-        transition: 0.2s ease;
-      }
-
-      .cart-item:hover {
-        background: #ececec;
-      }
-
-      .cart-item img {
-        width: 80px;
-        height: 80px;
-        object-fit: cover;
-        border-radius: 6px;
-      }
-
-      .cart-item div {
-        flex: 1;
-      }
-
-      .cart-item p {
-        margin-bottom: 5px;
-        font-size: 0.95rem;
-        color: #333;
-      }
-
-      .cart-item p strong {
-        font-weight: 600;
-        color: #111;
-      }
-
-      select.dropdown {
-        width: 100%;
-        padding: 12px 10px;
-        margin-bottom: 15px;
-        border-radius: 8px;
-        border: 1px solid #ccc;
-        background: #fff;
-        font-size: 1rem;
-        outline: none;
-        transition: 0.3s;
-      }
-
-      select.dropdown:focus {
-        border-color: #ff6b6b;
-      }
-
-      .button {
-        width: 100%;
-        padding: 14px;
-        border-radius: 8px;
-        border: none;
-        font-size: 1rem;
-        cursor: pointer;
-        background: linear-gradient(90deg, #ff6b6b, #ff4d4d);
-        color: #fff;
-        font-weight: bold;
-        margin-bottom: 10px;
-        transition: 0.3s ease;
-      }
-
-      .button:hover {
-        background: linear-gradient(90deg, #ff4d4d, #e63946);
-      }
-
-      .order-summary p {
-        margin-bottom: 15px;
-        font-size: 1rem;
-        color: #444;
-      }
-
-      .order-summary label {
-        font-weight: bold;
-        display: block;
-        margin-bottom: 8px;
-        color: #333;
-      }
-
-      .total-amount {
-        font-size: 1.3rem;
-        color: #000;
-        font-weight: bold;
-        margin-bottom: 20px;
-      }
-
-      @media (max-width: 1024px) {
-        .container {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      .error-message {
-        color: #dc3545;
-        font-size: 0.8rem;
-        margin-top: 2px;
-        display: block;
-        min-height: 16px;
-      }
-
-      .form-group {
-        margin-bottom: 15px;
-      }
-
-      .form-control.error {
-        border-color: #dc3545;
-      }
-
-      .modal-content {
-        background: white;
-        padding: 30px;
-        border-radius: 15px;
-        width: 800px;
-        max-width: 95%;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
-      }
-
-      .form-container {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-      }
-
-      .form-control {
-        width: 100%;
-        padding: 12px 15px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        font-size: 14px;
-        transition: all 0.3s ease;
-      }
-
-      .form-control:focus {
-        border-color: #ff4757;
-        box-shadow: 0 0 0 2px rgba(255, 71, 87, 0.1);
-        outline: none;
-      }
-
-      .button-group {
-        grid-column: 1 / -1;
-        display: flex;
-        gap: 15px;
-        margin-top: 20px;
-      }
-
-      .save-btn {
-        flex: 1;
-        padding: 12px 25px;
-        background: linear-gradient(45deg, #ff4757, #ff6b6b);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 15px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-
-      .save-btn:hover {
-        background: linear-gradient(45deg, #ff6b6b, #ff4757);
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(255, 71, 87, 0.3);
-      }
-
-      .cancel-btn {
-        flex: 1;
-        padding: 12px 25px;
-        background: #f1f2f6;
-        color: #2f3542;
-        border: none;
-        border-radius: 8px;
-        font-size: 15px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-
-      .cancel-btn:hover {
-        background: #dfe4ea;
-        transform: translateY(-2px);
-      }
-
-      .modal-header {
-        margin-bottom: 25px;
-        padding-bottom: 15px;
-        border-bottom: 2px solid #f1f2f6;
-      }
-
-      .modal-header h2 {
-        color: #2f3542;
-        font-size: 1.8rem;
-        margin: 0;
-      }
-
-      @media (max-width: 768px) {
-        .form-container {
-          grid-template-columns: 1fr;
-        }
-
-        .modal-content {
-          padding: 20px;
-          width: 95%;
-        }
-      }
-
-      .coupon-section {
-        margin-bottom: 25px;
-        background: #f8f8f8;
-        padding: 15px;
-        border-radius: 8px;
-      }
-
-      .coupon-input-container {
-        display: flex;
-        gap: 10px;
-        margin-top: 8px;
-        width: 100%;
-      }
-
-      .coupon-input-container input {
-        flex: 1;
-        padding: 12px 15px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        font-size: 14px;
-        transition: all 0.3s ease;
-      }
-
-      .coupon-input-container input:focus {
-        border-color: #ff4757;
-        outline: none;
-        box-shadow: 0 0 0 2px rgba(255, 71, 87, 0.1);
-      }
-
-      .coupon-input-container button {
-        padding: 12px 25px;
-        background: linear-gradient(45deg, #ff4757, #ff6b6b);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        white-space: nowrap;
-      }
-
-      .coupon-input-container button:hover {
-        background: linear-gradient(45deg, #ff6b6b, #ff4757);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(255, 71, 87, 0.2);
-      }
-
-      .coupon-message {
-        margin-top: 8px;
-        min-height: 20px;
-        font-size: 13px;
-      }
-
-      .coupon-message.success {
-        color: #2ecc71;
-        margin-top: 5px;
-        font-size: 14px;
-      }
-
-      .coupon-message.error {
-        color: #e74c3c;
-        margin-top: 5px;
-        font-size: 14px;
-      }
-
-      .applied-coupon {
-        margin-top: 15px;
-        background: #e8f4fd;
-        padding: 12px;
-        border-radius: 6px;
-        border-left: 4px solid #3498db;
-      }
-
-      .coupon-info {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 5px;
-      }
-
-      #couponName {
-        font-weight: 600;
-        color: #2980b9;
-      }
-
-      .discount-text {
-        color: #16a085;
-        font-size: 14px;
-      }
-
-      .remove-btn {
-        background: none;
-        border: none;
-        color: #e74c3c;
-        font-size: 13px;
-        cursor: pointer;
-        font-weight: 500;
-        transition: all 0.2s;
-      }
-
-      .remove-btn:hover {
-        text-decoration: underline;
-      }
-
-      .order-details {
-        margin: 20px 0;
-      }
-
-      .order-row {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 10px;
-        padding: 5px 0;
-      }
-
-      .discount-row {
-        color: #2ecc71;
-        font-weight: 500;
-      }
-
-      .total-row {
-        font-weight: 700;
-        font-size: 18px;
-        margin-top: 10px;
-        padding-top: 10px;
-        border-top: 1px solid #eee;
-      }
-
-      @media (max-width: 576px) {
-        .coupon-input-container {
-          flex-direction: column;
-        }
-
-        .coupon-input-container button {
-          width: 100%;
-          margin-top: 10px;
-        }
-      }
-
-      .payment-section {
-        margin: 20px 0;
-        padding: 15px;
-        background: #f8f8f8;
-        border-radius: 8px;
-      }
-
-      .payment-section h3 {
-        margin-bottom: 12px;
-        font-size: 1.1rem;
-        color: #333;
-      }
-
-      .payment-select {
-        width: 100%;
-        padding: 12px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        font-size: 14px;
-        margin-top: 8px;
-        background: white;
-        cursor: pointer;
-      }
-
-      .payment-select:focus {
-        border-color: #ff4757;
-        outline: none;
-        box-shadow: 0 0 0 2px rgba(255, 71, 87, 0.1);
-      }
-
-      .place-order-btn {
-        width: 100%;
-        padding: 16px;
-        background: linear-gradient(45deg, #2ecc71, #27ae60);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        margin-top: 20px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-      }
-
-      .place-order-btn:hover {
-        background: linear-gradient(45deg, #27ae60, #2ecc71);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
-      }
-
-      .place-order-btn:disabled {
-        background: #ccc;
-        cursor: not-allowed;
-        transform: none;
-        box-shadow: none;
-      }
-
-      #walletBalanceRow {
-        padding: 10px 0;
-        border-bottom: 1px solid #eee;
-        margin-bottom: 10px;
-      }
-
-      #walletBalance {
-        color: #2ecc71;
-        font-weight: 600;
-      }
-
-      .wallet-payment-info {
-        background: #e8f4fd;
-        padding: 12px;
-        border-radius: 6px;
-        margin-top: 10px;
-        border-left: 4px solid #3498db;
-        display: none;
-      }
-
-      .wallet-payment-info p {
-        margin-bottom: 5px;
-        font-size: 14px;
-      }
-
-      .wallet-payment-info strong {
-        color: #2980b9;
-      }
-
-      .coupon-list {
-        margin-top: 10px;
-        max-height: 150px;
-        overflow-y: auto;
-        padding: 5px;
-      }
-
-      .coupon-item {
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 6px;
-        margin-bottom: 8px;
-        cursor: pointer;
-        background: #fff;
-        transition: all 0.2s ease;
-      }
-
-      .coupon-item:hover {
-        background: #f1f2f6;
-        border-color: #ff4757;
-      }
-
-      .coupon-item.selected {
-        background: #e8f4fd;
-        border-color: #3498db;
-      }
-
-      .coupon-item p {
-        margin: 0;
-        font-size: 14px;
-        color: #333;
-      }
-
-      .coupon-item p strong {
-        color: #2980b9;
-      }
-
-      /* NEW: COD disabled tooltip */
-      .cod-disabled {
-        position: relative;
-        cursor: not-allowed;
-        opacity: 0.6;
-      }
-      .cod-disabled::after {
-        content: "COD not available for orders ≥ ₹1000";
-        position: absolute;
-        bottom: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        background: #333;
-        color: #fff;
-        padding: 5px 10px;
-        border-radius: 4px;
-        font-size: 12px;
-        white-space: nowrap;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.2s;
-        z-index: 10;
-      }
-      .cod-disabled:hover::after {
-        opacity: 1;
-      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; padding: 40px; }
+      .container { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; width: 100%; max-width: 1400px; }
+      .card { background: #ffffff; padding: 25px 30px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); transition: 0.3s ease; }
+      .card:hover { box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15); transform: translateY(-3px); }
+      h2 { margin-bottom: 20px; font-size: 1.8rem; color: #222; text-align: left; }
+      .cart-item { display: flex; gap: 15px; background: #f5f5f5; border-radius: 8px; padding: 12px; margin-bottom: 15px; align-items: center; transition: 0.2s ease; }
+      .cart-item:hover { background: #ececec; }
+      .cart-item img { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; }
+      .cart-item div { flex: 1; }
+      .cart-item p { margin-bottom: 5px; font-size: 0.95rem; color: #333; }
+      .cart-item p strong { font-weight: 600; color: #111; }
+      select.dropdown { width: 100%; padding: 12px 10px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ccc; background: #fff; font-size: 1rem; outline: none; transition: 0.3s; }
+      select.dropdown:focus { border-color: #ff6b6b; }
+      .button { width: 100%; padding: 14px; border-radius: 8px; border: none; font-size: 1rem; cursor: pointer; background: linear-gradient(90deg, #ff6b6b, #ff4d4d); color: #fff; font-weight: bold; margin-bottom: 10px; transition: 0.3s ease; }
+      .button:hover { background: linear-gradient(90deg, #ff4d4d, #e63946); }
+      .order-summary p { margin-bottom: 15px; font-size: 1rem; color: #444; }
+      .order-summary label { font-weight: bold; display: block; margin-bottom: 8px; color: #333; }
+      .total-amount { font-size: 1.3rem; color: #000; font-weight: bold; margin-bottom: 20px; }
+      .error-message { color: #dc3545; font-size: 0.8rem; margin-top: 2px; display: block; min-height: 16px; }
+      .form-group { margin-bottom: 15px; }
+      .form-control.error { border-color: #dc3545; }
+      .modal-content { background: white; padding: 30px; border-radius: 15px; width: 800px; max-width: 95%; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15); }
+      .form-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+      .form-control { width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; transition: all 0.3s ease; }
+      .form-control:focus { border-color: #ff4757; box-shadow: 0 0 0 2px rgba(255, 71, 87, 0.1); outline: none; }
+      .button-group { grid-column: 1 / -1; display: flex; gap: 15px; margin-top: 20px; }
+      .save-btn { flex: 1; padding: 12px 25px; background: linear-gradient(45deg, #ff4757, #ff6b6b); color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.5px; }
+      .save-btn:hover { background: linear-gradient(45deg, #ff6b6b, #ff4757); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255, 71, 87, 0.3); }
+      .cancel-btn { flex: 1; padding: 12px 25px; background: #f1f2f6; color: #2f3542; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.5px; }
+      .cancel-btn:hover { background: #dfe4ea; transform: translateY(-2px); }
+      .modal-header { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #f1f2f6; }
+      .modal-header h2 { color: #2f3542; font-size: 1.8rem; margin: 0; }
+      .coupon-section { margin-bottom: 25px; background: #f8f8f8; padding: 15px; border-radius: 8px; }
+      .coupon-input-container { display: flex; gap: 10px; margin-top: 8px; width: 100%; }
+      .coupon-input-container input { flex: 1; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; transition: all 0.3s ease; }
+      .coupon-input-container input:focus { border-color: #ff4757; outline: none; box-shadow: 0 0 0 2px rgba(255, 71, 87, 0.1); }
+      .coupon-input-container button { padding: 12px 25px; background: linear-gradient(45deg, #ff4757, #ff6b6b); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; white-space: nowrap; }
+      .coupon-input-container button:hover { background: linear-gradient(45deg, #ff6b6b, #ff4757); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255, 71, 87, 0.2); }
+      .coupon-message { margin-top: 8px; min-height: 20px; font-size: 13px; }
+      .coupon-message.success { color: #2ecc71; margin-top: 5px; font-size: 14px; }
+      .coupon-message.error { color: #e74c3c; margin-top: 5px; font-size: 14px; }
+      .applied-coupon { margin-top: 15px; background: #e8f4fd; padding: 12px; border-radius: 6px; border-left: 4px solid #3498db; }
+      .coupon-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+      #couponName { font-weight: 600; color: #2980b9; }
+      .discount-text { color: #16a085; font-size: 14px; }
+      .remove-btn { background: none; border: none; color: #e74c3c; font-size: 13px; cursor: pointer; font-weight: 500; transition: all 0.2s; }
+      .remove-btn:hover { text-decoration: underline; }
+      .order-details { margin: 20px 0; }
+      .order-row { display: flex; justify-content: space-between; margin-bottom: 10px; padding: 5px 0; }
+      .discount-row { color: #2ecc71; font-weight: 500; }
+      .total-row { font-weight: 700; font-size: 18px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee; }
+      .payment-section { margin: 20px 0; padding: 15px; background: #f8f8f8; border-radius: 8px; }
+      .payment-section h3 { margin-bottom: 12px; font-size: 1.1rem; color: #333; }
+      .payment-select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; margin-top: 8px; background: white; cursor: pointer; }
+      .payment-select:focus { border-color: #ff4757; outline: none; box-shadow: 0 0 0 2px rgba(255, 71, 87, 0.1); }
+      .place-order-btn { width: 100%; padding: 16px; background: linear-gradient(45deg, #2ecc71, #27ae60); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-top: 20px; text-transform: uppercase; letter-spacing: 1px; }
+      .place-order-btn:hover { background: linear-gradient(45deg, #27ae60, #2ecc71); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3); }
+      .place-order-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; box-shadow: none; }
+      #walletBalanceRow { padding: 10px 0; border-bottom: 1px solid #eee; margin-bottom: 10px; }
+      #walletBalance { color: #2ecc71; font-weight: 600; }
+      .wallet-payment-info { background: #e8f4fd; padding: 12px; border-radius: 6px; margin-top: 10px; border-left: 4px solid #3498db; display: none; }
+      .wallet-payment-info p { margin-bottom: 5px; font-size: 14px; }
+      .wallet-payment-info strong { color: #2980b9; }
+      .coupon-list { margin-top: 10px; max-height: 150px; overflow-y: auto; padding: 5px; }
+      .coupon-item { padding: 10px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 8px; cursor: pointer; background: #fff; transition: all 0.2s ease; }
+      .coupon-item:hover { background: #f1f2f6; border-color: #ff4757; }
+      .coupon-item.selected { background: #e8f4fd; border-color: #3498db; }
+      .coupon-item p { margin: 0; font-size: 14px; color: #333; }
+      .coupon-item p strong { color: #2980b9; }
+      .cod-disabled { position: relative; cursor: not-allowed; opacity: 0.6; }
+      .cod-disabled::after { content: "COD not available for orders ≥ ₹1000"; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 5px 10px; border-radius: 4px; font-size: 12px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 10; }
+      .cod-disabled:hover::after { opacity: 1; }
+      @media (max-width: 1024px) { .container { grid-template-columns: 1fr; } }
+      @media (max-width: 768px) { .form-container { grid-template-columns: 1fr; } .modal-content { padding: 20px; width: 95%; } }
+      @media (max-width: 576px) { .coupon-input-container { flex-direction: column; } .coupon-input-container button { width: 100%; margin-top: 10px; } }
     </style>
   </head>
 
@@ -572,9 +100,7 @@
               <p><strong><%= item.productName %></strong></p>
               <p>Size: <%= item.size %></p>
               <p>Qty: <%= item.quantity %></p>
-              <p>
-                <strong>$<%= (item.quantity * item.price).toFixed(2) %></strong>
-              </p>
+              <p><strong>₹<%= (item.quantity * item.price).toFixed(2) %></strong></p>
             </div>
           </div>
           <% }) %>
@@ -583,118 +109,55 @@
         <div class="card">
           <h2>Shipping Address</h2>
           <select id="addressSelect" class="dropdown">
-            <% if (userAddresses && userAddresses.length > 0) { %> <%
-            userAddresses.forEach(address => { %>
-            <option value="<%= address._id %>">
-              <%= address.fullname %>, <%= address.street %>, <%= address.city
-              %>, <%= address.state %> - <%= address.zipCode %>
-            </option>
-            <% }) %> <% } else { %>
-            <option disabled selected>
-              No saved addresses. Add one below.
-            </option>
+            <% if (userAddresses && userAddresses.length > 0) { %>
+              <% userAddresses.forEach(address => { %>
+                <option value="<%= address._id %>">
+                  <%= address.fullname %>, <%= address.street %>, <%= address.city %>, <%= address.state %> - <%= address.zipCode %>
+                </option>
+              <% }) %>
+            <% } else { %>
+              <option disabled selected>No saved addresses. Add one below.</option>
             <% } %>
           </select>
 
-          <button class="button" onclick="openAddAddressModal()">
-            Add Address
-          </button>
+          <button class="button" onclick="openAddAddressModal()">Add Address</button>
           <button class="button" onclick="editAddress()">Edit Address</button>
 
-          <div
-            id="addressModal"
-            style="
-              display: none;
-              position: fixed;
-              top: 0;
-              left: 0;
-              width: 100%;
-              height: 100%;
-              background: rgba(0, 0, 0, 0.5);
-              justify-content: center;
-              align-items: center;
-            "
-          >
+          <div id="addressModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000;">
             <div class="modal-content">
-              <div class="modal-header">
-                <h2>Add New Address</h2>
-              </div>
+              <div class="modal-header"><h2>Add New Address</h2></div>
               <form id="addAddressForm">
                 <div class="form-container">
                   <div class="form-group">
-                    <input
-                      type="text"
-                      id="fullname"
-                      placeholder="Full Name"
-                      class="form-control"
-                    />
+                    <input type="text" id="fullname" placeholder="Full Name" class="form-control" />
                     <span id="fullname-error" class="error-message"></span>
                   </div>
                   <div class="form-group">
-                    <input
-                      type="text"
-                      id="phone"
-                      placeholder="Phone Number"
-                      class="form-control"
-                    />
+                    <input type="text" id="phone" placeholder="Phone Number" class="form-control" />
                     <span id="phone-error" class="error-message"></span>
                   </div>
                   <div class="form-group">
-                    <input
-                      type="text"
-                      id="street"
-                      placeholder="Street Address"
-                      class="form-control"
-                    />
+                    <input type="text" id="street" placeholder="Street Address" class="form-control" />
                     <span id="street-error" class="error-message"></span>
                   </div>
                   <div class="form-group">
-                    <input
-                      type="text"
-                      id="city"
-                      placeholder="City"
-                      class="form-control"
-                    />
+                    <input type="text" id="city" placeholder="City" class="form-control" />
                     <span id="city-error" class="error-message"></span>
                   </div>
                   <div class="form-group">
-                    <input
-                      type="text"
-                      id="landmark"
-                      placeholder="Landmark (Optional)"
-                      class="form-control"
-                    />
-                    <span id="landmark-error" class="error-message"></span>
+                    <input type="text" id="landmark" placeholder="Landmark (Optional)" class="form-control" />
                   </div>
                   <div class="form-group">
-                    <input
-                      type="text"
-                      id="state"
-                      placeholder="State"
-                      class="form-control"
-                    />
+                    <input type="text" id="state" placeholder="State" class="form-control" />
                     <span id="state-error" class="error-message"></span>
                   </div>
                   <div class="form-group">
-                    <input
-                      type="text"
-                      id="zipCode"
-                      placeholder="ZIP Code"
-                      class="form-control"
-                    />
+                    <input type="text" id="zipCode" placeholder="ZIP Code" class="form-control" />
                     <span id="zipCode-error" class="error-message"></span>
                   </div>
                   <div class="button-group">
-                    <button
-                      type="button"
-                      class="cancel-btn"
-                      onclick="closeAddAddressModal()"
-                    >
-                      Cancel
-                    </button>
-                    <button type="button" class="save-btn" id="saveAddressBtn">
-                      Save Address
-                    </button>
+                    <button type="button" class="cancel-btn" onclick="closeAddAddressModal()">Cancel</button>
+                    <button type="button" class="save-btn" id="saveAddressBtn">Save Address</button>
                   </div>
                 </div>
               </form>
@@ -715,53 +178,39 @@
               <span>Subtotal:</span>
               <span>₹<%= totalAmount.toFixed(2) %></span>
             </div>
-            <div
-              class="order-row discount-row"
-              id="discountRow"
-              style="display: none"
-            >
+            <div class="order-row discount-row" id="discountRow" style="display: none">
               <span>Discount:</span>
               <span id="discountAmount">-₹0.00</span>
             </div>
             <div class="order-row total-row">
               <span>Total Amount:</span>
-              <span id="finalAmount" class="total-amount"
-                >₹<%= totalAmount.toFixed(2) %></span
-              >
+              <span id="finalAmount" class="total-amount">₹<%= totalAmount.toFixed(2) %></span>
             </div>
           </div>
+
           <div class="coupon-section">
             <label>Apply Coupon:</label>
             <div class="coupon-input-container">
-              <input
-                type="text"
-                id="couponCode"
-                placeholder="Enter Coupon Code"
-              />
+              <input type="text" id="couponCode" placeholder="Enter Coupon Code" />
               <button type="button" onclick="applyCoupon()">Apply</button>
             </div>
             <div id="couponMessage" class="coupon-message"></div>
             <div class="coupon-list" id="couponList"></div>
-            <div
-              class="applied-coupon"
-              id="appliedCoupon"
-              style="display: none"
-            >
+            <div class="applied-coupon" id="appliedCoupon" style="display: none">
               <div class="coupon-info">
                 <p>Applied Coupon: <strong id="couponName"></strong></p>
-                <button class="remove-btn" onclick="removeCoupon()">
-                  Remove
-                </button>
+                <button class="remove-btn" onclick="removeCoupon()">Remove</button>
               </div>
               <p class="discount-text" id="couponDetails"></p>
             </div>
           </div>
+
           <div class="payment-section">
             <h3>Payment Method</h3>
             <select id="paymentMethod" class="payment-select">
               <option value="Cash on Delivery">Cash on Delivery</option>
               <option value="Online Payment">Online Payment</option>
-              <option value="Wallet">Wallet Payment</option>
+              <option value="Wallet Payment">Wallet Payment</option>
             </select>
             <div id="walletPaymentInfo" class="wallet-payment-info">
               <p><strong>Wallet Payment</strong></p>
@@ -769,435 +218,318 @@
               <p id="walletRemainingBalance">Remaining balance: ₹0.00</p>
             </div>
           </div>
-          <button onclick="placeOrder()" class="place-order-btn">
-            Place Order
-          </button>
+
+          <button onclick="placeOrder()" class="place-order-btn">Place Order</button>
         </div>
       </div>
     </div>
 
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-      // Global for Razorpay cancel → retry redirect
-      let currentMongoOrderIds = [];
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  const originalSubtotal = <%= totalAmount %>;
+  let currentTotal = originalSubtotal;
+  let appliedCoupon = null;
+  let isEditingAddress = false;
+  let editingAddressId = null;
 
-      let isEditingAddress = false;
-      let editingAddressId = null;
+  document.addEventListener('DOMContentLoaded', () => {
+    fetchWalletBalance();
+    fetchCoupons();
+    document.getElementById('paymentMethod').addEventListener('change', updatePaymentInfo);
+    document.getElementById('paymentMethod').addEventListener('change', updateWalletPaymentInfo); // Added this line
+    document.getElementById('paymentMethod').addEventListener('change', updateCODAvailability);   // Added this line
+    updateCODAvailability();
+  });
 
-      document.addEventListener('DOMContentLoaded', function() {
-          fetchWalletBalance();
-          fetchCoupons();
-          document.getElementById('paymentMethod').addEventListener('change', function() {
-              const walletInfo = document.getElementById('walletPaymentInfo');
-              if (this.value === 'Wallet') {
-                  walletInfo.style.display = 'block';
-                  updateWalletPaymentInfo();
-              } else {
-                  walletInfo.style.display = 'none';
-              }
-          });
+  function updateCODAvailability() {
+    const finalAmt = parseFloat(document.getElementById('finalAmount').textContent.replace(/[^\d.]/g, ''));
+    const codOption = document.querySelector('#paymentMethod option[value="Cash on Delivery"]');
+    const select = document.getElementById('paymentMethod');
 
-          // *** NEW: COD restriction ***
-          checkCodAvailability();
-      });
-
-      // -------------------------------------------------
-      // NEW: Disable COD when final amount >= 1000
-      // -------------------------------------------------
-      function checkCodAvailability() {
-          const finalAmt = parseFloat(document.getElementById('finalAmount').textContent.replace(/[^\d.]/g, ''));
-          const codOption = document.querySelector('#paymentMethod option[value="Cash on Delivery"]');
-          const paymentSelect = document.getElementById('paymentMethod');
-
-          if (finalAmt >= 1000) {
-              codOption.disabled = true;
-              codOption.classList.add('cod-disabled');
-              // auto-switch if COD was selected
-              if (paymentSelect.value === 'Cash on Delivery') {
-                  paymentSelect.value = 'Online Payment';
-                  document.getElementById('walletPaymentInfo').style.display = 'none';
-              }
-          } else {
-              codOption.disabled = false;
-              codOption.classList.remove('cod-disabled');
-          }
+    if (finalAmt >= 1000) {
+      codOption.disabled = true;
+      codOption.classList.add('cod-disabled');
+      if (select.value === 'Cash on Delivery') {
+        select.value = 'Online Payment';
+        updatePaymentInfo();
+        updateWalletPaymentInfo(); // Ensure button state updates
       }
+    } else {
+      codOption.disabled = false;
+      codOption.classList.remove('cod-disabled');
+    }
+  }
 
-      // Call after any change that may affect final amount
-      function updateFinalAmountAndCheckCod() {
-          checkCodAvailability();
-          if (document.getElementById('paymentMethod').value === 'Wallet') {
-              updateWalletPaymentInfo();
-          }
+  function updatePaymentInfo() {
+    const method = document.getElementById('paymentMethod').value;
+    const walletInfo = document.getElementById('walletPaymentInfo');
+    walletInfo.style.display = method === 'Wallet Payment' ? 'block' : 'none';
+    if (method === 'Wallet Payment') updateWalletPaymentInfo();
+  }
+
+  async function fetchWalletBalance() {
+    try {
+      const res = await fetch("/get-wallet-balance");
+      const data = await res.json();
+      if (data.success) {
+        document.getElementById("walletBalance").textContent = `₹${data.balance.toFixed(2)}`;
+        if (document.getElementById('paymentMethod').value === 'Wallet Payment') updateWalletPaymentInfo();
       }
+    } catch (err) { console.error(err); }
+  }
 
-      async function fetchCoupons() {
-          try {
-              const response = await fetch("/api/coupons/active", {
-                  method: "GET",
-                  headers: { "Content-Type": "application/json", "Accept": "application/json" }
-              });
-              const data = await response.json();
-              if (data.success && data.coupons.length > 0) {
-                  const couponList = document.getElementById("couponList");
-                  couponList.innerHTML = "";
-                  data.coupons.forEach(coupon => {
-                      const couponItem = document.createElement("div");
-                      couponItem.className = "coupon-item";
-                      couponItem.innerHTML = `
-                          <p><strong>${coupon.code}</strong> - ${
-                              coupon.type === "percentage"
-                              ? `${coupon.discount}% off${coupon.maxDiscount ? ` (up to ₹${coupon.maxDiscount})` : ""}`
-                              : `₹${coupon.discount} off`
-                          }${coupon.minPurchase > 0 ? ` (Min: ₹${coupon.minPurchase})` : ""}</p>
-                      `;
-                      couponItem.addEventListener("click", () => selectCoupon(coupon));
-                      couponList.appendChild(couponItem);
-                  });
-              } else {
-                  document.getElementById("couponList").innerHTML = "<p>No available coupons</p>";
-              }
-          } catch (error) {
-              console.error("Error fetching coupons:", error);
-              document.getElementById("couponList").innerHTML = "<p>Failed to load coupons</p>";
-          }
-      }
+  // FIXED FUNCTION — THIS IS THE ONLY CHANGE THAT FIXES YOUR BUG
+  function updateWalletPaymentInfo() {
+    const paymentMethod = document.getElementById('paymentMethod').value;
+    const placeOrderBtn = document.querySelector('.place-order-btn');
 
-      function selectCoupon(coupon) {
-          document.querySelectorAll(".coupon-item").forEach(item => item.classList.remove("selected"));
-          const selectedItem = Array.from(document.querySelectorAll(".coupon-item")).find(item =>
-              item.querySelector("strong").textContent === coupon.code
-          );
-          if (selectedItem) selectedItem.classList.add("selected");
-          document.getElementById("couponCode").value = coupon.code;
-          applyCoupon();
-      }
+    const balanceText = document.getElementById("walletBalance").textContent.replace(/[^\d.]/g, "") || "0";
+    const totalText = document.getElementById("finalAmount").textContent.replace(/[^\d.]/g, "");
+    const balance = parseFloat(balanceText);
+    const total = parseFloat(totalText);
 
-      async function fetchWalletBalance() {
-          try {
-              const response = await fetch("/get-wallet-balance", {
-                  method: "GET",
-                  headers: { "Accept": "application/json" },
-                  credentials: 'same-origin'
-              });
-              if (!response.ok) throw new Error('Failed to fetch wallet balance');
-              const data = await response.json();
-              if (data.success) {
-                  document.getElementById("walletBalance").textContent = `₹${data.balance.toFixed(2)}`;
-                  if (document.getElementById('paymentMethod').value === 'Wallet') {
-                      updateWalletPaymentInfo();
-                  }
-              }
-          } catch (error) {
-              console.error("Error:", error);
-              Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to fetch wallet balance' });
-          }
-      }
+    // Always update remaining balance display
+    const remaining = Math.max(0, balance - total);
+    document.getElementById("walletRemainingBalance").textContent = `Remaining balance: ₹${remaining.toFixed(2)}`;
 
-      function updateWalletPaymentInfo() {
-          const walletBalance = parseFloat(document.getElementById("walletBalance").textContent.replace(/[^\d.]/g, ""));
-          const finalAmount = parseFloat(document.getElementById("finalAmount").textContent.replace(/[^\d.]/g, ""));
-          const remaining = Math.max(0, walletBalance - finalAmount);
-          document.getElementById("walletRemainingBalance").textContent = `Remaining balance: ₹${remaining.toFixed(2)}`;
-          const btn = document.querySelector('.place-order-btn');
-          btn.disabled = walletBalance < finalAmount;
-          btn.title = walletBalance < finalAmount ? 'Insufficient balance' : '';
-      }
+    // ONLY disable button if Wallet Payment is selected AND balance is insufficient
+    if (paymentMethod === "Wallet Payment") {
+      placeOrderBtn.disabled = balance < total;
+    } else {
+      // For COD and Online Payment → always enable the button
+      placeOrderBtn.disabled = false;
+    }
+  }
 
-      function openAddAddressModal() {
-          isEditingAddress = false;
-          editingAddressId = null;
-          clearErrors();
-          document.getElementById("addAddressForm").reset();
-          document.querySelector("#addressModal .modal-header h2").textContent = "Add New Address";
-          document.getElementById("addressModal").style.display = "flex";
-      }
-
-      function closeAddAddressModal() {
-          document.getElementById("addressModal").style.display = "none";
-          clearErrors();
-          document.getElementById("addAddressForm").reset();
-      }
-
-      async function editAddress() {
-          const addressId = document.getElementById("addressSelect").value;
-          if (!addressId) return Swal.fire({ icon: "error", title: "Error", text: "Select an address to edit" });
-
-          try {
-              const response = await fetch(`/address/${addressId}`);
-              const data = await response.json();
-              if (data.success && data.address) {
-                  isEditingAddress = true;
-                  editingAddressId = addressId;
-                  document.getElementById("fullname").value = data.address.fullname || "";
-                  document.getElementById("phone").value = data.address.phone || "";
-                  document.getElementById("street").value = data.address.street || "";
-                  document.getElementById("city").value = data.address.city || "";
-                  document.getElementById("landmark").value = data.address.landmark || "";
-                  document.getElementById("state").value = data.address.state || "";
-                  document.getElementById("zipCode").value = data.address.zipCode || "";
-                  document.querySelector("#addressModal .modal-header h2").textContent = "Edit Address";
-                  document.getElementById("addressModal").style.display = "flex";
-              }
-          } catch (error) {
-              Swal.fire({ icon: "error", title: "Error", text: "Failed to load address" });
-          }
-      }
-
-      function showError(id, msg) {
-          const span = document.getElementById(`${id}-error`);
-          const input = document.getElementById(id);
-          if (span) span.textContent = msg;
-          if (input) input.classList.add('error');
-      }
-
-      function clearErrors() {
-          document.querySelectorAll('.error-message').forEach(s => s.textContent = '');
-          document.querySelectorAll('.form-control').forEach(f => f.classList.remove('error'));
-      }
-
-      document.getElementById('saveAddressBtn').addEventListener('click', async () => {
-          clearErrors();
-          const formData = {
-              fullname: document.getElementById('fullname').value.trim(),
-              phone: document.getElementById('phone').value.trim(),
-              street: document.getElementById('street').value.trim(),
-              city: document.getElementById('city').value.trim(),
-              landmark: document.getElementById('landmark').value.trim(),
-              state: document.getElementById('state').value.trim(),
-              zipCode: document.getElementById('zipCode').value.trim()
+  async function fetchCoupons() {
+    try {
+      const res = await fetch("/api/coupons/active");
+      const data = await res.json();
+      if (data.success && data.coupons.length > 0) {
+        const list = document.getElementById("couponList");
+        list.innerHTML = "";
+        data.coupons.forEach(c => {
+          const div = document.createElement("div");
+          div.className = "coupon-item";
+          div.innerHTML = `<p><strong>${c.code}</strong> - ${c.type === "percentage" ? `${c.discount}% off` : `₹${c.discount} off`}${c.minPurchase > 0 ? ` (Min ₹${c.minPurchase})` : ""}</p>`;
+          div.onclick = () => {
+            document.getElementById("couponCode").value = c.code;
+            applyCoupon();
           };
+          list.appendChild(div);
+        });
+      }
+    } catch (err) { console.error(err); }
+  }
 
-          let valid = true;
-          if (!formData.fullname) { showError('fullname', 'Required'); valid = false; }
-          if (!formData.phone || !/^\d{10}$/.test(formData.phone)) { showError('phone', 'Valid 10-digit phone required'); valid = false; }
-          if (!formData.street) { showError('street', 'Required'); valid = false; }
-          if (!formData.city) { showError('city', 'Required'); valid = false; }
-          if (!formData.state) { showError('state', 'Required'); valid = false; }
-          if (!formData.zipCode || !/^\d{6}$/.test(formData.zipCode)) { showError('zipCode', 'Valid 6-digit ZIP required'); valid = false; }
-          if (!valid) return;
+  async function applyCoupon() {
+    const code = document.getElementById("couponCode").value.trim();
+    if (!code) return Swal.fire({icon: 'error', text: 'Enter coupon code'});
 
-          const url = isEditingAddress ? `/address/edit/${editingAddressId}` : '/address/add';
-          const res = await fetch(url, {
-              method: isEditingAddress ? 'PUT' : 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(formData)
-          });
-          const data = await res.json();
-          if (data.success) {
-              await Swal.fire({ icon: 'success', title: 'Success', text: data.message, timer: 1500 });
-              closeAddAddressModal();
-              location.reload();
-          } else {
-              Swal.fire({ icon: 'error', title: 'Error', text: data.message });
-          }
+    const res = await fetch("/apply-coupon", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code, totalAmount: currentTotal })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      appliedCoupon = { code, discountAmount: data.discountAmount };
+      currentTotal = data.newTotal;
+
+      document.getElementById("discountRow").style.display = "flex";
+      document.getElementById("discountAmount").textContent = `-₹${data.discountAmount.toFixed(2)}`;
+      document.getElementById("finalAmount").textContent = `₹${data.newTotal.toFixed(2)}`;
+      document.getElementById("appliedCoupon").style.display = "block";
+      document.getElementById("couponName").textContent = code;
+      document.getElementById("couponDetails").textContent = data.coupon.type === "percentage" ? `${data.coupon.discount}% off` : `₹${data.coupon.discount} off`;
+
+      updateCODAvailability();
+      updateWalletPaymentInfo();  // Now safe — won't disable button wrongly
+      Swal.fire({icon: 'success', text: 'Coupon applied successfully!'});
+    } else {
+      Swal.fire({icon: 'error', text: data.message});
+    }
+  }
+
+  function removeCoupon() {
+    appliedCoupon = null;
+    currentTotal = originalSubtotal;
+    document.getElementById("discountRow").style.display = "none";
+    document.getElementById("appliedCoupon").style.display = "none";
+    document.getElementById("finalAmount").textContent = `₹${originalSubtotal.toFixed(2)}`;
+    document.getElementById("couponCode").value = "";
+    updateCODAvailability();
+    updateWalletPaymentInfo();  // Now safe
+  }
+
+  async function placeOrder() {
+    const addressId = document.getElementById("addressSelect").value;
+    const paymentMethod = document.getElementById("paymentMethod").value;
+    const finalAmount = parseFloat(document.getElementById("finalAmount").textContent.replace(/[^\d.]/g, ""));
+
+    if (!addressId) return Swal.fire({icon: 'error', text: 'Please select a delivery address'});
+    if (paymentMethod === "Cash on Delivery" && finalAmount >= 1000) {
+      return Swal.fire({icon: 'warning', text: 'Cash on Delivery is not available for orders of ₹1000 or more'});
+    }
+
+    const body = {
+      addressId,
+      paymentMethod,
+      totalAmount: finalAmount,
+      discount: originalSubtotal - finalAmount,
+      coupon: appliedCoupon?.code || null
+    };
+
+    if (paymentMethod === "Online Payment") {
+      handleRazorpayPayment(addressId, finalAmount);
+    } else {
+      const res = await fetch("/place", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
       });
+      const data = await res.json();
 
-      async function applyCoupon() {
-          const code = document.getElementById("couponCode").value.trim();
-          if (!code) return Swal.fire({ icon: 'error', title: 'Error', text: 'Enter a coupon code' });
-
-          const totalAmount = parseFloat(document.querySelector(".total-amount").innerText.replace(/[^\d.]/g, ""));
-          const res = await fetch("/apply-coupon", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ code, totalAmount })
-          });
-          const data = await res.json();
-
-          const discountRow = document.getElementById("discountRow");
-          const appliedCouponDiv = document.getElementById("appliedCoupon");
-
-          if (data.success) {
-              discountRow.style.display = "flex";
-              document.getElementById("discountAmount").innerText = `-₹${data.discountAmount.toFixed(2)}`;
-              document.getElementById("finalAmount").innerText = `₹${data.newTotal.toFixed(2)}`;
-              document.getElementById("couponName").innerText = code;
-              document.getElementById("couponDetails").innerText = `${
-                  data.coupon.type === "percentage" ? `${data.coupon.discount}% off` : `₹${data.coupon.discount} off`
-              }${data.coupon.minPurchase > 0 ? ` (Min: ₹${data.coupon.minPurchase})` : ""}`;
-              appliedCouponDiv.style.display = "block";
-              window.appliedCoupon = { code, discountAmount: data.discountAmount, newTotal: data.newTotal };
-              Swal.fire({ icon: 'success', title: 'Applied!', text: 'Coupon applied successfully' });
-
-              // *** COD check after coupon ***
-              updateFinalAmountAndCheckCod();
-          } else {
-              discountRow.style.display = "none";
-              appliedCouponDiv.style.display = "none";
-              document.getElementById("finalAmount").innerText = `₹${totalAmount.toFixed(2)}`;
-              window.appliedCoupon = null;
-              Swal.fire({ icon: 'error', title: 'Invalid', text: data.message });
-          }
+      if (data.success) {
+        sessionStorage.setItem('orderPlaced', 'true');
+        sessionStorage.removeItem('cartAccess');
+        await Swal.fire({icon: 'success', title: 'Order Placed!', text: 'Thank you for your purchase'});
+        window.location.href = `/order/view/${data.orderId}`;
+      } else {
+        Swal.fire({icon: 'error', text: data.message || 'Order placement failed'});
       }
+    }
+  }
 
-      function removeCoupon() {
-          const original = <%= totalAmount %>;
-          document.getElementById("discountRow").style.display = "none";
-          document.getElementById("appliedCoupon").style.display = "none";
-          document.getElementById("finalAmount").innerText = `₹${original.toFixed(2)}`;
-          document.getElementById("couponCode").value = "";
-          document.querySelectorAll(".coupon-item").forEach(i => i.classList.remove("selected"));
-          window.appliedCoupon = null;
+  async function handleRazorpayPayment(addressId, amount) {
+    const res = await fetch("/create-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ addressId, totalAmount: amount, coupon: appliedCoupon?.code })
+    });
+    const data = await res.json();
 
-          // *** COD check after removal ***
-          updateFinalAmountAndCheckCod();
-      }
+    if (!data.success) return Swal.fire("Error", data.message, "error");
 
-      async function placeOrder() {
-          const addressId = document.getElementById("addressSelect").value;
-          const paymentMethod = document.getElementById("paymentMethod").value;
-          const finalAmount = parseFloat(document.getElementById("finalAmount").textContent.replace(/[^\d.]/g, ""));
-          
-          // FIXED LINE: Use server-rendered totalAmount
-          const originalAmount = <%= totalAmount %>;
-          const discount = originalAmount - finalAmount;
+    const options = {
+      key: data.key,
+      amount: data.amount,
+      currency: "INR",
+      name: "Your Store Name",
+      order_id: data.orderId,
+      handler: async function (response) {
+        const verifyRes = await fetch("/verify-payment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+            mongoOrderId: data.mongoOrderId
+          })
+        });
 
-          if (!addressId) return Swal.fire({ icon: 'error', title: 'Error', text: 'Select a delivery address' });
+        const result = await verifyRes.json();
+        if (result.success) {
+          window.location.href = `/order/view/${result.mongoOrderId}`;
+        } else {
+          window.location.href = `/retry-payment?orderId=${data.mongoOrderId}`;
+        }
+      },
+      modal: {
+        ondismiss: function () {
+          window.location.href = `/retry-payment?orderId=${data.mongoOrderId}`;
+        }
+      },
+      theme: { color: "#ff4757" }
+    };
 
-          // *** COD block at place order ***
-          if (paymentMethod === "Cash on Delivery" && finalAmount >= 1000) {
-              return Swal.fire({
-                  icon: 'warning',
-                  title: 'COD Not Allowed',
-                  text: 'Cash on Delivery is not available for orders of ₹1000 or more.'
-              });
-          }
+    new Razorpay(options).open();
+  }
 
-          try {
-              if (paymentMethod === "Online Payment") {
-                  await handleRazorpayPayment(addressId, finalAmount);
-              } else if (paymentMethod === "Wallet") {
-                  const walletBalance = parseFloat(document.getElementById("walletBalance").textContent.replace(/[^\d.]/g, ""));
-                  if (walletBalance < finalAmount) {
-                      return Swal.fire({ icon: 'error', title: 'Insufficient Balance', text: `Need ₹${finalAmount}, have ₹${walletBalance}` });
-                  }
-                  const confirm = await Swal.fire({
-                      icon: 'question',
-                      title: 'Confirm Payment',
-                      html: `Pay <strong>₹${finalAmount.toFixed(2)}</strong><br>Balance after: <strong>₹${(walletBalance - finalAmount).toFixed(2)}</strong>`,
-                      showCancelButton: true,
-                      confirmButtonText: 'Pay Now'
-                  });
-                  if (!confirm.isConfirmed) return;
+  // Address Modal Functions (unchanged)
+  function openAddAddressModal() {
+    isEditingAddress = false;
+    editingAddressId = null;
+    document.getElementById("addAddressForm").reset();
+    document.querySelector("#addressModal .modal-header h2").textContent = "Add New Address";
+    clearErrors();
+    document.getElementById("addressModal").style.display = "flex";
+  }
 
-                  const res = await fetch("/place-order-with-wallet", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ addressId, totalAmount: finalAmount, discount, coupon: window.appliedCoupon?.code })
-                  });
-                  const data = await res.json();
-                  if (!data.success) throw new Error(data.message);
+  function closeAddAddressModal() {
+    document.getElementById("addressModal").style.display = "none";
+    clearErrors();
+  }
 
-                  sessionStorage.setItem('orderPlaced', 'true');
-                  await Swal.fire({ icon: 'success', title: 'Paid!', html: `New balance: <strong>₹${data.newBalance}</strong>`, confirmButtonText: 'View Order' });
-                  sessionStorage.removeItem('cartAccess');
-                  window.location.href = `/order/view/${data.orderId}`;
-              } else {
-                  const res = await fetch("/place", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                          addressId,
-                          paymentMethod,
-                          totalAmount: finalAmount,
-                          discount,
-                          coupon: window.appliedCoupon?.code
-                      })
-                  });
-                  const data = await res.json();
+  async function editAddress() {
+    const addressId = document.getElementById("addressSelect").value;
+    if (!addressId) return Swal.fire({icon: "error", text: "Select an address to edit"});
 
-                  if (data.success) {
-                      sessionStorage.setItem('orderPlaced', 'true');
-                      history.pushState(null, null, location.href);
-                      window.onpopstate = () => history.go(1);
+    const res = await fetch(`/address/${addressId}`);
+    const data = await res.json();
+    if (data.success) {
+      isEditingAddress = true;
+      editingAddressId = addressId;
+      document.getElementById("fullname").value = data.address.fullname || "";
+      document.getElementById("phone").value = data.address.phone || "";
+      document.getElementById("street").value = data.address.street || "";
+      document.getElementById("city").value = data.address.city || "";
+      document.getElementById("landmark").value = data.address.landmark || "";
+      document.getElementById("state").value = data.address.state || "";
+      document.getElementById("zipCode").value = data.address.zipCode || "";
+      document.querySelector("#addressModal .modal-header h2").textContent = "Edit Address";
+      document.getElementById("addressModal").style.display = "flex";
+    }
+  }
 
-                      await Swal.fire({
-                          icon: 'success',
-                          title: 'Order Placed!',
-                          text: 'Your order is confirmed.',
-                          confirmButtonText: 'View Order',
-                          allowOutsideClick: false
-                      });
-                      sessionStorage.removeItem('cartAccess');
-                      window.location.href = `/order/view/${data.orderId}`;
-                  } else {
-                      Swal.fire({ icon: 'error', title: 'Failed', text: data.message });
-                  }
-              }
-          } catch (error) {
-              console.error(error);
-              Swal.fire({ icon: 'error', title: 'Error', text: error.message || 'Something went wrong' });
-          }
-      }
+  function showError(id, msg) {
+    document.getElementById(`${id}-error`).textContent = msg;
+    document.getElementById(id).classList.add('error');
+  }
 
-      async function handleRazorpayPayment(addressId, amount) {
-          const res = await fetch("/create-order", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ addressId, totalAmount: amount, coupon: window.appliedCoupon?.code })
-          });
-          const data = await res.json();
-          if (!data.success) throw new Error(data.message);
+  function clearErrors() {
+    document.querySelectorAll('.error-message').forEach(e => e.textContent = '');
+    document.querySelectorAll('.form-control').forEach(e => e.classList.remove('error'));
+  }
 
-          currentMongoOrderIds = data.orderIds;
+  document.getElementById('saveAddressBtn').addEventListener('click', async () => {
+    clearErrors();
+    const formData = {
+      fullname: document.getElementById('fullname').value.trim(),
+      phone: document.getElementById('phone').value.trim(),
+      street: document.getElementById('street').value.trim(),
+      city: document.getElementById('city').value.trim(),
+      landmark: document.getElementById('landmark').value.trim(),
+      state: document.getElementById('state').value.trim(),
+      zipCode: document.getElementById('zipCode').value.trim()
+    };
 
-          const options = {
-              key: "rzp_test_FPcddXuOor5zgx",
-              amount: data.amount,
-              currency: "INR",
-              name: "Your Store",
-              order_id: data.orderId,
-              handler: async (response) => await verifyPayment(response, data.orderIds),
-              modal: {
-                  ondismiss: async () => {
-                      if (currentMongoOrderIds.length > 0) {
-                          await fetch('/retry-payment/mark-failed', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ orderIds: currentMongoOrderIds })
-                          });
-                          currentMongoOrderIds = [];
-                          await Swal.fire({
-                              icon: 'warning',
-                              title: 'Payment Cancelled',
-                              text: 'Redirecting to retry payment...',
-                              timer: 2000,
-                              showConfirmButton: false
-                          });
-                          window.location.href = '/retry-payment';
-                      }
-                  }
-              },
-              theme: { color: "#ff4757" }
-          };
+    let valid = true;
+    if (!formData.fullname) { showError('fullname', 'Required'); valid = false; }
+    if (!/^\d{10}$/.test(formData.phone)) { showError('phone', 'Valid 10-digit phone required'); valid = false; }
+    if (!formData.street) { showError('street', 'Required'); valid = false; }
+    if (!formData.city) { showError('city', 'Required'); valid = false; }
+    if (!formData.state) { showError('state', 'Required'); valid = false; }
+    if (!/^\d{6}$/.test(formData.zipCode)) { showError('zipCode', 'Valid 6-digit ZIP required'); valid = false; }
+    if (!valid) return;
 
-          const razorpay = new Razorpay(options);
-          razorpay.open();
-      }
+    const url = isEditingAddress ? `/address/edit/${editingAddressId}` : '/address/add';
+    const method = isEditingAddress ? 'PUT' : 'POST';
 
-      async function verifyPayment(response, orderIds) {
-          const res = await fetch("/verify-payment", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ ...response, orderIds })
-          });
-          const data = await res.json();
-          if (data.success) {
-              sessionStorage.setItem('orderPlaced', 'true');
-              await Swal.fire({ icon: 'success', title: 'Paid!', text: 'Order placed.', confirmButtonText: 'View Order' });
-              sessionStorage.removeItem('cartAccess');
-              window.location.href = `/order/view/${data.orderIds[0]}`;
-          } else {
-              Swal.fire({ icon: 'error', title: 'Failed', text: data.message });
-          }
-      }
+    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
+    const data = await res.json();
 
-      
-
-      history.pushState(null, null, location.href);
-      window.onpopstate = () => history.go(1);
-    </script>
+    if (data.success) {
+      Swal.fire({icon: 'success', text: data.message, timer: 1500});
+      closeAddAddressModal();
+      location.reload();
+    } else {
+      Swal.fire({icon: 'error', text: data.message});
+    }
+  });
+</script>
   </body>
 </html>

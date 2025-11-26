@@ -1,163 +1,283 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>OTP Verification - Emporium</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <style>
-      body {
-        font-family: 'Poppins', sans-serif;
-        display: flex;
-        height: 100vh;
-        align-items: center;
-        justify-content: center;
-        background-color: #f7f9fc;
-      }
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>OTP Verification - Emporium</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      height: 100vh;
+      align-items: center;
+      justify-content: center;
+      background-color: #f7f9fc;
+      margin: 0;
+    }
+    .signup-container {
+      display: flex;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      max-width: 700px;
+      width: 100%;
+    }
+    .left-section {
+      background: url('/img/backgr1.jpeg') no-repeat center center/cover;
+      width: 300px;
+      height: 450px;
+      position: relative;
+    }
+    .left-section .logo {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(255, 255, 255, 0.9);
+      padding: 20px;
+      border-radius: 12px;
+    }
+    .logo img { width: 100px; height: 100px; }
+    .form-section {
+      padding: 40px;
+      width: 400px;
+      height: 450px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .form-section h2 {
+      font-weight: 700;
+      font-size: 24px;
+      margin-bottom: 20px;
+      text-align: center;
+      color: #333;
+    }
+    .form-control {
+      height: 50px;
+      border-radius: 8px;
+      font-size: 20px;
+      text-align: center;
+      letter-spacing: 10px;
+      font-weight: 600;
+    }
+    .btn-primary {
+      height: 50px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 16px;
+      margin-top: 20px;
+    }
+    .btn-primary:disabled {
+      background-color: #6c757d;
+      cursor: not-allowed;
+    }
+    #timer {
+      font-size: 14px;
+      color: #555;
+      text-align: center;
+      margin-top: 15px;
+    }
+    #resendBtn {
+      font-size: 14px;
+      font-weight: 600;
+      color: #007bff;
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-decoration: underline;
+      display: none;
+    }
+    #resendBtn:hover { color: #0056b3; }
+    .alert {
+      font-size: 14px;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+      margin: 15px 0;
+      opacity: 1;
+      transition: opacity 0.6s ease;
+    }
+    @media (max-width: 768px) {
+      .signup-container { flex-direction: column; }
+      .left-section { width: 100%; height: 200px; }
+      .form-section { width: 100%; padding: 30px; }
+    }
+  </style>
+</head>
+<body>
 
-      .signup-container {
-        display: flex;
-        background: white;
-        border-radius: 20px;
-        box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
-      }
-
-      .left-section {
-        background: url('/img/backgr1.jpeg') no-repeat center center/cover;
-        width: 300px;
-        height: 450px;
-        position: relative;
-      }
-
-      .left-section .logo {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background-color: rgba(255, 255, 255, 0.8);
-        padding: 20px;
-        border-radius: 10px;
-      }
-
-      .logo img {
-        width: 100px;
-        height: 100px;
-      }
-
-      .form-section {
-        padding: 40px;
-        width: 400px;
-        height: 450px;
-      }
-
-      .form-section h2 {
-        font-weight: 700;
-        font-size: 24px;
-        margin-bottom: 20px;
-        text-align: center;
-        color: #333;
-      }
-
-      .form-control {
-        height: 40px;
-        border-radius: 8px;
-        padding-left: 12px;
-        font-size: 14px;
-      }
-
-      .form-control:focus {
-        box-shadow: 0px 0px 6px rgba(0, 123, 255, 0.2);
-        border-color: #007bff;
-      }
-
-      .btn-primary {
-        height: 40px;
-        border-radius: 10px;
-        font-weight: 600;
-        font-size: 14px;
-      }
-
-      #timer {
-        font-size: 14px;
-        color: #555;
-      }
-
-      #resendBtn {
-        font-size: 14px;
-        font-weight: 600;
-        color: #007bff;
-        background-color: transparent;
-        border: none;
-        cursor: pointer;
-        display: none;
-      }
-
-      #resendBtn:hover {
-        text-decoration: underline;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="signup-container">
-      <div class="left-section">
-        <div class="logo">
-          <img src="/img/logo.jpg" alt="Emporium The Shoe Store">
-        </div>
-      </div>
-
-      <div class="form-section">
-        <h2>Verify Your OTP</h2>
-        
-        <% if (message) { %>
-            <p style="color:red;"><%= message %></p>
-        <% } %>
-
-        <form id="otpForm" action="/verifyOtp" method="POST" >
-          <div class="mb-3">
-            <input type="text" name="otp"  class="form-control" id="otp" placeholder="Enter 6-digit OTP" maxlength="6" pattern="\d{6}" required>
-          </div>
-          <button type="submit" class="btn btn-primary w-100">Verify</button>
-        </form>
-
-        <!-- Timer and Resend OTP Section -->
-        <div class="text-center mt-3">
-          <p id="timer">You can resend OTP in <span id="countdown">60</span> seconds</p>
-         
-         <form action="/resend-otp"  method="post"><button  type="submit"  id="resendBtn" >Resend OTP</button></form>
-        </div>
-
-        <div id="message" class="text-center mt-2" style="color:green;"></div>
+  <div class="signup-container">
+    <div class="left-section">
+      <div class="logo">
+        <img src="/img/logo.jpg" alt="Emporium Logo">
       </div>
     </div>
 
-    <script>
-      let countdown = 60;
-      let timer;
+    <div class="form-section">
+      <h2>Verify Your OTP</h2>
 
-      // Start Countdown Timer
-      function startTimer() {
-        document.getElementById('resendBtn').style.display = 'none';
-        document.getElementById('resendBtn').disabled = true;
-        document.getElementById('timer').style.display = 'block';
-        document.getElementById('countdown').innerText = countdown;
+      <div id="alert-container"></div>
 
-        timer = setInterval(() => {
-          countdown--;
-          document.getElementById('countdown').innerText = countdown;
+      <% if (message) { %>
+        <div class="alert alert-danger"><%= message %></div>
+      <% } %>
+      <% if (success) { %>
+        <div class="alert alert-success"><%= success %></div>
+      <% } %>
 
-          if (countdown <= 0) {
-            clearInterval(timer);
-            document.getElementById('timer').style.display = 'none';
-            document.getElementById('resendBtn').style.display = 'inline-block';
-            document.getElementById('resendBtn').disabled = false;
-          }
-        }, 1000);
+      <form id="otpForm">
+        <div class="mb-3">
+          <input
+            type="text"
+            class="form-control"
+            id="otp"
+            name="otp"
+            placeholder="------"
+            maxlength="6"
+            inputmode="numeric"
+            pattern="\d{6}"
+            required
+            autocomplete="off"
+          />
+        </div>
+        <button type="submit" id="verifyBtn" class="btn btn-primary w-100">
+          Verify OTP
+        </button>
+      </form>
+
+      <div class="text-center mt-3">
+        <p id="timer">You can resend OTP in <span id="countdown">60</span> seconds</p>
+        <button type="button" id="resendBtn" onclick="resendOtpAjax()">
+          Resend OTP
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let countdown = 60;
+    let timer;
+
+    function startTimer() {
+      clearInterval(timer);
+      const el = document.getElementById('countdown');
+      const text = document.getElementById('timer');
+      const btn = document.getElementById('resendBtn');
+      btn.style.display = 'none';
+      countdown = 60;
+      el.textContent = countdown;
+
+      timer = setInterval(() => {
+        countdown--;
+        el.textContent = countdown;
+        if (countdown <= 0) {
+          clearInterval(timer);
+          text.innerHTML = "Didn't receive the code?";
+          btn.style.display = 'inline';
+        }
+      }, 1000);
+    }
+
+    function showAlert(msg, type = 'danger') {
+      const container = document.getElementById('alert-container');
+      container.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+      setTimeout(() => {
+        const alert = container.querySelector('.alert');
+        if (alert) {
+          alert.style.opacity = '0';
+          setTimeout(() => alert.remove(), 600);
+        }
+      }, 5000);
+    }
+
+    // FIXED: Wrong OTP no longer redirects
+    document.getElementById('otpForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const otp = document.getElementById('otp').value.trim();
+      const btn = document.getElementById('verifyBtn');
+
+      if (!/^\d{6}$/.test(otp)) {
+        showAlert('Please enter a valid 6-digit OTP');
+        return;
       }
+
+      btn.disabled = true;
+      btn.textContent = 'Verifying...';
+
+      try {
+        const res = await fetch('/verifyOtp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ otp })
+        });
+
+        const data = await res.json();
+
+        // ONLY when success === true → redirect
+        if (data.success === true) {
+          showAlert(data.message || 'Signup successful! Welcome to Emporium', 'success');
+          setTimeout(() => {
+            window.location.href = data.redirect || '/user/dashboard';
+          }, 1500);
+        } else {
+          // Wrong/expired OTP → show error, stay on page
+          showAlert(data.message || 'Invalid or expired OTP', 'danger');
+          btn.disabled = false;
+          btn.textContent = 'Verify OTP';
+        }
+      } catch (err) {
+        showAlert('Network error. Please try again.', 'danger');
+        btn.disabled = false;
+        btn.textContent = 'Verify OTP';
+      }
+    });
+
+    // Resend OTP - fully working
+    async function resendOtpAjax() {
+      const btn = document.getElementById('resendBtn');
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+
+      try {
+        const res = await fetch('/resend-otp', { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          showAlert('New OTP sent to your email!', 'success');
+          startTimer();
+          if (data.otp) {
+            console.log('%cNew OTP: ' + data.otp, 'color: green; font-size: 22px; font-weight: bold; background: black; padding: 10px; border-radius: 8px;');
+          }
+        } else {
+          showAlert(data.message || 'Failed to resend OTP', 'danger');
+        }
+      } catch (err) {
+        showAlert('Network error. Please try again.', 'danger');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Resend OTP';
+      }
+    }
+
+    window.onload = () => {
+      document.getElementById('otp').focus();
+      startTimer();
+
       
-
-
-
-      window.onload = startTimer;
-
-    </script>
-  </body>
+      setTimeout(() => {
+        document.querySelectorAll('.alert').forEach(a => {
+          a.style.opacity = '0';
+          setTimeout(() => a.remove(), 600);
+        });
+      }, 4000);
+    };
+  </script>
+</body>
 </html>

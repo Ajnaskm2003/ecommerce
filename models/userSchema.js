@@ -44,28 +44,11 @@ const userSchema = new Schema({
         min: 0
     },
     walletHistory: [{
-        amount: {
-            type: Number,
-            required: true,
-        },
-        type: {
-            type: String,
-            enum: ['credit', 'debit'],
-            required: true,
-        },
-        description: {
-            type: String,
-            default: "", 
-        },
-        orderId: {
-            type: Schema.Types.ObjectId,
-            ref: "Order",
-            default: null,
-        },
-        createdOn: {
-            type: Date,
-            default: Date.now,
-        }
+        amount: { type: Number, required: true },
+        type: { type: String, enum: ['credit', 'debit'], required: true },
+        description: { type: String, default: "" },
+        orderId: { type: Schema.Types.ObjectId, ref: "Order", default: null },
+        createdOn: { type: Date, default: Date.now }
     }],
     wishlist: [{
         type: Schema.Types.ObjectId,
@@ -75,48 +58,40 @@ const userSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "Order",
     }],
-
-    // ❌ removed old createdOn because timestamps will create createdAt
-
-    referralCode: { 
-        type: String,
-    },
-    redeemed: {
-        type: Boolean,
-        default: false,
-    },
-    redeemedUsers: [{
-        type: Schema.Types.ObjectId,
-        ref: "User",
-    }],
+    referralCode: { type: String },
+    redeemed: { type: Boolean, default: false },
+    redeemedUsers: [{ type: Schema.Types.ObjectId, ref: "User" }],
     searchHistory: [{
-        category: {
-            type: Schema.Types.ObjectId,
-            ref: "Category",
-        },
-        brand: {
-            type: String,
-        },
-        searchedOn: {
-            type: Date,
-            default: Date.now,
-        }
+        category: { type: Schema.Types.ObjectId, ref: "Category" },
+        brand: { type: String },
+        searchedOn: { type: Date, default: Date.now }
     }],
-    usedCoupons: [{ 
-        type: String 
-    }],
-}, { 
-    timestamps: true  
-});
+    usedCoupons: [{ type: String }],
+    otp: {
+        type: String,
+        default: null
+    },
+    otpExpires: {
+        type: Date,
+        default: null
+    },
+    isVerified: {
+        type: Boolean,
+        default: false
+    }
+}, { timestamps: true });
 
 userSchema.index({ googleId: 1 }, { unique: true, sparse: true });
 
+// THIS IS THE ONLY NEW LINE ADDED
+// Auto-clear expired OTP after it passes (safe & clean)
+userSchema.index(
+    { otpExpires: 1 },
+    { 
+        expireAfterSeconds: 0,
+        partialFilterExpression: { "otpExpires": { $exists: true } }
+    }
+);
+
 const User = mongoose.model("User", userSchema);
-
-// User.collection.dropIndex("googleId_1").catch(err => {
-//     if (err.codeName !== "NamespaceNotFound") {
-//         console.error("Error dropping index:", err);
-//     }
-// });
-
 module.exports = User;

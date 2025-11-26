@@ -350,41 +350,35 @@ const editProduct = async (req, res) => {
         const id = req.params.id;
         const data = req.body;
 
+        // NEW: Get deleted images from frontend
+        const deletedImages = data.deletedImages ? JSON.parse(data.deletedImages) : [];
+
         console.log("Edit Request Body:", data);
 
         const product = await Product.findById(id);
         if (!product) {
-            return res.status(404).json({
-                success: false,
-                message: "Product not found"
-            });
+            return res.status(404).json({ success: false, message: "Product not found" });
         }
 
-        
+        // === Your existing validations (unchanged) ===
         const regularPrice = parseFloat(data.regularPrice);
         if (isNaN(regularPrice) || regularPrice <= 0) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid Regular Price"
-            });
+            return res.status(400).json({ success: false, message: "Invalid Regular Price" });
         }
 
-        
         const offerPercentage = parseFloat(data.offerPercentage) || 0;
-        if (offerPercentage < 0 || offerPercentage > 100) {
-            return res.status(400).json({
-                success: false,
-                message: "Offer Percentage must be 0-100"
-            });
+        if (offerPercentage < 0) {
+            return res.status(400).json({ success: false, message: "Offer percentage cannot be negative" });
+        }
+        if (offerPercentage > 90) {
+            return res.status(400).json({ success: false, message: "Maximum allowed offer is 90%" });
         }
 
         const salePrice = Math.round((regularPrice - (regularPrice * (offerPercentage / 100))) * 100) / 100;
 
-        
         const sizes = data.sizes || {};
         let formattedSizes = {};
         let totalSizeStock = 0;
-
         for (let size in sizes) {
             const qty = parseInt(sizes[size], 10);
             if (!isNaN(qty) && qty >= 0) {
@@ -394,21 +388,39 @@ const editProduct = async (req, res) => {
         }
 
         if (totalSizeStock > parseInt(data.quantity)) {
-            return res.status(400).json({
-                success: false,
-                message: "Total size stock cannot exceed total stock"
-            });
+            return res.status(400).json({ success: false, message: "Total size stock cannot exceed total stock" });
         }
 
-        
+        // === Image Processing ===
         const uploadDir = path.join(__dirname, "../../public/uploads/products");
-
         if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir, { recursive: true });
         }
 
         let newImages = [];
 
+        // === FIXED: Handle Cropped Image from Frontend (Base64) ===
+        if (data.croppedImage && data.croppedImage.trim() !== "") {
+            try {
+                const base64Data = data.croppedImage.replace(/^data:image\/\w+;base64,/, "");
+                const buffer = Buffer.from(base64Data, 'base64');
+
+                const filename = `cropped-${Date.now()}-${Math.round(Math.random() * 1E9)}.jpg`;
+                const savePath = path.join(uploadDir, filename);
+
+                await sharp(buffer)
+                    .resize(800, 800, { fit: "contain", background: { r: 255, g: 255, b: 255 } })
+                    .jpeg({ quality: 90 })
+                    .toFile(savePath);
+
+                newImages.push(`/uploads/products/${filename}`);
+                console.log("Cropped image saved:", filename);
+            } catch (err) {
+                console.error("Error saving cropped image:", err);
+            }
+        }
+
+        // === Optional: Still support normal file upload (keep if you want fallback) ===
         if (req.files && req.files.length > 0) {
             for (const file of req.files) {
                 try {
@@ -416,15 +428,11 @@ const editProduct = async (req, res) => {
                     const savePath = path.join(uploadDir, filename);
 
                     await sharp(file.path)
-                        .resize(800, 800, {
-                            fit: "contain",
-                            background: { r: 255, g: 255, b: 255 }
-                        })
+                        .resize(800, 800, { fit: "contain", background: { r: 255, g: 255, b: 255 } })
                         .jpeg({ quality: 90 })
                         .toFile(savePath);
 
                     newImages.push(`/uploads/products/${filename}`);
-
                     fs.unlinkSync(file.path);
                 } catch (err) {
                     console.error("Image Processing Error:", err);
@@ -432,29 +440,41 @@ const editProduct = async (req, res) => {
             }
         }
 
-        const updatedImages = [...product.productImage, ...newImages];
+        // === FINAL IMAGE LIST ===
+        let finalImages = product.productImage.filter(img => !deletedImages.includes(img));
+        finalImages = [...finalImages, ...newImages];
 
-        const categoryDoc = await Category.findById(data.category);
-        if (!categoryDoc) {
+        // CRITICAL FIX: Prevent 0 images
+        if (finalImages.length === 0) {
+            // Clean up any uploaded files if no image
+            newImages.forEach(imgPath => {
+                const fullPath = path.join(__dirname, "../../public", imgPath);
+                if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+            });
+
             return res.status(400).json({
                 success: false,
-                message: "Invalid category"
+                message: "Product must have at least one image."
             });
         }
 
-        
+        const categoryDoc = await Category.findById(data.category);
+        if (!categoryDoc) {
+            return res.status(400).json({ success: false, message: "Invalid category" });
+        }
+
         const updatedProduct = await Product.findByIdAndUpdate(
             id,
             {
                 productName: data.productName,
-                description: data.description,
+                description: data.descriptionData || data.description,
                 category: categoryDoc._id,
                 regularPrice,
                 offerPercentage,
                 salePrice,
                 quantity: parseInt(data.quantity),
                 sizes: formattedSizes,
-                productImage: updatedImages,
+                productImage: finalImages,
                 updatedAt: new Date()
             },
             { new: true }

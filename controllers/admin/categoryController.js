@@ -231,7 +231,6 @@ const addCategoryOffer = async (req, res) => {
 
         const products = await Product.find({ category: category._id });
 
-        
         const hasHigherProductOffer = products.some(p => (p.offerPercentage || 0) > percentage);
         if (hasHigherProductOffer) {
             return res.json({
@@ -240,24 +239,14 @@ const addCategoryOffer = async (req, res) => {
             });
         }
 
-        
         await Category.updateOne({ _id: categoryId }, { $set: { categoryOffer: percentage } });
 
-
+        // FIXED: Removed offerPercentage reset + only update salePrice correctly
         await Product.updateMany(
             { category: category._id },
             [
                 {
                     $set: {
-                        
-                        offerPercentage: {
-                            $cond: [
-                                { $gt: ["$offerPercentage", percentage] },
-                                "$offerPercentage",
-                                0
-                            ]
-                        },
-                        
                         salePrice: {
                             $round: [
                                 {

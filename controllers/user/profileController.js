@@ -120,35 +120,38 @@ const updateInfo = async (req,res) =>{
 };
 
 
-const changePassword = async (req,res)=>{
+const changePassword = async (req, res) => {
     try {
-        
-        const{currentPassword, newPassword} = req.body;
+        const { currentPassword, newPassword } = req.body;
         const userId = req.session.user.id;
 
         const user = await User.findById(userId);
-        if(!user){
-            return res.json({success : false, message:"user Not Found"});
-
+        if (!user) {
+            return res.json({ success: false, message: "User not found" });
         }
 
-        const isMatch = await bcrypt.compare(currentPassword,user.password);
-
-        if(!isMatch){
-            return res.json({success:false,message: "Current password is incorect"});
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.json({ success: false, message: "Current password is incorrect" });
         }
 
-        const hashedPassword = await bcrypt.hash(newPassword,10);
-        user.password = hashedPassword;
+        // Strong password: uppercase, lowercase, number, min 8 chars (NO ^ required)
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+        if (!passwordRegex.test(newPassword)) {
+            return res.json({
+                success: false,
+                message: "Password must contain at least one uppercase letter, one lowercase letter, one number, and be minimum 8 characters long."
+            });
+        }
 
+        user.password = await bcrypt.hash(newPassword, 10);
         await user.save();
 
-        res.json({success: true,message : "password updated successfully"});
+        res.json({ success: true, message: "Password updated successfully!" });
 
     } catch (error) {
-        console.error(error);
-        res.redirect('/pageNotFound');
-        
+        console.error("Change Password Error:", error);
+        res.json({ success: false, message: "Server error. Please try again." });
     }
 };
 

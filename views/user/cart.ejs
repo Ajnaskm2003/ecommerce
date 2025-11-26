@@ -328,21 +328,23 @@
         <div class="cart-items">
             <% cart.items.forEach(item => { %>
                 <% 
-                    const availableStock = item.productId.sizes && item.productId.sizes[item.size] 
-                        ? item.productId.sizes[item.size] 
-                        : 0;
+                    const availableStock = item.productId?.sizes?.[item.size] ?? 0;
+                    const currentPrice = item.productId?.salePrice ?? item.price; // Always use latest price
                 %>
                 <div class="cart-item">
                     <img 
-                        src="<%= item.productId.productImage[0] || '/images/default-product.jpg' %>" 
-                        alt="<%= item.productId.productName %>" 
+                        src="<%= item.productId?.productImage?.[0] || '/images/default-product.jpg' %>" 
+                        alt="<%= item.productId?.productName || 'Product' %>" 
                         class="cart-item-image"
                         onerror="this.src='/images/default-product.jpg'"
                     >
                     <div class="cart-item-details">
-                        <h3><%= item.productId.productName %></h3>
+                        <h3><%= item.productId?.productName || 'Unknown Product' %></h3>
                         <p>Size: <strong><%= item.size %></strong></p>
-                        <p>Price: <span class="item-price">₹<%= item.price.toFixed(2) %></span></p>
+                        
+                        <!-- This now shows the LATEST price -->
+                        <p>Price: <span class="item-price">₹<%= currentPrice.toFixed(2) %></span></p>
+                        
                         <p>Stock: <span class="stock-info"><%= availableStock %> available</span></p>
 
                         <div>
@@ -376,7 +378,12 @@
 
         <div class="cart-summary">
             <h3>
-                Total: <span class="total-amount">₹<%= cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2) %></span>
+                Total: <span class="total-amount">
+                    ₹<%= cart.items.reduce((sum, item) => {
+                        const price = item.productId?.salePrice ?? item.price;
+                        return sum + (price * item.quantity);
+                    }, 0).toFixed(2) %>
+                </span>
             </h3>
             <a href="/checkout">
                 <button class="checkout-btn">

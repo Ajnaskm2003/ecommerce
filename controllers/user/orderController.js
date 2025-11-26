@@ -59,24 +59,44 @@ const getUserOrders = async (req, res) => {
 };
 
 
+// routes/order.js or controllers/orderController.js
+// controllers/user/orderController.js
+
 const viewOrderDetails = async (req, res) => {
     try {
         const orderId = req.params.id;
-        const order = await Order.findById(orderId).populate('orderItems.product') .exec();
+
+        const order = await Order.findById(orderId)
+            .populate({
+                path: 'orderItems.product',
+                select: 'productName productImage price sizes quantity'
+            });
 
         if (!order) {
-            return res.status(404).send('Order not found');
+            req.flash('error', 'Order not found');
+            return res.redirect('/orders');
         }
 
-        
         if (order.userId.toString() !== req.session.user.id.toString()) {
-            return res.status(403).send('Unauthorized');
+            req.flash('error', 'Access denied');
+            return res.redirect('/orders');
         }
 
-        res.render('orderfulldetails', { order });
+        // Correct flag: true only when Online Payment + not paid + temporary order
+        const paymentPending = order.paymentMethod === 'Online Payment' &&
+                               order.paymentStatus !== 'Paid' &&
+                               order.isTemp === true;
+
+        res.render('orderfulldetails', {
+            order,
+            paymentPending,        // ← Pass this single flag
+            pageTitle: `Order #${order.orderId}`
+        });
+
     } catch (err) {
         console.error('Error loading order details:', err);
-        res.status(500).send('Internal Server Error');
+        req.flash('error', 'Something went wrong');
+        res.redirect('/orders');
     }
 };
 

@@ -155,7 +155,8 @@
 					<div class="col-lg-5 offset-lg-1">
 						<div class="s_product_text">
 							<h3><%=product.productName%></h3>
-							<h2>₹<%=product.salePrice.toFixed(2)%></h2>
+							<!-- FIXED: Now uses finalPrice (highest of product/category offer) -->
+							<h2>₹<%= (product.finalPrice || product.salePrice).toFixed(2) %></h2>
 
 							<ul class="list">
 								<li><a class="active" href="#"><span>Category :</span><%=product.category.name%></a></li>
@@ -236,8 +237,8 @@
 										<div class="desc">
 											<a href="/product?id=<%= product._id %>" class="title"><%= product.productName %></a>
 											<div class="price">
-												<h6>₹<%= product.salePrice.toFixed(2) %></h6>
-												<% if (product.regularPrice > product.salePrice) { %>
+												<h6>₹<%= (product.finalPrice || product.salePrice).toFixed(2) %></h6>
+												<% if (product.regularPrice > (product.finalPrice || product.salePrice)) { %>
 													<h6 class="l-through">₹<%= product.regularPrice.toFixed(2) %></h6>
 												<% } %>
 											</div>
@@ -296,7 +297,7 @@
 				return;
 			}
 			const selectedSize = selectedSizeBtn.getAttribute('data-size');
-			const quantity = 1; // default quantity since counter is removed
+			const quantity = 1;
 
 			fetch("/cart/add", {
 				method: "POST",

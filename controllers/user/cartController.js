@@ -11,18 +11,24 @@ const getCart = async (req, res) => {
             return res.redirect('/login');
         }
 
-    
         res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
 
         const cart = await Cart.findOne({ userId }).populate('items.productId');
 
-        
         if (!cart || !cart.items.length) {
             return res.render('cart', { 
                 cart: { items: [] },
                 message: 'Your cart is empty'
             });
         }
+
+        // THIS IS THE ONLY FIX ADDED
+        // Update each item's price to the latest product price
+        cart.items.forEach(item => {
+            if (item.productId && item.productId.salePrice !== undefined) {
+                item.price = item.productId.salePrice;  // Override old price with current one
+            }
+        });
 
         res.render('cart', { 
             cart: cart,

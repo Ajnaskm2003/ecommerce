@@ -1,11 +1,10 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
-const { v4: uuidv4 } = require('uuid');
 
 const orderSchema = new Schema({
     orderId: {
         type: String,
-        default: () => uuidv4(),
+        required: true,
         unique: true,
     },
     userId: {
@@ -19,79 +18,50 @@ const orderSchema = new Schema({
             ref: "Product",
             required: true
         },
-        size: {  
-            type: String 
-        },
-        quantity: {
-            type: Number,
-            required: true
-        },
-        price: {
-            type: Number,
-            required: true
-        },
+        size: { type: String },
+        quantity: { type: Number, required: true },
+        price: { type: Number, required: true },
         status: {
             type: String,
-            enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Return Request', 'Returned'],
+            enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Return Requested', 'Returned'],
             default: 'Pending'
         },
+        // RETURN FIELDS - THESE WERE MISSING BEFORE
         returnRequest: {
             type: Boolean,
             default: false
         },
         returnReason: {
             type: String,
-            default: ''
+            default: null
+        },
+        returnRequestDate: {
+            type: Date,
+            default: null
         },
         returnStatus: {
             type: String,
-            enum: ['Pending', 'Accepted', 'Rejected', ''],
-            default: ''
-        },
-        returnRequestDate: {
-            type: Date
+            enum: [null, 'Pending', 'Accepted', 'Rejected'],
+            default: null
         }
     }],
-    totalPrice: {
-        type: Number,
-        required: true
-    },
-    discount: {
-        type: Number,
-        default: 0
-    },
+    totalPrice: { type: Number, required: true },
+    discount: { type: Number, default: 0 },
+    totalAmount: { type: Number, required: true },
+    
     paymentMethod: {
         type: String,
         required: true,
-        enum: ['Cash on Delivery', 'Online Payment', 'Wallet Payment'] 
+        enum: ['Cash on Delivery', 'Online Payment', 'Wallet Payment']
     },
-    walletTransactionId: {
-        type: String,
-        unique: true,
-        sparse: true
-    },
-    razorpayOrderId: {
-        type: String,
-        unique: true,
-        sparse: true 
-    },
-    razorpayPaymentId: {
-        type: String,
-        unique: true,
-        sparse: true
-    },
-    razorpaySignature: {
-        type: String,
-        sparse: true
-    },
+    razorpayOrderId: { type: String, unique: true, sparse: true },
+    razorpayPaymentId: { type: String, unique: true, sparse: true },
+    razorpaySignature: { type: String, sparse: true },
+
     paymentStatus: {
         type: String,
         enum: ['Pending', 'Paid', 'Failed', 'Refunded', 'COD'],
         default: 'Pending'
-    },
-    totalAmount: {
-        type: Number,
-        required: true
     },
     address: {
         fullname: String,
@@ -99,31 +69,35 @@ const orderSchema = new Schema({
         city: String,
         state: String,
         zipCode: String,
-        phone: String 
+        phone: String
     },
-    invoiceDate: {
-        type: Date
-    },
+    invoiceDate: { type: Date },
+    
     status: {
         type: String,
-        required: true,
-        enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Return Request', 'Returned'],
+        enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Return Requested', 'Returned'],
         default: 'Pending'
     },
+    
+    couponApplied: { type: Boolean, default: false },
+    coupon: { type: String, default: null },
+
+    isTemp: {
+        type: Boolean,
+        default: true,
+        index: true
+    },
+
     createdOn: {
         type: Date,
-        default: Date.now,
-        required: true
-    },
-    couponApplied: {
-        type: Boolean,
-        default: false
-    },
-    coupon: {
-    type: String,
-    default: null
-},
+        default: Date.now
+    }
+}, {
+    timestamps: true
 });
 
-const Order = mongoose.model("Order", orderSchema);
-module.exports = Order;
+// Index for fast return queries
+orderSchema.index({ "orderItems.returnRequest": 1 });
+orderSchema.index({ "orderItems.returnRequestDate": -1 });
+
+module.exports = mongoose.model("Order", orderSchema);

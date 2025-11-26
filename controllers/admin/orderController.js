@@ -6,7 +6,12 @@ let returnRequests = [];
 
 const getAllOrders = async (req, res) => {
     try {
-        const orders = await Order.find()
+        const orders = await Order.find({
+            $or: [
+                { isTemp: false },                    // New paid orders
+                { isTemp: { $exists: false } }        // Old orders (field doesn't exist)
+            ]
+        })
             .populate({
                 path: 'orderItems.product',
                 select: 'productName productImage'
@@ -14,7 +19,6 @@ const getAllOrders = async (req, res) => {
             .populate('userId', 'name email')
             .sort({ createdOn: -1 });
 
-        
         const formattedOrders = orders.map(order => {
             return {
                 _id: order._id,
@@ -27,7 +31,7 @@ const getAllOrders = async (req, res) => {
                         name: item.product ? item.product.productName : 'Product Unavailable',
                         image: item.product && item.product.productImage.length > 0 
                             ? item.product.productImage[0] 
-                            : 'default.jpg'
+                            : '/uploads/default.jpg'
                     },
                     quantity: item.quantity,
                     price: item.price
@@ -132,21 +136,35 @@ const getReturnOrders = async (req, res) => {
     const returnOrders = await Order.find({
       "orderItems.returnRequest": true
     })
-      .populate("orderItems.product", "productName")
+      .populate("orderItems.product", "productName images")
       .populate("userId", "name email")
-      .select("orderId orderItems userId totalAmount")
-      .sort({ "orderItems.returnRequestDate": -1 });
+      .select("orderId orderItems userId totalAmount createdAt")
+      .sort({ "orderItems.returnRequestDate": -1 })
+      .lean(); // Important: use .lean() for better performance with EJS
 
-    console.log('Return Orders:', JSON.stringify(returnOrders, null, 2));
+    // Filter and flatten only return-requested items
+    const processedOrders = returnOrders.map(order => {
+      const returnItems = order.orderItems
+        .filter(item => item.returnRequest)
+        .map(item => ({
+          ...item,
+          orderId: order.orderId,
+          userId: order.userId,
+          totalAmount: order.totalAmount,
+          orderDocId: order._id,
+          createdAt: order.createdAt
+        }));
+
+      return {
+        ...order,
+        orderItems: returnItems
+      };
+    }).filter(order => order.orderItems.length > 0);
 
     res.render("returnorders", {
-      returnOrders: returnOrders.map(order => ({
-        ...order.toObject(),
-        orderItems: order.orderItems
-          .filter(item => item.returnRequest)
-          .sort((a, b) => new Date(b.returnRequestDate) - new Date(a.returnRequestDate))
-      }))
+      returnOrders: processedOrders
     });
+
   } catch (error) {
     console.error("Error fetching return orders:", error);
     res.status(500).send("Server Error");

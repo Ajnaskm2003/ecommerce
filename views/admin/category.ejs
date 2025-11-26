@@ -159,40 +159,6 @@
         color: white;
     }
 
-    .add-category-form {
-        background: white;
-        padding: 2rem;
-        border-radius: 16px;
-        box-shadow: var(--card-shadow);
-        margin-top: 2rem;
-    }
-
-    .add-category-form h3 {
-        color: #2d3748;
-        font-size: 1.5rem;
-        font-weight: 600;
-        margin-bottom: 1.5rem;
-    }
-
-    .form-label {
-        color: #4a5568;
-        font-weight: 500;
-        margin-bottom: 0.5rem;
-    }
-
-    .form-control {
-        padding: 0.75rem 1rem;
-        border-radius: 8px;
-        border: 2px solid #e2e8f0;
-        transition: var(--transition);
-        font-size: 0.95rem;
-    }
-
-    .form-control:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.1);
-    }
-
     .pagination-container {
         margin-top: 2rem;
         display: flex;
@@ -232,10 +198,20 @@
     .modal-header {
         padding: 1.5rem;
         border-bottom: 1px solid #e2e8f0;
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .modal-header .btn-close {
+        filter: invert(1);
+    }
+
+    .modal-title {
+        font-weight: 600;
     }
 
     .modal-body {
-        padding: 1.5rem;
+        padding: 2rem;
     }
 
     .modal-footer {
@@ -247,6 +223,32 @@
         color: #dc2626;
         font-size: 0.875rem;
         margin-top: 0.25rem;
+    }
+
+    /* Floating Add Button */
+    .fab {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 60px;
+        height: 60px;
+        background: var(--primary-color);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        box-shadow: 0 8px 20px rgba(67, 97, 238, 0.4);
+        cursor: pointer;
+        z-index: 1000;
+        transition: all 0.3s ease;
+    }
+
+    .fab:hover {
+        background: var(--secondary-color);
+        transform: scale(1.1);
+        box-shadow: 0 12px 28px rgba(67, 97, 238, 0.5);
     }
 
     @media (max-width: 768px) {
@@ -263,6 +265,14 @@
         .btn {
             padding: 0.5rem 1rem;
             font-size: 0.875rem;
+        }
+
+        .fab {
+            width: 55px;
+            height: 55px;
+            font-size: 24px;
+            bottom: 20px;
+            right: 20px;
         }
     }
   </style>
@@ -344,28 +354,6 @@
       </div>
     </div>
 
-    <!-- Add New Category Form -->
-    <div class="add-category-form">
-      <h3>Add New Category</h3>
-      <form method="post" action="/admin/addCategory" onsubmit="return handleFormSubmit(event)">
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            <label class="form-label">Category Name</label>
-            <input type="text" name="name" id="categoryName" class="form-control" required />
-            <div id="name-error" class="error-message"></div>
-          </div>
-          <div class="col-md-6 mb-3">
-            <label class="form-label">Description</label>
-            <textarea name="description" id="categoryDesc" class="form-control" rows="3" required></textarea>
-            <div id="desc-error" class="error-message"></div>
-          </div>
-        </div>
-        <div class="text-end">
-          <button type="submit" class="btn btn-primary">Add Category</button>
-        </div>
-      </form>
-    </div>
-
     <!-- Pagination -->
     <div class="pagination-container">
       <% const query = search ? `&search=${encodeURIComponent(search)}` : ''; %>
@@ -383,7 +371,43 @@
         <a href="?page=<%= currentPage + 1 %><%= query %>">Next</a>
       <% } %>
     </div>
+
+    <!-- Floating Action Button -->
+    <div class="fab" onclick="openAddCategoryModal()">
+      +
+    </div>
   </section>
+
+  <!-- Add Category Modal -->
+  <div class="modal fade" id="addCategoryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Add New Category</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addCategoryForm" onsubmit="return handleFormSubmit(event)">
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Category Name</label>
+                <input type="text" name="name" id="categoryName" class="form-control" required />
+                <div id="name-error" class="error-message"></div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Description</label>
+                <textarea name="description" id="categoryDesc" class="form-control" rows="4" required></textarea>
+                <div id="desc-error" class="error-message"></div>
+              </div>
+            </div>
+            <div class="text-end mt-3">
+              <button type="submit" class="btn btn-primary">Add Category</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Add Offer Modal -->
   <div class="modal fade" id="addOfferModal" tabindex="-1">
@@ -415,6 +439,14 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
   <script>
+    // Open Add Category Modal
+    function openAddCategoryModal() {
+      document.getElementById('categoryName').value = '';
+      document.getElementById('categoryDesc').value = '';
+      clearErrors();
+      new bootstrap.Modal(document.getElementById('addCategoryModal')).show();
+    }
+
     // Form Validation & Submit
     function handleFormSubmit(e) {
       e.preventDefault();
@@ -431,6 +463,7 @@
       .then(res => res.json())
       .then(data => {
         if (data.status) {
+          bootstrap.Modal.getInstance(document.getElementById('addCategoryModal')).hide();
           Swal.fire('Success', data.message, 'success').then(() => location.reload());
         } else {
           Swal.fire('Error', data.message || 'Failed to add category', 'error');
@@ -448,7 +481,6 @@
       const desc = document.getElementById('categoryDesc').value.trim();
       let valid = true;
 
-      // Name: 3–30 chars, letters, numbers, spaces
       if (!name) {
         showError('name-error', 'Name is required');
         valid = false;
@@ -460,7 +492,6 @@
         valid = false;
       }
 
-      // Description: 10–200 chars
       if (!desc) {
         showError('desc-error', 'Description is required');
         valid = false;
@@ -485,7 +516,7 @@
       });
     }
 
-    // Open Modal
+    // Open Offer Modal
     function openOfferModal(id) {
       document.getElementById('categoryId').value = id;
       document.getElementById('offerPercentage').value = '';

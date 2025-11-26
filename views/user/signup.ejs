@@ -75,7 +75,6 @@
       border-radius: 10px;
       font-weight: 600;
       font-size: 14px;
-      transition: all 0.3s ease;
       background-color: #007bff;
       border-color: #007bff;
     }
@@ -90,7 +89,6 @@
       border-radius: 10px;
       font-size: 13px;
       font-weight: 500;
-      transition: 0.3s;
     }
 
     .google-btn img {
@@ -99,15 +97,10 @@
       vertical-align: middle;
     }
 
-    .google-btn:hover {
-      background-color: #f0f0f0;
-    }
-
     .text-center p a {
       font-weight: 500;
       color: #007bff;
       text-decoration: none;
-      transition: 0.3s;
     }
 
     .text-center p a:hover {
@@ -115,10 +108,21 @@
     }
 
     .error-message {
-      color: #ff0000; 
-      font-size: 12px;
+      color: #dc3545;
+      font-size: 13px;
       margin-top: 5px;
       display: block;
+      font-weight: 500;
+    }
+
+    .flash-error {
+      color: #dc3545;
+      background: #ffe6e6;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      text-align: center;
+      font-size: 14px;
     }
   </style>
 </head>
@@ -132,27 +136,33 @@
 
     <div class="form-section">
       <h2>Join Emporium</h2>
+
+      <% if (typeof flash !== 'undefined' && flash.error) { %>
+        <div class="flash-error"><%= flash.error %></div>
+      <% } %>
+
       <form id="registerForm" action="/signup" method="POST">
-        <div class="row mb-2">
-          <div class="col">
-            <input type="text" name="name" class="form-control" id="userName" placeholder="Enter Name" >
-            <span id="userNameError" class="error-message"></span>
-          </div>
-        </div>
         <div class="mb-2">
-          <input type="email" name="email" class="form-control" id="userEmail" placeholder="Email Address" >
+          <input type="text" name="name" class="form-control" id="userName" placeholder="Enter Name" value="<%= typeof name !== 'undefined' ? name : '' %>">
+          <span id="userNameError" class="error-message"></span>
+        </div>
+
+        <div class="mb-2">
+          <input type="email" name="email" class="form-control" id="userEmail" placeholder="Email Address" value="<%= typeof email !== 'undefined' ? email : '' %>">
           <span id="userEmailError" class="error-message"></span>
         </div>
+
         <div class="row mb-2">
           <div class="col">
-            <input type="password" name="password" class="form-control" id="userPassword" placeholder="Password" >
+            <input type="password" name="password" class="form-control" id="userPassword" placeholder="Password">
             <span id="userPasswordError" class="error-message"></span>
           </div>
           <div class="col">
-            <input type="password" name="confirmPassword" class="form-control" id="confirmUserPassword" placeholder="Confirm Password" >
+            <input type="password" name="confirmPassword" class="form-control" id="confirmUserPassword" placeholder="Confirm Password">
             <span id="confirmUserPasswordError" class="error-message"></span>
           </div>
         </div>
+
         <button type="submit" class="btn btn-primary w-100">Create Account</button>
       </form>
 
@@ -173,40 +183,51 @@
       const form = document.getElementById("registerForm");
 
       form.addEventListener("submit", function(event) {
-        // Clear previous error messages
-        document.getElementById("userNameError").textContent = "";
-        document.getElementById("userEmailError").textContent = "";
-        document.getElementById("userPasswordError").textContent = "";
-        document.getElementById("confirmUserPasswordError").textContent = "";
+        // Reset errors
+        document.querySelectorAll(".error-message").forEach(el => el.textContent = "");
 
         let hasErrors = false;
-        let name = document.getElementById("userName").value.trim();
-        let email = document.getElementById("userEmail").value.trim();
-        let password = document.getElementById("userPassword").value;
-        let confirmPassword = document.getElementById("confirmUserPassword").value;
 
+        const name = document.getElementById("userName").value.trim();
+        const email = document.getElementById("userEmail").value.trim();
+        const password = document.getElementById("userPassword").value;
+        const confirmPassword = document.getElementById("confirmUserPassword").value;
+
+        // Username: 4–10 characters
         if (!name) {
           document.getElementById("userNameError").textContent = "Name is required.";
           hasErrors = true;
-        } else if (name.length > 10) {  
-          document.getElementById("userNameError").textContent = "Name must be 10 characters or less.";
+        } else if (name.length < 4) {
+          document.getElementById("userNameError").textContent = "Name must be at least 4 characters.";
+          hasErrors = true;
+        } else if (name.length > 10) {
+          document.getElementById("userNameError").textContent = "Name must not exceed 10 characters.";
           hasErrors = true;
         }
 
+        // Email
         if (!email) {
           document.getElementById("userEmailError").textContent = "Email is required.";
           hasErrors = true;
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-          document.getElementById("userEmailError").textContent = "Invalid email format.";
+          document.getElementById("userEmailError").textContent = "Please enter a valid email.";
           hasErrors = true;
         }
+
+        // Strong Password
         if (!password) {
           document.getElementById("userPasswordError").textContent = "Password is required.";
           hasErrors = true;
         } else if (password.length < 6) {
-          document.getElementById("userPasswordError").textContent = "Password must be at least 6 characters long.";
+          document.getElementById("userPasswordError").textContent = "Password must be at least 6 characters.";
+          hasErrors = true;
+        } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+          document.getElementById("userPasswordError").textContent = 
+            "Password must contain uppercase, lowercase, and number.";
           hasErrors = true;
         }
+
+        // Confirm Password
         if (password !== confirmPassword) {
           document.getElementById("confirmUserPasswordError").textContent = "Passwords do not match.";
           hasErrors = true;
