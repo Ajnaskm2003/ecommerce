@@ -431,7 +431,7 @@
         updateWalletPaymentInfo();
       }
 
-      // ONLY THIS FUNCTION IS CHANGED — NOW SHOWS STOCK ERROR LIKE COD/WALLET
+      // FIXED FUNCTION — NOW SHOWS DETAILED OUT-OF-STOCK ERROR
       async function handleRazorpayPayment(addressId, amount) {
         const res = await fetch("/create-order", {
           method: "POST",
@@ -440,13 +440,19 @@
         });
         const data = await res.json();
 
-        // If stock is out → backend returns exact message
         if (!data.success) {
+          let errorMsg = data.message || "Cannot proceed with payment";
+
+          if (data.outOfStockItems && data.outOfStockItems.length > 0) {
+            errorMsg += "\n\n" + data.outOfStockItems.join("\n");
+          }
+
           return Swal.fire({
             icon: 'error',
-            title: 'Cannot Proceed',
-            text: data.message,
-            confirmButtonText: 'OK'
+            title: 'Out of Stock / Unavailable',
+            text: errorMsg,
+            confirmButtonText: 'OK',
+            allowOutsideClick: false
           });
         }
 

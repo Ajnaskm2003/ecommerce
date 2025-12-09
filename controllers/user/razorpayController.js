@@ -5,8 +5,8 @@ const Cart = require('../../models/cartSchema');
 const Address = require('../../models/addressSchema');
 const WalletTransaction = require('../../models/walletSchema');
 const Coupon = require('../../models/coupenSchema');
-const mongoose = require('mongoose');
 const Product = require('../../models/productSchema');
+const mongoose = require('mongoose');
 const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
 
@@ -18,17 +18,12 @@ const razorpay = new Razorpay({
 });
 
 
-
 const createOrder = async (req, res) => {
-  const session = await mongoose.startSession();
   try {
-    session.startTransaction();
-
     const { addressId, totalAmount: clientTotalAmount, coupon, retryOrderId } = req.body;
     const userId = req.session.user?.id;
 
     if (!userId) {
-      await session.abortTransaction();
       return res.status(401).json({ success: false, message: "Login required" });
     }
 
@@ -43,7 +38,7 @@ const createOrder = async (req, res) => {
       return isNaN(num) ? 0 : num;
     };
 
-    // RETRY CASE — just reuse existing temp order
+    // ─────── RETRY PAYMENT CASE ───────
     if (retryOrderId) {
       orderToUse = await Order.findOne({
         _id: retryOrderId,
@@ -51,90 +46,119 @@ const createOrder = async (req, res) => {
         isTemp: true,
         paymentMethod: "Online Payment",
         paymentStatus: { $in: ["Pending", "Failed"] }
-      }).session(session);
+      });
 
       if (!orderToUse) {
-        await session.abortTransaction();
-        return res.status(400).json({ success: false, message: "Invalid retry order" });
+        return res.status(400).json({ success: false, message: "Invalid or expired retry order" });
       }
       finalAmount = orderToUse.totalAmount;
     } 
-    // NORMAL FLOW — create new temp order
+    // ─────── NORMAL FLOW ───────
     else {
-      const addressDoc = await Address.findOne({ userId, 'address._id': addressId }).session(session);
+      const addressDoc = await Address.findOne({ userId, 'address._id': addressId });
       if (!addressDoc) {
-        await session.abortTransaction();
         return res.status(400).json({ success: false, message: "Address not found" });
       }
 
-      cart = await Cart.findOne({ userId }).populate('items.productId').session(session);
+      cart = await Cart.findOne({ userId }).populate('items.productId');
       if (!cart || cart.items.length === 0) {
-        await session.abortTransaction();
         return res.status(400).json({ success: false, message: "Your cart is empty" });
       }
 
-      // Calculate subtotal
-      calculatedTotal = cart.items.reduce((sum, item) => sum + toSafeNumber(item.price) * toSafeNumber(item.quantity), 0);
+      const unavailableItems = [];
+      let hasStockIssue = false;
 
-      // COUPON VALIDATION (you already fixed this — keep it)
+      // ─────── STOCK VALIDATION (CRITICAL FIX) ───────
+      for (const item of cart.items) {
+        const product = item.productId;
+        if (!product || product.isBlocked || product.status === "Out of Stock") {
+          unavailableItems.push(`${item.productName || 'Product'} is no longer available`);
+          hasStockIssue = true;
+          continue;
+        }
+
+        const requestedQty = toSafeNumber(item.quantity);
+        const sizeKey = item.size?.toString();
+
+        let availableStock = 0;
+
+        if (sizeKey && product.sizes?.[sizeKey] !== undefined) {
+          availableStock = product.sizes[sizeKey];
+        } else {
+          availableStock = product.quantity || 0;
+        }
+
+        if (availableStock < requestedQty) {
+          const sizeMsg = sizeKey ? ` (Size ${sizeKey})` : "";
+          unavailableItems.push(
+            `${product.productName}${sizeMsg} - Only ${availableStock} left (you need ${requestedQty})`
+          );
+          hasStockIssue = true;
+        }
+      }
+
+      if (hasStockIssue) {
+        return res.status(400).json({
+          success: false,
+          message: "Some items are out of stock or have insufficient quantity:",
+          outOfStockItems: unavailableItems
+        });
+      }
+      // ─────── END OF STOCK CHECK ───────
+
+      // Calculate subtotal (only after stock is confirmed)
+      calculatedTotal = cart.items.reduce((sum, item) => {
+        const price = toSafeNumber(item.price);
+        const qty = toSafeNumber(item.quantity);
+        return sum + price * qty;
+      }, 0);
+
+      if (calculatedTotal <= 0) {
+        return res.status(400).json({ success: false, message: "Invalid cart amount" });
+      }
+
+      // Coupon logic (your existing fixed version)
       if (coupon && typeof coupon === "string" && coupon.trim() !== "") {
         const couponCode = coupon.trim().toUpperCase();
         const couponDoc = await Coupon.findOne({
           code: couponCode,
           isActive: true,
           expiryDate: { $gte: new Date() }
-        }).session(session);
+        }).lean();
 
         if (!couponDoc) {
-          await session.abortTransaction();
           return res.status(400).json({ success: false, message: "Invalid or expired coupon" });
         }
 
-        if (calculatedTotal < couponDoc.minPurchase) {
-          await session.abortTransaction();
-          return res.status(400).json({ success: false, message: `Minimum purchase ₹${couponDoc.minPurchase} required` });
+        const minPurchase = toSafeNumber(couponDoc.minPurchase);
+        if (calculatedTotal < minPurchase) {
+          return res.status(400).json({
+            success: false,
+            message: `Minimum purchase ₹${minPurchase} required for this coupon`
+          });
         }
 
         const discountValue = toSafeNumber(couponDoc.discount);
         if (couponDoc.type === "flat") {
           appliedDiscount = discountValue;
-        } else {
+        } else if (couponDoc.type === "percentage") {
           appliedDiscount = (calculatedTotal * discountValue) / 100;
-          if (couponDoc.maxDiscount) appliedDiscount = Math.min(appliedDiscount, couponDoc.maxDiscount);
+          const maxDisc = toSafeNumber(couponDoc.maxDiscount);
+          if (maxDisc > 0) appliedDiscount = Math.min(appliedDiscount, maxDisc);
         }
       }
 
-      finalAmount = Math.max(1, calculatedTotal - appliedDiscount);
+      appliedDiscount = Number(appliedDiscount.toFixed(2));
+      finalAmount = Math.max(1, Number((calculatedTotal - appliedDiscount).toFixed(2)));
 
-      // CLIENT-SERVER AMOUNT CHECK
-      if (Math.abs(finalAmount - toSafeNumber(clientTotalAmount)) > 1) {
-        await session.abortTransaction();
-        return res.status(400).json({ success: false, message: "Amount mismatch. Please refresh and try again." });
+      // Client-side amount tampering check
+      const clientAmount = toSafeNumber(clientTotalAmount);
+      if (Math.abs(finalAmount - clientAmount) > 1) {
+        console.warn("Possible tampering", { clientAmount, finalAmount, userId });
+        return res.status(400).json({ success: false, message: "Amount mismatch. Please try again." });
       }
 
-      // CRITICAL: CHECK STOCK BEFORE CREATING RAZORPAY ORDER
-      for (let item of cart.items) {
-        const product = item.productId;
-        const size = item.size;
-        const qty = item.quantity;
-
-        const hasStock = await Product.findOne({
-          _id: product._id,
-          [`sizes.${size}`]: { $gte: qty },
-          quantity: { $gte: qty },
-          isBlocked: false
-        }).session(session);
-
-        if (!hasStock) {
-          await session.abortTransaction();
-          return res.json({
-            success: false,
-            message: `Not enough stock for ${product.productName} (Size: ${size})`
-          });
-        }
-      }
-
-      // All good → create temp order
+      // Create temp order only if stock is available
       const customOrderId = `ORD${new Date().getFullYear().toString().slice(-2)}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}${Math.floor(1000 + Math.random() * 9000)}`;
 
       const orderItems = cart.items.map(item => ({
@@ -147,34 +171,25 @@ const createOrder = async (req, res) => {
 
       const selectedAddress = addressDoc.address.find(a => a._id.toString() === addressId);
 
-      orderToUse = await Order.create([{
+      orderToUse = await Order.create({
         orderId: customOrderId,
         userId,
         orderItems,
-        totalPrice: calculatedTotal,
+        totalPrice: Number(calculatedTotal.toFixed(2)),
         discount: appliedDiscount,
         totalAmount: finalAmount,
         paymentMethod: "Online Payment",
         paymentStatus: "Pending",
-        address: {
-          fullname: selectedAddress.fullname,
-          phone: selectedAddress.phone,
-          street: selectedAddress.street,
-          city: selectedAddress.city,
-          state: selectedAddress.state,
-          zipCode: selectedAddress.zipCode,
-        },
+        address: selectedAddress.toObject(),
         status: "Pending",
         couponApplied: appliedDiscount > 0,
         coupon: coupon || null,
         isTemp: true
-      }], { session })[0];
+      });
     }
 
-    // Create Razorpay order
     const amountInPaise = Math.round(finalAmount * 100);
     if (amountInPaise < 100) {
-      await session.abortTransaction();
       return res.status(400).json({ success: false, message: "Order amount too low" });
     }
 
@@ -185,9 +200,7 @@ const createOrder = async (req, res) => {
     });
 
     orderToUse.razorpayOrderId = razorpayOrder.id;
-    await orderToUse.save({ session });
-
-    await session.commitTransaction();
+    await orderToUse.save();
 
     return res.json({
       success: true,
@@ -199,11 +212,8 @@ const createOrder = async (req, res) => {
     });
 
   } catch (error) {
-    await session.abortTransaction();
     console.error("Create Order Error:", error);
     return res.status(500).json({ success: false, message: "Server error. Please try again." });
-  } finally {
-    session.endSession();
   }
 };
 
