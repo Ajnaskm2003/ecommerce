@@ -1,3 +1,4 @@
+
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
@@ -26,19 +27,9 @@ const orderSchema = new Schema({
             enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Return Requested', 'Returned'],
             default: 'Pending'
         },
-        // RETURN FIELDS - THESE WERE MISSING BEFORE
-        returnRequest: {
-            type: Boolean,
-            default: false
-        },
-        returnReason: {
-            type: String,
-            default: null
-        },
-        returnRequestDate: {
-            type: Date,
-            default: null
-        },
+        returnRequest: { type: Boolean, default: false },
+        returnReason: { type: String, default: null },
+        returnRequestDate: { type: Date, default: null },
         returnStatus: {
             type: String,
             enum: [null, 'Pending', 'Accepted', 'Rejected'],
@@ -82,21 +73,68 @@ const orderSchema = new Schema({
     couponApplied: { type: Boolean, default: false },
     coupon: { type: String, default: null },
 
-    isTemp: {
-        type: Boolean,
-        default: true,
-        index: true
-    },
+    isTemp: { type: Boolean, default: true, index: true },
 
-    createdOn: {
-        type: Date,
-        default: Date.now
-    }
+    createdOn: { type: Date, default: Date.now },
+
+    
+    statusHistory: [{
+        status: {
+            type: String,
+            enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Return Requested', 'Returned'],
+            required: true
+        },
+        date: {
+            type: Date,
+            default: Date.now,
+            required: true
+        },
+        changedBy: {
+            type: String,
+            default: 'system'
+        }
+    }]
 }, {
     timestamps: true
 });
 
-// Index for fast return queries
+// Add initial status to history when order is created
+orderSchema.pre('save', function(next) {
+    if (this.isNew) {
+        this.statusHistory = [{
+            status: this.status,
+            date: this.createdOn || new Date(),
+            changedBy: 'system'
+        }];
+    }
+    next();
+});
+
+// Push new status to history whenever status changes
+orderSchema.pre('findOneAndUpdate', async function(next) {
+    const update = this.getUpdate();
+    if (update.status && update.status !== this.getQuery().status) {
+        const docToUpdate = await this.model.findOne(this.getQuery());
+        if (docToUpdate) {
+            docToUpdate.statusHistory.push({
+                status: update.status,
+                date: new Date(),
+                changedBy: 'admin'
+            });
+            update.$set = update.$set || {};
+            update.$set.statusHistory = docToUpdate.statusHistory;
+        }
+    }
+    next();
+});
+
+// Virtual to get date when current status was set
+orderSchema.virtual('currentStatusDate').get(function() {
+    if (!this.statusHistory || this.statusHistory.length === 0) return this.createdOn;
+    const matches = this.statusHistory.filter(h => h.status === this.status);
+    return matches.length > 0 ? matches[matches.length - 1].date : this.createdOn;
+});
+
 orderSchema.index({ "orderItems.returnRequest": 1 });
 orderSchema.index({ "orderItems.returnRequestDate": -1 });
 

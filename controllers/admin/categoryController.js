@@ -221,29 +221,29 @@ const addCategoryOffer = async (req, res) => {
         const categoryId = req.body.categoryId;
 
         if (isNaN(percentage) || percentage < 0 || percentage > 90) {
-            return res.status(400).json({ status: false, message: "Offer must be 0–90%" });
+            return res.status(400).json({ 
+                status: false, 
+                message: "Offer must be between 0 and 90%" 
+            });
         }
 
         const category = await Category.findById(categoryId);
         if (!category) {
-            return res.status(404).json({ status: false, message: "Category not found" });
-        }
-
-        const products = await Product.find({ category: category._id });
-
-        const hasHigherProductOffer = products.some(p => (p.offerPercentage || 0) > percentage);
-        if (hasHigherProductOffer) {
-            return res.json({
-                status: false,
-                message: "Cannot apply: Some products have higher individual offers"
+            return res.status(404).json({ 
+                status: false, 
+                message: "Category not found" 
             });
         }
 
-        await Category.updateOne({ _id: categoryId }, { $set: { categoryOffer: percentage } });
+        // Set the category offer (no blocking anymore)
+        await Category.updateOne(
+            { _id: categoryId },
+            { $set: { categoryOffer: percentage } }
+        );
 
-        // FIXED: Removed offerPercentage reset + only update salePrice correctly
+        // Update all products: use the HIGHER offer between product offer & category offer
         await Product.updateMany(
-            { category: category._id },
+            { category: categoryId },
             [
                 {
                     $set: {
@@ -257,7 +257,12 @@ const addCategoryOffer = async (req, res) => {
                                                 "$regularPrice",
                                                 {
                                                     $divide: [
-                                                        { $max: ["$offerPercentage", percentage] },
+                                                        {
+                                                            $max: [
+                                                                { $ifNull: ["$offerPercentage", 0] },
+                                                                percentage
+                                                            ]
+                                                        },
                                                         100
                                                     ]
                                                 }
@@ -267,17 +272,29 @@ const addCategoryOffer = async (req, res) => {
                                 },
                                 2
                             ]
+                        },
+                        appliedOffer: {  // Optional: track which offer is active
+                            $max: [
+                                { $ifNull: ["$offerPercentage", 0] },
+                                percentage
+                            ]
                         }
                     }
                 }
             ]
         );
 
-        res.json({ status: true, message: "Category offer applied successfully" });
+        res.json({ 
+            status: true,
+            message: `${percentage}% category offer applied! Highest offer will be used on each product.`
+        });
 
     } catch (error) {
-        console.error("Error:", error);
-        res.status(500).json({ status: false, message: "Server error" });
+        console.error("Error applying category offer:", error);
+        res.status(500).json({ 
+            status: false, 
+            message: "Server error" 
+        });
     }
 };
 

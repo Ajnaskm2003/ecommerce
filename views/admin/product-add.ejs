@@ -75,7 +75,7 @@
 
                     <div>
                         <label>Description</label>
-                        <textarea name="description" class="form-control" id="descriptionid" rows="4" required></textarea>
+                        <textarea name="description"" class="form-control" id="descriptionid" rows="4" required></textarea>
                     </div>
 
                     <div class="row">
@@ -87,26 +87,37 @@
                             <label>Sale Price</label>
                             <input type="text" name="salePrice" class="form-control" required>
                         </div>
-                        <div class="col-md-4">
+                        <!-- Total Quantity field is now HIDDEN -->
+                        <div class="col-md-4" style="display:none;">
                             <label>Total Quantity (Auto-calculated)</label>
                             <input type="text" name="quantity" class="form-control" id="totalQuantity" readonly value="0">
                         </div>
                     </div>
 
-                    <div>
-                        <label>Size-wise Quantity</label>
-                        <div class="row">
-                            <div class="col-3">
-                                <input type="number" name="sizes[6]" class="form-control size-input" min="0" placeholder="Size 6">
+                    <div style="margin-top: 20px;">
+                        <label><strong>Size-wise Quantity</strong> (Optional – leave blank or 0 if not available)</label>
+                        <div class="row g-3 align-items-end"> <!-- g-3 for better spacing -->
+                            <div class="col-3 col-sm-2">
+                                <label for="size6" class="form-label fw-bold text-center d-block">Size 6</label>
+                                <input type="number" id="size6" name="sizes[6]" class="form-control size-input text-center" min="0" placeholder="0">
                             </div>
-                            <div class="col-3">
-                                <input type="number" name="sizes[7]" class="form-control size-input" min="0" placeholder="Size 7">
+                            <div class="col-3 col-sm-2">
+                                <label for="size7" class="form-label fw-bold text-center d-block">Size 7</label>
+                                <input type="number" id="size7" name="sizes[7]" class="form-control size-input text-center" min="0" placeholder="0">
                             </div>
-                            <div class="col-3">
-                                <input type="number" name="sizes[8]" class="form-control size-input" min="0" placeholder="Size 8">
+                            <div class="col-3 col-sm-2">
+                                <label for="size8" class="form-label fw-bold text-center d-block">Size 8</label>
+                                <input type="number" id="size8" name="sizes[8]" class="form-control size-input text-center" min="0" placeholder="0">
                             </div>
-                            <div class="col-3">
-                                <input type="number" name="sizes[9]" class="form-control size-input" min="0" placeholder="Size 9">
+                            <div class="col-3 col-sm-2">
+                                <label for="size9" class="form-label fw-bold text-center d-block">Size 9</label>
+                                <input type="number" id="size9" name="sizes[9]" class="form-control size-input text-center" min="0" placeholder="0">
+                            </div>
+                            <!-- Add more sizes if needed -->
+                            <div class="col-12 col-sm-4 mt-3">
+                                <small class="text-muted">
+                                     <strong><span id="liveTotal"></span></strong>
+                                </small>
                             </div>
                         </div>
                     </div>
@@ -122,7 +133,7 @@
                     </div>
 
                     <div class="card">
-                        <h5>Add Product Images (Minimum 2)</h5>
+                        <h5>Add Product Images (Minimum 3)</h5>
                         <button type="button" class="btn btn-primary" id="chooseImageBtn">Choose Image</button>
                         <input type="file" id="imageInput" accept="image/*" style="display:none;">
 
@@ -196,7 +207,7 @@
         }, 'image/jpeg');
     };
 
-    // Update total quantity from sizes
+    // Update total quantity from sizes (still works even if field is hidden)
     document.querySelectorAll('.size-input').forEach(input => {
         input.addEventListener('input', () => {
             let total = 0;
@@ -209,8 +220,8 @@
     document.getElementById('productForm').onsubmit = async e => {
         e.preventDefault();
 
-        if (croppedBlobs.length < 2) {
-            Swal.fire('Error', 'Please add at least 2 images', 'error');
+        if (croppedBlobs.length < 3) {
+            Swal.fire('Error', 'Please add at least 3 images', 'error');
             return;
         }
 

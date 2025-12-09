@@ -8,8 +8,8 @@ const getAllOrders = async (req, res) => {
     try {
         const orders = await Order.find({
             $or: [
-                { isTemp: false },                    // New paid orders
-                { isTemp: { $exists: false } }        // Old orders (field doesn't exist)
+                { isTemp: false },                    
+                { isTemp: { $exists: false } }       
             ]
         })
             .populate({
@@ -140,9 +140,9 @@ const getReturnOrders = async (req, res) => {
       .populate("userId", "name email")
       .select("orderId orderItems userId totalAmount createdAt")
       .sort({ "orderItems.returnRequestDate": -1 })
-      .lean(); // Important: use .lean() for better performance with EJS
+      .lean(); 
 
-    // Filter and flatten only return-requested items
+    
     const processedOrders = returnOrders.map(order => {
       const returnItems = order.orderItems
         .filter(item => item.returnRequest)

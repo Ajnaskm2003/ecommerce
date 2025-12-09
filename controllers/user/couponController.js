@@ -31,7 +31,7 @@ const getActiveCoupons = async (req, res) => {
     }
 };
 
-// POST /apply-coupon
+
 const applyCoupon = async (req, res) => {
     try {
         const { code, totalAmount } = req.body;
@@ -55,12 +55,12 @@ const applyCoupon = async (req, res) => {
             return res.status(400).json({ success: false, message: "Invalid or expired coupon" });
         }
 
-        // Check global usage limit (only read, don't modify)
+        
         if (coupon.usageLimit > 0 && coupon.usedCount >= coupon.usageLimit) {
             return res.status(400).json({ success: false, message: "Coupon usage limit has been reached" });
         }
 
-        // Check per-user usage limit
+        
         if (coupon.perUserLimit > 0) {
             const usedCountByUser = await Order.countDocuments({
                 userId,

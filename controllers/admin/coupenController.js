@@ -22,14 +22,19 @@ const addCoupon = async (req, res) => {
             discount,
             type,
             minPurchase = 0,
-            maxDiscount = null,
+            maxDiscount,
             expiryDate,
             usageLimit
         } = req.body;
 
     
-        if (!code || !discount || !type || !expiryDate || usageLimit === undefined) {
+        if (!code || !discount || !type || !expiryDate || usageLimit === undefined || !maxDiscount) {
             return res.status(400).json({ success: false, message: 'All required fields must be filled.' });
+        }
+
+        
+        if (type !== 'percentage') {
+            return res.status(400).json({ success: false, message: 'Only percentage-based coupons are allowed.' });
         }
 
         
@@ -38,50 +43,38 @@ const addCoupon = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Coupon code must contain only uppercase letters and numbers.' });
         }
 
-        
         const parsedDiscount = parseFloat(discount);
         const parsedMinPurchase = parseFloat(minPurchase) || 0;
-        const parsedMaxDiscount = maxDiscount ? parseFloat(maxDiscount) : null;
+        const parsedMaxDiscount = parseFloat(maxDiscount);
         const parsedUsageLimit = parseInt(usageLimit, 10);
 
-        if (isNaN(parsedDiscount) || parsedDiscount <= 0) {
-            return res.status(400).json({ success: false, message: 'Discount amount must be a positive number.' });
+        
+        if (isNaN(parsedDiscount) || parsedDiscount < 1 || parsedDiscount > 90) {
+            return res.status(400).json({ success: false, message: 'Discount must be between 1% and 90%.' });
         }
+
         if (parsedMinPurchase < 0) {
             return res.status(400).json({ success: false, message: 'Minimum purchase cannot be negative.' });
         }
-        if (parsedMaxDiscount !== null && parsedMaxDiscount < 0) {
-            return res.status(400).json({ success: false, message: 'Maximum discount cannot be negative.' });
+
+        if (isNaN(parsedMaxDiscount) || parsedMaxDiscount <= 0) {
+            return res.status(400).json({ success: false, message: 'Maximum discount amount is required and must be positive.' });
         }
+
+        if (parsedMaxDiscount < parsedDiscount) {
+            return res.status(400).json({ success: false, message: 'Maximum discount must be ≥ discount percentage value.' });
+        }
+
         if (isNaN(parsedUsageLimit) || parsedUsageLimit < 0) {
-            return res.status(400).json({ success: false, message: 'Usage limit must be a non-negative integer.' });
+            return res.status(400).json({ success: false, message: 'Usage limit must be a non-negative number.' });
         }
 
         
-        if (type === 'percentage') {
-            if (parsedDiscount > 100) {
-                return res.status(400).json({ success: false, message: 'Percentage discount cannot exceed 100%.' });
-            }
-            if (parsedMaxDiscount === null) {
-                return res.status(400).json({ success: false, message: 'Maximum discount is required for percentage coupons.' });
-            }
-            if (parsedMaxDiscount < parsedDiscount) {
-                return res.status(400).json({ success: false, message: 'Maximum discount must be ≥ discount amount for percentage coupons.' });
-            }
-        } else if (type === 'flat') {
-            if (parsedMaxDiscount !== null) {
-                return res.status(400).json({ success: false, message: 'Maximum discount should be empty for flat amount coupons.' });
-            }
-        } else {
-            return res.status(400).json({ success: false, message: 'Invalid discount type.' });
-        }
-
-    
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const exp = new Date(expiryDate);
         if (isNaN(exp.getTime()) || exp < today) {
-            return res.status(400).json({ success: false, message: 'Expiry date must be today or a future date.' });
+            return res.status(400).json({ success: false, message: 'Expiry date must be today or in the future.' });
         }
 
         
@@ -90,21 +83,19 @@ const addCoupon = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Coupon code already exists.' });
         }
 
-        
         const newCoupon = new Coupon({
             code: code.trim().toUpperCase(),
             discount: parsedDiscount,
-            type,
+            type: 'percentage',
             minPurchase: parsedMinPurchase,
-            maxDiscount: type === 'percentage' ? parsedMaxDiscount : undefined,
+            maxDiscount: parsedMaxDiscount,
             expiryDate: exp,
             usageLimit: parsedUsageLimit === 0 ? null : parsedUsageLimit
         });
 
         await newCoupon.save();
 
-        
-        return res.json({ success: true, message: 'Coupon created successfully!' });
+        return res.json({ success: true, message: 'Percentage coupon created successfully!' });
 
     } catch (error) {
         console.error('addCoupon error:', error);
@@ -113,38 +104,105 @@ const addCoupon = async (req, res) => {
 };
 
 
-const editCoupon = async (req,res) => {
+const editCoupon = async (req, res) => {
     try {
-        const {id} = req.params;
-        const {code,discount,type,minPurchase,maxDiscount,usageLimit,expiryDate} = req.body;
+        const { id } = req.params;
+        const {
+            code,
+            discount,
+            type,
+            minPurchase = 0,
+            maxDiscount,
+            usageLimit,
+            expiryDate
+        } = req.body;
 
+        
+        if (!code || !discount || !type || !expiryDate || usageLimit === undefined || maxDiscount === undefined) {
+            return res.status(400).json({ success: false, message: 'All required fields must be filled.' });
+        }
+
+
+        if (type !== 'percentage') {
+            return res.status(400).json({ success: false, message: 'Only percentage-based coupons are allowed.' });
+        }
+
+        
+        const codeRegex = /^[A-Z0-9]+$/;
+        if (!codeRegex.test(code.trim())) {
+            return res.status(400).json({ success: false, message: 'Coupon code must contain only uppercase letters and numbers.' });
+        }
+
+        const parsedDiscount = parseFloat(discount);
+        const parsedMinPurchase = parseFloat(minPurchase) || 0;
+        const parsedMaxDiscount = parseFloat(maxDiscount);
+        const parsedUsageLimit = parseInt(usageLimit, 10);
+
+        
+        if (isNaN(parsedDiscount) || parsedDiscount < 1 || parsedDiscount > 90) {
+            return res.status(400).json({ success: false, message: 'Discount must be between 1% and 90%.' });
+        }
+
+        if (parsedMinPurchase < 0) {
+            return res.status(400).json({ success: false, message: 'Minimum purchase cannot be negative.' });
+        }
+
+        if (isNaN(parsedMaxDiscount) || parsedMaxDiscount <= 0) {
+            return res.status(400).json({ success: false, message: 'Maximum discount amount is required and must be positive.' });
+        }
+
+        
+        if (parsedMaxDiscount < parsedDiscount) {
+            return res.status(400).json({ success: false, message: 'Maximum discount must be ≥ discount percentage value.' });
+        }
+
+        if (isNaN(parsedUsageLimit) || parsedUsageLimit < 0) {
+            return res.status(400).json({ success: false, message: 'Usage limit must be a non-negative number.' });
+        }
+
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const exp = new Date(expiryDate);
+        if (isNaN(exp.getTime()) || exp < today) {
+            return res.status(400).json({ success: false, message: 'Expiry date must be today or in the future.' });
+        }
+
+        
+        const existingCoupon = await Coupon.findOne({
+            code: code.trim().toUpperCase(),
+            _id: { $ne: id }
+        });
+        if (existingCoupon) {
+            return res.status(400).json({ success: false, message: 'This coupon code is already used by another coupon.' });
+        }
+
+    
         const updated = await Coupon.findByIdAndUpdate(
             id,
             {
-                code,
-                discount,
-                type,
-                minPurchase,
-                maxDiscount,
-                usageLimit,
-                expiryDate
+                code: code.trim().toUpperCase(),
+                discount: parsedDiscount,
+                type: 'percentage', 
+                minPurchase: parsedMinPurchase,
+                maxDiscount: parsedMaxDiscount,
+                usageLimit: parsedUsageLimit === 0 ? null : parsedUsageLimit,
+                expiryDate: exp
             },
-            {new : true}
+            { new: true, runValidators: true }
         );
 
-        if(!updated){
-            return res.json({ success : false, message: "Coupon not Found"});
+        if (!updated) {
+            return res.status(404).json({ success: false, message: 'Coupon not found.' });
         }
 
-        res.json({success: true , message : "Coupon updated Successfully"});
-
-
+        return res.json({ success: true, message: 'Coupon updated successfully!' });
 
     } catch (error) {
-        console.error(error);
-        res.json({ success: false, message: "Error updating coupon" });
+        console.error('editCoupon error:', error);
+        return res.status(500).json({ success: false, message: 'Internal server error.' });
     }
-}
+};
 
 
 const deleteCoupon = async (req, res) => {

@@ -2,74 +2,149 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Complete Payment - Your Store</title>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
-    body { font-family: 'Segoe UI', sans-serif; background: #f4f6f9; padding: 40px; margin: 0; }
-    .card { max-width: 520px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,.1); text-align: center; }
-    h2 { color: #e74c3c; margin-bottom: 10px; }
-    p { color: #555; margin: 10px 0; }
-    .order-box { text-align: left; background: #f9f9f9; padding: 15px; border-radius: 8px; margin: 15px 0; }
-    .total { font-size: 1.5rem; font-weight: 700; color: #e74c3c; margin: 20px 0; }
-    .pay-btn {
-      width: 100%; padding: 16px; background: linear-gradient(45deg, #ff4757, #ff6b6b);
-      color: #fff; border: none; border-radius: 8px; font-size: 1.2rem; font-weight: bold;
-      cursor: pointer; margin-top: 10px; transition: 0.3s;
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 40px;
+      margin: 0;
+      min-height: 100vh;
     }
-    .pay-btn:hover { background: linear-gradient(45deg, #ff6b6b, #ff4757); transform: translateY(-2px); }
-    .cancel-link { display: block; margin-top: 25px; color: #e74c3c; text-decoration: underline; font-size: 0.95rem; }
+    .card {
+      max-width: 520px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 35px;
+      border-radius: 16px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    h2 {
+      color: #e74c3c;
+      margin-bottom: 10px;
+      font-size: 1.8rem;
+    }
+    p {
+      color: #555;
+      margin: 12px 0;
+      line-height: 1.5;
+    }
+    .order-box {
+      text-align: left;
+      background: #f8f9fa;
+      padding: 18px;
+      border-radius: 10px;
+      margin: 18px 0;
+      border-left: 4px solid #e74c3c;
+    }
+    .order-box strong {
+      color: #2c3e50;
+      font-size: 1.1rem;
+    }
+    .total {
+      font-size: 1.7rem;
+      font-weight: 800;
+      color: #e74c3c;
+      margin: 25px 0;
+    }
+    .pay-btn {
+      width: 100%;
+      padding: 18px;
+      background: linear-gradient(45deg, #e74c3c, #c0392b);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.3rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: all 0.3s;
+      box-shadow: 0 6px 15px rgba(231, 76, 60, 0.3);
+    }
+    .pay-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(231, 76, 60, 0.4);
+    }
+    .cancel-link {
+      display: block;
+      margin-top: 30px;
+      color: #e74c3c;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 1rem;
+    }
+    .cancel-link:hover {
+      text-decoration: underline;
+    }
+    .secure-badge {
+      margin-top: 20px;
+      font-size: 0.9rem;
+      color: #7f8c8d;
+    }
   </style>
 </head>
 <body>
 
 <div class="card">
   <h2>Complete Your Payment</h2>
-  <p>Your order is reserved. Complete payment to confirm.</p>
+  <p>Your order is reserved and waiting for payment.</p>
 
   <% orders.forEach(o => { %>
     <div class="order-box">
       <strong>Order ID: <%= o.orderId %></strong><br><br>
       <% o.orderItems.forEach(item => { %>
-        <div><%= item.product.productName %> - Size: <%= item.size %> × <%= item.quantity %></div>
+        <div>• <%= item.product.productName %> - Size: <%= item.size || 'N/A' %> × <%= item.quantity %> 
+          (₹<%= item.price.toFixed(2) %> each)</div>
       <% }) %>
     </div>
   <% }) %>
 
-  <div class="total">Total: ₹<%= totalAmount.toFixed(2) %></div>
+  <div class="total">
+    Total Amount: ₹<%= totalAmount.toFixed(2) %>
+  </div>
 
   <button class="pay-btn" onclick="retryPayment()">
     Pay Now ₹<%= totalAmount.toFixed(2) %>
   </button>
 
-  <p style="margin-top: 20px; font-size: 0.9rem; color: #888;">
-    Secure payment powered by Razorpay
-  </p>
+  <div class="secure-badge">
+    Secured by <strong>Razorpay</strong> • 256-bit encryption
+  </div>
 
-  <!-- Optional: Nice cancel button -->
-  <a href="/orders" class="cancel-link" onclick="event.preventDefault(); clearCartAndRedirect('/orders')">
-    ← Cancel and go back to My Orders
+  <a href="/orders" class="cancel-link">
+    ← Go back to My Orders
   </a>
 </div>
 
 <script>
-  const mongoOrderId = "<%= orderIds %>";  // single order ID
+  const mongoOrderId = "<%= orderIds %>";
+  const displayOrderId = "<%= orders[0].orderId %>";
+  const totalAmount = <%= totalAmount %>;
 
   async function retryPayment() {
     try {
-      const res = await fetch("/create-order", {
+      const response = await fetch("/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          addressId: "<%= orders[0].address._id || '' %>",
-          totalAmount: <%= totalAmount %>,
-          coupon: "<%= orders[0].coupon || '' %>",
-          retryOrderId: mongoOrderId
+          retryOrderId: mongoOrderId,
+          totalAmount: totalAmount
         })
       });
 
-      const data = await res.json();
-      if (!data.success) throw new Error(data.message || "Failed to start payment");
+      const data = await response.json();
+
+      if (!data.success) {
+        return Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: data.message || 'Failed to create payment session. Please try again.'
+        });
+      }
 
       const options = {
         key: "<%= razorpayKey %>",
@@ -77,8 +152,10 @@
         currency: "INR",
         order_id: data.orderId,
         name: "Your Store",
+        description: `Payment for Order #${displayOrderId}`,
+        image: "/images/logo.png", // optional
         handler: async function (response) {
-          const verifyRes = await fetch("/verify-payment", {
+          const verifyResponse = await fetch("/verify-payment", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -89,76 +166,57 @@
             })
           });
 
-          const result = await verifyRes.json();
+          const result = await verifyResponse.json();
+
           if (result.success) {
-            window.location.href = `/order/view/${result.mongoOrderId}`;
+            Swal.fire({
+              icon: 'success',
+              title: 'Payment Successful!',
+              text: 'Thank you! Your order has been confirmed.',
+              confirmButtonColor: '#27ae60'
+            }).then(() => {
+              window.location.href = `/order/view/${result.mongoOrderId}`;
+            });
           } else {
-            Swal.fire('Payment Failed', 'Please try again.', 'error');
+            Swal.fire({
+              icon: 'error',
+              title: 'Payment Failed',
+              text: 'Don’t worry! Your order is still saved. You can retry anytime from My Orders.',
+            });
           }
         },
         modal: {
-          ondismiss: () => {
-            Swal.fire('Payment Cancelled', 'You can retry anytime.', 'info');
+          ondismiss: function () {
+            Swal.fire({
+              icon: 'info',
+              title: 'Payment Cancelled',
+              text: 'No problem! Your order is safely saved. You can complete payment anytime from My Orders.',
+              confirmButtonText: 'Go to My Orders',
+              confirmButtonColor: '#3498db'
+            }).then(() => {
+              window.location.href = '/orders';
+            });
           }
         },
-        theme: { color: "#ff4757" }
+        theme: { color: "#e74c3c" },
+        prefill: {
+          name: "<%= orders[0].address.fullname %>",
+          contact: "<%= orders[0].address.phone %>"
+        }
       };
 
-      new Razorpay(options).open();
+      const rzp = new Razorpay(options);
+      rzp.open();
 
     } catch (err) {
-      Swal.fire('Error', err.message || 'Something went wrong', 'error');
+      console.error(err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Network Error',
+        text: 'Please check your internet connection and try again.'
+      });
     }
   }
-
-  // ——————————————————————————————————————
-  // FIXED & BULLETPROOF CART CLEARING LOGIC
-  // ——————————————————————————————————————
-  (function () {
-    if (!window.location.pathname.includes('/retry-payment')) return;
-
-    let hasLeftPage = false;
-
-    // Prevent back button from going back in history
-    history.pushState(null, null, location.href);
-    window.onpopstate = function () {
-      if (!hasLeftPage) clearCartAndRedirect('/orders');
-    };
-
-    // Clear cart on refresh / tab close / unload
-    const clearOnExit = () => {
-      if (hasLeftPage) return;
-      navigator.sendBeacon && navigator.sendBeacon('/cart/clear');
-    };
-
-    window.addEventListener('beforeunload', clearOnExit);
-    window.addEventListener('unload', clearOnExit);
-
-    // Clear cart when user clicks any external link
-    document.addEventListener('click', function (e) {
-      const a = e.target.closest('a');
-      if (a && a.href && !a.href.includes(location.pathname)) {
-        hasLeftPage = true;
-        navigator.sendBeacon && navigator.sendBeacon('/cart/clear');
-      }
-    });
-
-    // Main function: clear cart + redirect
-    window.clearCartAndRedirect = async function (url = '/orders') {
-      if (hasLeftPage) return;
-      hasLeftPage = true;
-
-      await fetch('/cart/clear', {
-        method: 'POST',
-        keepalive: true,
-        headers: { 'Content-Type': 'application/json' }
-      }).catch(() => {});
-
-      sessionStorage.clear();
-      localStorage.clear();
-      window.location.href = url;
-    };
-  })();
 </script>
 
 </body>

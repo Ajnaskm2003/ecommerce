@@ -62,30 +62,49 @@ router.get(
     next();
   },
   passport.authenticate('google', { failureRedirect: '/signup' }),
-  (req, res) => {
+  async (req, res) => {
     try {
-      console.log('Google authentication success');
+      console.log('Google authentication success - User:', req.user.email);
 
+      
+      if (req.user.isBlocked) {
+        console.log(`Blocked user tried to login: ${req.user.email}`);
+
+        
+        req.logout((err) => {
+          if (err) console.error("Logout error during blocked user:", err);
+        });
+        
+        req.session.destroy((err) => {
+          if (err) console.error("Session destroy error:", err);
+        });
+
+        
+        return res.redirect('/pageNotFound');
+      }
+
+     
       req.session.user = {
         id: req.user._id,
         email: req.user.email,
-        name: req.user.name || 'Unknown User',
+        name: req.user.name || 'User',
       };
-
 
       req.session.cookie.secure = process.env.NODE_ENV === 'production';
       req.session.cookie.httpOnly = true;
-      req.session.cookie.maxAge = 24 * 60 * 60 * 1000;
+      req.session.cookie.maxAge = 24 * 60 * 60 * 1000; 
 
-
+      
       res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
       res.set('Pragma', 'no-cache');
       res.set('Expires', '0');
 
+      console.log(`User logged in successfully: ${req.user.email}`);
       res.redirect('/');
+
     } catch (error) {
       console.error('Google auth callback error:', error);
-      req.flash('error', 'Something went wrong with Google authentication');
+      req.flash('error', 'Authentication failed. Please try again.');
       res.redirect('/signup');
     }
   }
@@ -153,17 +172,13 @@ router.post('/cart/clear', async (req, res) => {
     const userId = req.session.user?.id;
     if (!userId) return res.json({ success: true });
 
-    if (req.session.cart) req.session.cart = [];
+    
     delete req.session.orderPlaced;
     delete req.session.cartAccess;
+    if (req.session.cart) req.session.cart = [];
 
-    await Cart.deleteOne({ userId });  
-
-    await Order.deleteMany({
-      userId,
-      isTemp: true,
-      paymentStatus: { $in: ['Pending', 'Failed'] }
-    });
+    
+    await Cart.deleteOne({ userId });
 
     res.json({ success: true });
   } catch (err) {
@@ -171,7 +186,6 @@ router.post('/cart/clear', async (req, res) => {
     res.status(500).json({ success: false });
   }
 });
-
 router.get("/checkout", Auth.checkSession, Auth.checkOrderPlaced, Auth.checkCartAccess, checkoutController.getCheckoutPage);
 router.post("/order/place", checkoutController.placeOrder);
 router.post("/address/add", checkoutController.addAddress);

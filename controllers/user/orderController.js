@@ -59,8 +59,7 @@ const getUserOrders = async (req, res) => {
 };
 
 
-// routes/order.js or controllers/orderController.js
-// controllers/user/orderController.js
+
 
 const viewOrderDetails = async (req, res) => {
     try {
@@ -82,14 +81,14 @@ const viewOrderDetails = async (req, res) => {
             return res.redirect('/orders');
         }
 
-        // Correct flag: true only when Online Payment + not paid + temporary order
+        
         const paymentPending = order.paymentMethod === 'Online Payment' &&
                                order.paymentStatus !== 'Paid' &&
                                order.isTemp === true;
 
         res.render('orderfulldetails', {
             order,
-            paymentPending,        // ← Pass this single flag
+            paymentPending,        
             pageTitle: `Order #${order.orderId}`
         });
 

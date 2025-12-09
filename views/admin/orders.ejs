@@ -29,12 +29,13 @@
     .view-btn:hover {
         background: #0056b3;
     }
-    /* Add these new status badge styles */
-    .badge.pending { background-color: #ffc107; }
+    /* Status badge colors */
+    .badge.pending { background-color: #ffc107; color: #000; }
     .badge.processing { background-color: #0d6efd; }
     .badge.shipped { background-color: #0dcaf0; }
     .badge.delivered { background-color: #198754; }
     .badge.cancelled { background-color: #dc3545; }
+    .badge.return-requested,
     .badge.return-request { background-color: #6c757d; }
     .badge.returned { background-color: #6610f2; }
 </style>
@@ -42,48 +43,65 @@
 <div class="container mt-5">
     <h2 class="mb-4">All Orders</h2>
 
-    <% orders.forEach(order => { %>
-        <div class="order-card row align-items-center">
-            <div class="col-md-2 text-center">
-                <% const firstItem = order.orderItems[0]; %>
-                <% if (firstItem && firstItem.product.image) { %>
-                    <img src="<%= firstItem.product.image %>" 
-                         alt="<%= firstItem.product.name %>" 
-                         class="order-img">
-                <% } else { %>
-                    <img src="/uploads/default.jpg" 
-                         alt="No Image Available" 
-                         class="order-img">
-                <% } %>
-            </div>
+    <% if (orders && orders.length > 0) { %>
+        <% orders.forEach(order => { %>
+            <div class="order-card row align-items-center">
+                <div class="col-md-2 text-center">
+                    <% const firstItem = order.orderItems[0]; %>
+                    <% if (firstItem && firstItem.product && firstItem.product.image) { %>
+                        <img src="<%= firstItem.product.image %>" 
+                             alt="<%= firstItem.product.productName || 'Product' %>" 
+                             class="order-img">
+                    <% } else { %>
+                        <img src="/uploads/default.jpg" 
+                             alt="No Image Available" 
+                             class="order-img">
+                    <% } %>
+                </div>
 
-            <div class="col-md-3">
-                <h5><%= order.orderItems[0]?.product.name || 'No Product Name' %></h5>
-                <small>Order ID: <%= order.orderId %></small>
-                <p class="mb-0">
-                    <small>Ordered: <%= new Date(order.createdOn).toLocaleDateString() %></small>
-                </p>
-            </div>
+                <div class="col-md-3">
+                    <h5><%= order.orderItems[0]?.product?.productName || 'Product Name Unavailable' %></h5>
+                    <small class="text-muted">Order ID: <%= order.orderId %></small><br>
+                    <small class="text-muted">
+                        Ordered: <%= new Date(order.createdOn || order.createdAt).toLocaleDateString('en-IN') %>
+                    </small>
+                </div>
 
-            <div class="col-md-3">
-                <span>Status: 
-                    <span class="badge <%= order.status.toLowerCase().replace(' ', '-') %>">
-                        <%= order.status %>
-                    </span>
-                </span>
-                <p class="mb-0">
-                    <small>Total: ₹<%= order.totalAmount.toFixed(2) %></small>
-                </p>
-            </div>
+                <div class="col-md-3">
+                    <div>
+                        <strong>Status:</strong> 
+                        <span class="badge <%= order.status.toLowerCase().replace(/ /g, '-') %>">
+                            <%= order.status %>
+                        </span>
+                    </div>
+                    <small class="text-muted d-block mt-1">
+                        <% 
+                            const statusDate = order.currentStatusDate || order.createdOn || order.createdAt || new Date();
+                        %>
+                        <%= statusDate.toLocaleDateString('en-IN', { 
+                            day: '2-digit', 
+                            month: 'short', 
+                            year: 'numeric' 
+                        }) %>
+                    </small>
+                    <small class="d-block mt-2">
+                        <strong>Total: ₹<%= order.totalAmount.toFixed(2) %></strong>
+                    </small>
+                </div>
 
-            <div class="col-md-2 text-end">
-                <a href="/admin/order-details/<%= order.orderId %>" class="view-btn">
-                    View Details
-                </a>
+                <div class="col-md-2 text-end">
+                    <a href="/admin/order-details/<%= order.orderId %>" class="view-btn">
+                        View Details
+                    </a>
+                </div>
             </div>
+        <% }) %>
+    <% } else { %>
+        <div class="text-center py-5">
+            <h4>No orders found</h4>
         </div>
-    <% }) %>
+    <% } %>
 
 </div>
 
-
+<%- include("../../views/partials/admin/footer") %>

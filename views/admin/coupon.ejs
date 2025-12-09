@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <%- include("../../views/partials/admin/header") %>
 <head>
     <meta charset="UTF-8">
@@ -17,282 +18,95 @@
             --shadow: rgba(0, 0, 0, 0.05);
             --shadow-md: rgba(0, 0, 0, 0.1);
             --danger: #e63946;
-            --danger-light: #fce8ea;
             --success: #2a9d8f;
             --warning: #e9c46a;
         }
         
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
-        }
-        
-        body { 
-            background-color: var(--background); 
-            color: var(--text); 
-            padding: 2rem;
-            line-height: 1.5;
-        }
-        
-        .container { 
-            max-width: 1200px; 
-            margin: 0 auto; 
-        }
-        
-        header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 2rem; 
-        }
-        
-        h1 { 
-            font-weight: 600; 
-            font-size: 1.75rem; 
-            color: var(--text);
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--background); color: var(--text); padding: 2rem; line-height: 1.5; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        h1 { font-weight: 600; font-size: 1.75rem; color: var(--text); }
         
         .card { 
             background: var(--surface); 
-            border-radius: 12px; 
-            box-shadow: 0 2px 8px var(--shadow); 
-            padding: 1.75rem; 
-            margin-bottom: 2rem;
+            border-radius: 16px; 
+            box-shadow: 0 4px 20px var(--shadow); 
+            padding: 2rem; 
             border: 1px solid var(--border-light);
         }
-        
         .card-header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 1.75rem; 
-            padding-bottom: 1rem;
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 1.5rem; padding-bottom: 1rem; 
             border-bottom: 1px solid var(--border-light);
         }
+        .card-title { font-size: 1.3rem; font-weight: 600; }
         
-        .card-title { 
-            font-size: 1.25rem; 
-            font-weight: 600; 
-            color: var(--text);
-        }
-        
-        table { 
-            width: 100%; 
-            border-collapse: collapse;
-            font-size: 0.875rem;
-        }
-        
-        th, td { 
-            padding: 1rem; 
-            text-align: left;
-            border-bottom: 1px solid var(--border-light); 
-        }
-        
-        th { 
-            font-weight: 500; 
-            color: var(--text-light);
-            font-size: 0.8125rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            background-color: var(--background);
-        }
-        
-        tr:hover td {
-            background-color: var(--background);
-        }
-        
-        tr:last-child td { 
-            border-bottom: none; 
-        }
-        
-        .badge { 
-            display: inline-block; 
-            padding: 0.375rem 0.75rem; 
-            border-radius: 20px; 
-            font-size: 0.75rem; 
-            font-weight: 500;
-            line-height: 1;
-        }
-        
-        .badge-percentage { 
-            background: #e3f6f5; 
-            color: var(--success);
-            border: 1px solid rgba(42, 157, 143, 0.2);
-        }
-        
-        .badge-fixed { 
-            background: #ffedeb; 
-            color: #e85d04;
-            border: 1px solid rgba(232, 93, 4, 0.2);
-        }
-        
+        table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border-light); }
+        th { font-weight: 500; color: var(--text-light); font-size: 0.8125rem; text-transform: uppercase; letter-spacing: 0.5px; background: var(--background); }
+        tr:hover td { background-color: var(--background); }
+        .badge { padding: 0.4rem 0.9rem; border-radius: 50px; font-size: 0.75rem; font-weight: 600; }
+        .badge-percentage { background: #e3f6f5; color: var(--success); }
         .btn { 
-            display: inline-flex; 
-            align-items: center; 
-            justify-content: center; 
-            padding: 0.625rem 1.25rem; 
-            border-radius: 8px; 
-            font-weight: 500; 
-            font-size: 0.875rem; 
-            cursor: pointer; 
-            transition: all 0.2s ease; 
-            border: none;
-            gap: 0.5rem;
+            display: inline-flex; align-items: center; justify-content: center; 
+            padding: 0.7rem 1.4rem; border-radius: 10px; font-weight: 600; 
+            font-size: 0.9rem; cursor: pointer; transition: all 0.3s ease; border: none; gap: 0.5rem;
         }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(67,97,238,0.25); }
+        .btn-primary:hover { background: #3a56d4; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(67,97,238,0.35); }
+        .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text-light); }
+        .btn-outline:hover { background: var(--background); }
+        .btn-danger { background: var(--danger-light); color: var(--danger); }
+        .btn-danger:hover { background: #f8d7da; transform: translateY(-1px); }
         
-        .btn-sm {
-            padding: 0.5rem 1rem;
-            font-size: 0.8125rem;
+        .empty-state { text-align: center; padding: 4rem 2rem; background: var(--background); border: 2px dashed var(--border); border-radius: 16px; }
+        .empty-state h3 { margin: 1rem 0 0.5rem; font-weight: 600; }
+        
+        /* Beautiful Modal Styling */
+        .swal2-popup {
+            border-radius: 20px !important;
+            padding: 2rem !important;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15) !important;
         }
-        
-        .btn-primary { 
-            background: var(--primary); 
-            color: white; 
-            box-shadow: 0 2px 4px rgba(67, 97, 238, 0.15);
+        .swal2-title {
+            font-size: 1.6rem !important;
+            font-weight: 700 !important;
+            color: var(--text) !important;
+            margin-bottom: 1.5rem !important;
         }
-        
-        .btn-primary:hover { 
-            background: #3a56d4; 
-            box-shadow: 0 4px 8px rgba(67, 97, 238, 0.2);
-            transform: translateY(-1px);
+        .swal2-html-container {
+            margin: 0 !important;
         }
-        
-        .btn-outline {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text-light);
+        .form-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+            display: block;
+            font-size: 0.95rem;
         }
-        
-        .btn-outline:hover {
-            background: var(--background);
-            border-color: var(--border-light);
+        .swal2-input, .swal2-select {
+            height: 48px !important;
+            border-radius: 12px !important;
+            border: 1.5px solid #ddd !important;
+            padding: 0 1rem !important;
+            font-size: 1rem !important;
+            margin-bottom: 1.2rem !important;
+            transition: all 0.3s ease;
         }
-        
-        .btn-danger { 
-            background: var(--danger-light); 
-            color: var(--danger); 
-            border: 1px solid rgba(230, 57, 70, 0.2);
+        .swal2-input:focus, .swal2-select:focus {
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 0 4px rgba(67,97,238,0.15) !important;
         }
-        
-        .btn-danger:hover { 
-            background: #f8d7da; 
-            transform: translateY(-1px);
+        .swal2-confirm {
+            background: var(--primary) !important;
+            border-radius: 12px !important;
+            padding: 0.8rem 2rem !important;
+            font-weight: 600 !important;
         }
-        
-        .btn-icon { 
-            width: 36px; 
-            height: 36px; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            transition: 0.2s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: transparent;
-            border: none;
-            color: var(--text-light);
-        }
-        
-        .btn-icon:hover { 
-            background: var(--background); 
-            color: var(--text);
-        }
-        
-        .form-grid { 
-            display: grid; 
-            grid-template-columns: repeat(3, 1fr); 
-            gap: 1.1rem; 
-        }
-        
-        .form-group { 
-            margin-bottom: 1.25rem; 
-        }
-        
-        .form-label { 
-            display: block; 
-            margin-bottom: 0.5rem; 
-            font-size: 0.875rem; 
-            font-weight: 500;
-            color: var(--text);
-        }
-        
-        .form-control { 
-            width: 100%; 
-            padding: 0.75rem 1rem; 
-            border: 1px solid var(--border); 
-            border-radius: 8px; 
-            font-size: 0.875rem;
-            transition: all 0.2s ease;
-            background-color: var(--surface);
-        }
-        
-        .form-control:focus { 
-            outline: none; 
-            border-color: var(--primary); 
-            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1); 
-        }
-        
-        .empty-state { 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            padding: 3rem; 
-            text-align: center;
-            border-radius: 12px;
-            background-color: var(--background);
-            border: 1px dashed var(--border);
-            margin: 1rem 0;
-        }
-        
-        .empty-state-icon {
-            font-size: 2.5rem;
-            color: var(--text-light);
-            margin-bottom: 1rem;
-            opacity: 0.5;
-        }
-        
-        .status-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.8125rem;
-        }
-        
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-        
-        .status-active { background-color: var(--success); }
-        .status-expired { background-color: var(--danger); }
-        .status-warning { background-color: var(--warning); }
-        
-        .actions-cell {
-            display: flex;
-            gap: 0.5rem;
-        }
-        
-        select.form-control {
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 0.75rem center;
-            background-size: 1rem;
-        }
-        
-        @media (max-width: 1024px) {
-            .form-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-        
-        @media (max-width: 768px) {
-            body { padding: 1rem; }
-            .form-grid { grid-template-columns: 1fr; }
-            .card { padding: 1.25rem; }
+        .swal2-cancel {
+            border-radius: 12px !important;
+            padding: 0.8rem 1.5rem !important;
         }
     </style>
 </head>
@@ -301,10 +115,6 @@
     <header>
         <h1>Coupon Management</h1>
         <button class="btn btn-primary" id="openNewCouponModal">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
             New Coupon
         </button>
     </header>
@@ -312,14 +122,6 @@
     <div class="card">
         <div class="card-header">
             <h2 class="card-title">Active Coupons</h2>
-            <div class="btn-group">
-                <button class="btn btn-outline">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                    </svg>
-                    Export
-                </button>
-            </div>
         </div>
 
         <% if (coupons && coupons.length > 0) { %>
@@ -339,18 +141,11 @@
                 <tbody>
                     <% coupons.forEach(coupon => { %>
                     <tr>
-                        <td>
-                            <strong><%= coupon.code %></strong>
-                            <div style="font-size: 0.75rem; color: var(--text-light); margin-top: 0.25rem;">
-                                Created: <%= new Date(coupon.createdAt).toLocaleDateString() %>
-                            </div>
-                        </td>
+                        <td><strong><%= coupon.code %></strong></td>
                         <td>
                             <strong><%= coupon.discount %><%= coupon.type === 'percentage' ? '%' : '₹' %></strong>
                             <% if (coupon.type === 'percentage' && coupon.maxDiscount) { %>
-                            <div style="font-size: 0.75rem; color: var(--text-light);">
-                                (Max ₹<%= coupon.maxDiscount %>)
-                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-light);">(Max ₹<%= coupon.maxDiscount %>)</div>
                             <% } %>
                         </td>
                         <td>
@@ -363,58 +158,27 @@
                             <% 
                                 const expiryDate = new Date(coupon.expiryDate);
                                 const today = new Date();
-                                const daysLeft = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
-                                
-                                let statusClass = 'status-active';
-                                let statusText = 'Active';
-                                
-                                if (daysLeft <= 0) {
-                                    statusClass = 'status-expired';
-                                    statusText = 'Expired';
-                                } else if (daysLeft <= 7) {
-                                    statusClass = 'status-warning';
-                                    statusText = 'Expires soon';
-                                }
+                                const daysLeft = Math.ceil((expiryDate - today) / (1000*60*60*24));
+                                let statusClass = 'status-active', statusText = 'Active';
+                                if (daysLeft <= 0) { statusClass = 'status-expired'; statusText = 'Expired'; }
+                                else if (daysLeft <= 7) { statusClass = 'status-warning'; statusText = 'Expires soon'; }
                             %>
-                            <div class="status-indicator">
-                                <span class="status-dot <%= statusClass %>"></span>
-                                <span><%= statusText %></span>
-                            </div>
-                            <div style="font-size: 0.75rem; color: var(--text-light); margin-top: 0.25rem;">
-                                <%= expiryDate.toLocaleDateString() %>
-                                <% if (daysLeft > 0 && daysLeft <= 7) { %>
-                                · <%= daysLeft %> day<%= daysLeft !== 1 ? 's' : '' %> left
-                                <% } %>
-                            </div>
+                            <div class="status-indicator"><span class="status-dot <%= statusClass %>"></span><span><%= statusText %></span></div>
+                            <div style="font-size: 0.75rem; color: var(--text-light);"><%= expiryDate.toLocaleDateString() %></div>
                         </td>
                         <td>
                             <%= coupon.usageLimit || 'Unlimited' %>
                             <% if (coupon.usedCount !== undefined) { %>
-                            <div style="font-size: 0.75rem; color: var(--text-light);">
-                                (<%= coupon.usedCount %> used)
-                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-light);">(<%= coupon.usedCount %> used)</div>
                             <% } %>
                         </td>
                         <td class="actions-cell">
                             <button type="button" class="btn btn-outline btn-sm"
-                                onclick="openEditCoupon('<%= coupon._id %>', '<%= coupon.code %>', '<%= coupon.discount %>', '<%= coupon.type %>', '<%= coupon.minPurchase %>', '<%= coupon.maxDiscount %>', '<%= coupon.usageLimit %>', '<%= coupon.expiryDate.toISOString().split('T')[0] %>')">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                </svg>
+                                onclick="openEditCoupon('<%= coupon._id %>', '<%= coupon.code %>', '<%= coupon.discount %>', '<%= coupon.minPurchase %>', '<%= coupon.maxDiscount %>', '<%= coupon.usageLimit %>', '<%= coupon.expiryDate.toISOString().split('T')[0] %>')">
                                 Edit
                             </button>
-                            
                             <form action="/admin/coupons/delete/<%= coupon._id %>" method="POST" style="display:inline;">
-                                <button type="submit" class="btn btn-danger btn-sm">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <polyline points="3 6 5 6 21 6"></polyline>
-                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                        <line x1="10" y1="11" x2="10" y2="17"></line>
-                                        <line x1="14" y1="11" x2="14" y2="17"></line>
-                                    </svg>
-                                    Delete
-                                </button>
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                             </form>
                         </td>
                     </tr>
@@ -424,20 +188,9 @@
         </div>
         <% } else { %>
         <div class="empty-state">
-            <div class="empty-state-icon">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
-                </svg>
-            </div>
-            <h3 style="margin-bottom: 0.5rem; font-weight: 600;">No coupons found</h3>
-            <p class="empty-state-text">You haven't created any coupons yet. Get started by creating your first coupon code.</p>
-            <button class="btn btn-primary" id="openNewCouponModalEmpty">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-                Create New Coupon
-            </button>
+            <h3>No coupons found</h3>
+            <p>Get started by creating your first coupon code.</p>
+            <button class="btn btn-primary" id="openNewCouponModalEmpty">Create New Coupon</button>
         </div>
         <% } %>
     </div>
@@ -445,7 +198,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    // Open New Coupon Modal
+    // CREATE MODAL — SUPER BEAUTIFUL
     function openNewCouponModal() {
         const today = new Date().toISOString().split('T')[0];
         const future = new Date();
@@ -453,90 +206,143 @@
         const defaultExpiry = future.toISOString().split('T')[0];
 
         Swal.fire({
-            title: 'Create New Coupon',
-            width: '900px',
+            title: '<strong style="font-size:1.8rem; color:#333;">Create New Coupon</strong>',
+            icon: 'success',
             html: `
-                <form id="newCouponSwalForm" style="text-align:left;">
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-                        <div style="grid-column:span 2;">
-                            <label class="form-label">Coupon Code*</label>
-                            <input type="text" id="code" class="swal2-input" placeholder="SUMMER20" required style="width:100%;">
-                            <small style="color:#6c757d;font-size:0.75rem;">Use uppercase letters and numbers only</small>
+                <div style="padding: 1.5rem; background: #f9fbff; border-radius: 16px; border: 1px solid #e0e7ff;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.8rem; margin-top:1rem;">
+                        <div style="grid-column: span 2;">
+                            <label class="form-label">Coupon Code</label>
+                            <input type="text" id="code" class="swal2-input" placeholder="e.g. SUMMER90" 
+                                   style="font-weight:600; letter-spacing:1px; font-size:1.1rem;" 
+                                   oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')" required>
                         </div>
                         <div>
-                            <label class="form-label">Discount Amount*</label>
-                            <input type="number" id="discount" class="swal2-input" placeholder="20" required>
+                            <label class="form-label">Discount Percentage (1–90%)</label>
+                            <input type="number" id="discount" class="swal2-input" min="1" max="90" value="20" required>
                         </div>
                         <div>
-                            <label class="form-label">Discount Type*</label>
-                            <select id="type" class="swal2-input" required>
-                                <option value="">Select type</option>
-                                <option value="percentage">Percentage (%)</option>
-                                <option value="flat">Flat Amount (₹)</option>
-                            </select>
+                            <label class="form-label">Minimum Purchase Amount (₹)</label>
+                            <input type="number" id="minPurchase" class="swal2-input" min="0" value="0">
                         </div>
                         <div>
-                            <label class="form-label">Minimum Purchase (₹)</label>
-                            <input type="number" id="minPurchase" class="swal2-input" placeholder="1000">
+                            <label class="form-label">Maximum Discount Cap (₹)</label>
+                            <input type="number" id="maxDiscount" class="swal2-input" min="1" value="500" placeholder="e.g. 500" required>
                         </div>
                         <div>
-                            <label class="form-label">Maximum Discount (₹)</label>
-                            <input type="number" id="maxDiscount" class="swal2-input" placeholder="500">
-                            <small style="color:#6c757d;font-size:0.75rem;">For percentage only</small>
+                            <label class="form-label">Usage Limit (0 = Unlimited)</label>
+                            <input type="number" id="usageLimit" class="swal2-input" min="0" value="100" required>
                         </div>
                         <div>
-                            <label class="form-label">Usage Limit*</label>
-                            <input type="number" id="usageLimit" class="swal2-input" placeholder="100" required>
-                            <small style="color:#6c757d;font-size:0.75rem;">0 = unlimited</small>
-                        </div>
-                        <div>
-                            <label class="form-label">Expiry Date*</label>
+                            <label class="form-label">Expiry Date</label>
                             <input type="date" id="expiryDate" class="swal2-input" value="${defaultExpiry}" min="${today}" required>
                         </div>
                     </div>
-                </form>
+                </div>
             `,
             showCancelButton: true,
             confirmButtonText: 'Create Coupon',
             cancelButtonText: 'Cancel',
+            width: '800px',
+            padding: '2rem',
             preConfirm: () => {
-                const form = document.getElementById('newCouponSwalForm');
-                if (!form.checkValidity()) {
-                    Swal.showValidationMessage('Please fill all required fields');
-                    return false;
-                }
+                const code = document.getElementById('code').value.trim();
+                const discount = parseFloat(document.getElementById('discount').value);
+                const maxDiscount = parseFloat(document.getElementById('maxDiscount').value);
+
+                if (!code) return Swal.showValidationMessage('Please enter coupon code');
+                if (discount < 1 || discount > 90) return Swal.showValidationMessage('Discount must be 1–90%');
+                if (!maxDiscount || maxDiscount < 1) return Swal.showValidationMessage('Max discount cap required');
+
                 return {
-                    code: document.getElementById('code').value.trim().toUpperCase(),
-                    discount: document.getElementById('discount').value,
-                    type: document.getElementById('type').value,
+                    code, discount, type: 'percentage',
                     minPurchase: document.getElementById('minPurchase').value || 0,
-                    maxDiscount: document.getElementById('maxDiscount').value || 0,
-                    usageLimit: document.getElementById('usageLimit').value,
+                    maxDiscount, usageLimit: document.getElementById('usageLimit').value,
                     expiryDate: document.getElementById('expiryDate').value
                 };
             }
-        }).then(async (result) => {
+        }).then(result => {
             if (result.isConfirmed) {
-                const formData = new FormData();
-                Object.keys(result.value).forEach(key => {
-                    formData.append(key, result.value[key]);
-                });
-
-                try {
-                    const res = await fetch('/admin/coupons', {
-                        method: 'POST',
-                        body: formData
+                const fd = new FormData();
+                Object.entries(result.value).forEach(([k,v]) => fd.append(k,v));
+                fetch('/admin/coupons', {method:'POST', body:fd})
+                    .then(r=>r.json()).then(d=>{
+                        d.success ? Swal.fire('Success!', d.message, 'success').then(()=>location.reload())
+                                  : Swal.fire('Error', d.message, 'error');
                     });
-                    const data = await res.json();
+            }
+        });
+    }
 
-                    if (data.success) {
-                        Swal.fire('Success!', data.message || 'Coupon created!', 'success').then(() => location.reload());
-                    } else {
-                        Swal.fire('Error', data.message || 'Failed to create coupon', 'error');
-                    }
-                } catch (err) {
-                    Swal.fire('Error', 'Something went wrong', 'error');
-                }
+    // EDIT MODAL — ALSO SUPER BEAUTIFUL
+    function openEditCoupon(id, code, discount, minPurchase, maxDiscount, usageLimit, expiryDate) {
+        Swal.fire({
+            title: '<strong style="font-size:1.8rem; color:#333;">Edit Coupon</strong>',
+            icon: 'info',
+            html: `
+                <div style="padding: 1.5rem; background: #f9fbff; border-radius: 16px; border: 1px solid #e0e7ff;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.8rem; margin-top:1rem;">
+                        <div style="grid-column: span 2;">
+                            <label class="form-label">Coupon Code</label>
+                            <input type="text" id="code" class="swal2-input" value="${code}" 
+                                   style="font-weight:600; letter-spacing:1px; font-size:1.1rem;" 
+                                   oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')" required>
+                        </div>
+                        <div>
+                            <label class="form-label">Discount Percentage (1–90%)</label>
+                            <input type="number" id="discount" class="swal2-input" value="${discount}" min="1" max="90" required>
+                        </div>
+                        <div>
+                            <label class="form-label">Minimum Purchase Amount (₹)</label>
+                            <input type="number" id="minPurchase" class="swal2-input" value="${minPurchase || ''}" min="0">
+                        </div>
+                        <div>
+                            <label class="form-label">Maximum Discount Cap (₹)</label>
+                            <input type="number" id="maxDiscount" class="swal2-input" value="${maxDiscount || ''}" min="1" required>
+                        </div>
+                        <div>
+                            <label class="form-label">Usage Limit (0 = Unlimited)</label>
+                            <input type="number" id="usageLimit" class="swal2-input" value="${usageLimit || ''}" min="0" required>
+                        </div>
+                        <div>
+                            <label class="form-label">Expiry Date</label>
+                            <input type="date" id="expiryDate" class="swal2-input" value="${expiryDate}" required>
+                        </div>
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Save Changes',
+            cancelButtonText: 'Cancel',
+            width: '800px',
+            padding: '2rem',
+            preConfirm: () => {
+                const discount = parseFloat(document.getElementById('discount').value);
+                const maxDiscount = parseFloat(document.getElementById('maxDiscount').value);
+
+                if (discount < 1 || discount > 90) return Swal.showValidationMessage('Discount must be 1–90%');
+                if (!maxDiscount || maxDiscount < 1) return Swal.showValidationMessage('Max discount cap required');
+
+                return {
+                    code: document.getElementById('code').value.trim(),
+                    discount, type: 'percentage',
+                    minPurchase: document.getElementById('minPurchase').value || 0,
+                    maxDiscount, usageLimit: document.getElementById('usageLimit').value,
+                    expiryDate: document.getElementById('expiryDate').value
+                };
+            }
+        }).then(result => {
+            if (result.isConfirmed) {
+                fetch(`/admin/coupons/edit/${id}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(result.value)
+                })
+                .then(r=>r.json())
+                .then(d=>{
+                    d.success ? Swal.fire('Updated!', d.message, 'success').then(()=>location.reload())
+                              : Swal.fire('Error', d.message, 'error');
+                });
             }
         });
     }
@@ -544,86 +350,6 @@
     // Bind buttons
     document.getElementById('openNewCouponModal')?.addEventListener('click', openNewCouponModal);
     document.getElementById('openNewCouponModalEmpty')?.addEventListener('click', openNewCouponModal);
-
-    // Edit Coupon (unchanged – your original working code)
-    function openEditCoupon(id, code, discount, type, minPurchase, maxDiscount, usageLimit, expiryDate) {
-        Swal.fire({
-            title: 'Edit Coupon',
-            html: `
-                <form id="editCouponForm" style="text-align: left;">
-                    <div style="margin-bottom: 1rem;">
-                        <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">Coupon Code</label>
-                        <input id="swal-code" class="swal2-input" placeholder="Code" value="${code}" required>
-                    </div>
-                    <div style="margin-bottom: 1rem;">
-                        <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">Discount Amount</label>
-                        <input id="swal-discount" type="number" class="swal2-input" placeholder="Discount" value="${discount}" required>
-                    </div>
-                    <div style="margin-bottom: 1rem;">
-                        <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">Discount Type</label>
-                        <select id="swal-type" class="swal2-input" required>
-                            <option value="percentage" ${type === 'percentage' ? 'selected' : ''}>Percentage (%)</option>
-                            <option value="flat" ${type === 'flat' ? 'selected' : ''}>Flat Amount (₹)</option>
-                        </select>
-                    </div>
-                    <div style="margin-bottom: 1rem;">
-                        <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">Minimum Purchase (₹)</label>
-                        <input id="swal-minPurchase" type="number" class="swal2-input" placeholder="Min Purchase" value="${minPurchase || ''}">
-                    </div>
-                    <div style="margin-bottom: 1rem;">
-                        <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">Maximum Discount (₹)</label>
-                        <input id="swal-maxDiscount" type="number" class="swal2-input" placeholder="Max Discount" value="${maxDiscount || ''}">
-                    </div>
-                    <div style="margin-bottom: 1rem;">
-                        <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">Usage Limit</label>
-                        <input id="swal-usageLimit" type="number" class="swal2-input" placeholder="Usage Limit" value="${usageLimit}" required>
-                    </div>
-                    <div>
-                        <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">Expiry Date</label>
-                        <input id="swal-expiryDate" type="date" class="swal2-input" value="${expiryDate}" required>
-                    </div>
-                </form>
-            `,
-            confirmButtonText: 'Save Changes',
-            showCancelButton: true,
-            cancelButtonText: 'Cancel',
-            focusConfirm: false,
-            preConfirm: () => {
-                const form = document.getElementById('editCouponForm');
-                if (form.checkValidity()) {
-                    return {
-                        code: document.getElementById('swal-code').value,
-                        discount: document.getElementById('swal-discount').value,
-                        type: document.getElementById('swal-type').value,
-                        minPurchase: document.getElementById('swal-minPurchase').value || 0,
-                        maxDiscount: document.getElementById('swal-maxDiscount').value || 0,
-                        usageLimit: document.getElementById('swal-usageLimit').value,
-                        expiryDate: document.getElementById('swal-expiryDate').value
-                    }
-                } else {
-                    form.reportValidity();
-                    return false;
-                }
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                fetch(`/admin/coupons/edit/${id}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(result.value)
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire('Updated!', data.message, 'success').then(() => location.reload());
-                    } else {
-                        Swal.fire('Error!', data.message, 'error');
-                    }
-                })
-                .catch(() => Swal.fire('Error!', 'Something went wrong.', 'error'));
-            }
-        });
-    }
 </script>
 </body>
 </html>

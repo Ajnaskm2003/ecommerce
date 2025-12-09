@@ -6,8 +6,10 @@ const Address = require('../../models/addressSchema');
 const WalletTransaction = require('../../models/walletSchema');
 const Coupon = require('../../models/coupenSchema');
 const mongoose = require('mongoose');
+const Product = require('../../models/productSchema');
 const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
+
 
 
 const razorpay = new Razorpay({
@@ -18,19 +20,30 @@ const razorpay = new Razorpay({
 
 
 const createOrder = async (req, res) => {
+  const session = await mongoose.startSession();
   try {
+    session.startTransaction();
+
     const { addressId, totalAmount: clientTotalAmount, coupon, retryOrderId } = req.body;
     const userId = req.session.user?.id;
 
-    if (!userId) return res.status(401).json({ success: false, message: "Login required" });
+    if (!userId) {
+      await session.abortTransaction();
+      return res.status(401).json({ success: false, message: "Login required" });
+    }
 
-    let finalAmount;
-    let orderToUse;
+    let finalAmount = 0;
+    let orderToUse = null;
     let cart = null;
     let calculatedTotal = 0;
     let appliedDiscount = 0;
 
-    // CASE 1: RETRY PAYMENT (reuse existing temp order)
+    const toSafeNumber = (val) => {
+      const num = parseFloat(val);
+      return isNaN(num) ? 0 : num;
+    };
+
+    // RETRY CASE — just reuse existing temp order
     if (retryOrderId) {
       orderToUse = await Order.findOne({
         _id: retryOrderId,
@@ -38,60 +51,103 @@ const createOrder = async (req, res) => {
         isTemp: true,
         paymentMethod: "Online Payment",
         paymentStatus: { $in: ["Pending", "Failed"] }
-      });
+      }).session(session);
 
       if (!orderToUse) {
-        return res.status(400).json({ success: false, message: "Order not found or cannot be retried" });
+        await session.abortTransaction();
+        return res.status(400).json({ success: false, message: "Invalid retry order" });
       }
-
       finalAmount = orderToUse.totalAmount;
     } 
-    // CASE 2: NORMAL CHECKOUT
+    // NORMAL FLOW — create new temp order
     else {
-      // Validate address
-      const addressDoc = await Address.findOne({ userId, 'address._id': addressId });
-      if (!addressDoc) return res.status(400).json({ success: false, message: "Address not found" });
+      const addressDoc = await Address.findOne({ userId, 'address._id': addressId }).session(session);
+      if (!addressDoc) {
+        await session.abortTransaction();
+        return res.status(400).json({ success: false, message: "Address not found" });
+      }
 
-      // Load cart
-      cart = await Cart.findOne({ userId }).populate('items.productId');
-      if (!cart || cart.items.length === 0) return res.status(400).json({ success: false, message: "Cart is empty" });
+      cart = await Cart.findOne({ userId }).populate('items.productId').session(session);
+      if (!cart || cart.items.length === 0) {
+        await session.abortTransaction();
+        return res.status(400).json({ success: false, message: "Your cart is empty" });
+      }
 
-      // Calculate total
-      calculatedTotal = cart.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      // Calculate subtotal
+      calculatedTotal = cart.items.reduce((sum, item) => sum + toSafeNumber(item.price) * toSafeNumber(item.quantity), 0);
 
-      
-      if (coupon) {
-        const couponDoc = await Coupon.findOne({ code: coupon, isActive: true, expiryDate: { $gte: new Date() } });
-        if (couponDoc && calculatedTotal >= (couponDoc.minAmount || 0)) {
-          if (couponDoc.type === 'fixed') appliedDiscount = couponDoc.value;
-          else if (couponDoc.type === 'percentage') {
-            appliedDiscount = (calculatedTotal * couponDoc.value) / 100;
-            if (couponDoc.maxDiscount) appliedDiscount = Math.min(appliedDiscount, couponDoc.maxDiscount);
-          }
+      // COUPON VALIDATION (you already fixed this — keep it)
+      if (coupon && typeof coupon === "string" && coupon.trim() !== "") {
+        const couponCode = coupon.trim().toUpperCase();
+        const couponDoc = await Coupon.findOne({
+          code: couponCode,
+          isActive: true,
+          expiryDate: { $gte: new Date() }
+        }).session(session);
+
+        if (!couponDoc) {
+          await session.abortTransaction();
+          return res.status(400).json({ success: false, message: "Invalid or expired coupon" });
+        }
+
+        if (calculatedTotal < couponDoc.minPurchase) {
+          await session.abortTransaction();
+          return res.status(400).json({ success: false, message: `Minimum purchase ₹${couponDoc.minPurchase} required` });
+        }
+
+        const discountValue = toSafeNumber(couponDoc.discount);
+        if (couponDoc.type === "flat") {
+          appliedDiscount = discountValue;
+        } else {
+          appliedDiscount = (calculatedTotal * discountValue) / 100;
+          if (couponDoc.maxDiscount) appliedDiscount = Math.min(appliedDiscount, couponDoc.maxDiscount);
         }
       }
 
       finalAmount = Math.max(1, calculatedTotal - appliedDiscount);
-      finalAmount = Number(finalAmount.toFixed(2));
 
-      if (Math.abs(finalAmount - clientTotalAmount) > 1) {
-        return res.status(400).json({ success: false, message: "Amount mismatch" });
+      // CLIENT-SERVER AMOUNT CHECK
+      if (Math.abs(finalAmount - toSafeNumber(clientTotalAmount)) > 1) {
+        await session.abortTransaction();
+        return res.status(400).json({ success: false, message: "Amount mismatch. Please refresh and try again." });
       }
 
-      
+      // CRITICAL: CHECK STOCK BEFORE CREATING RAZORPAY ORDER
+      for (let item of cart.items) {
+        const product = item.productId;
+        const size = item.size;
+        const qty = item.quantity;
+
+        const hasStock = await Product.findOne({
+          _id: product._id,
+          [`sizes.${size}`]: { $gte: qty },
+          quantity: { $gte: qty },
+          isBlocked: false
+        }).session(session);
+
+        if (!hasStock) {
+          await session.abortTransaction();
+          return res.json({
+            success: false,
+            message: `Not enough stock for ${product.productName} (Size: ${size})`
+          });
+        }
+      }
+
+      // All good → create temp order
       const customOrderId = `ORD${new Date().getFullYear().toString().slice(-2)}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}${Math.floor(1000 + Math.random() * 9000)}`;
 
       const orderItems = cart.items.map(item => ({
         product: item.productId._id,
         size: item.size,
         quantity: item.quantity,
-        price: item.price,
-        status: 'Pending'
+        price: toSafeNumber(item.price),
+        status: "Pending"
       }));
 
       const selectedAddress = addressDoc.address.find(a => a._id.toString() === addressId);
 
-      orderToUse = await Order.create({
+      orderToUse = await Order.create([{
         orderId: customOrderId,
         userId,
         orderItems,
@@ -109,15 +165,18 @@ const createOrder = async (req, res) => {
           zipCode: selectedAddress.zipCode,
         },
         status: "Pending",
-        couponApplied: !!coupon,
+        couponApplied: appliedDiscount > 0,
         coupon: coupon || null,
         isTemp: true
-      });
+      }], { session })[0];
     }
 
-    
+    // Create Razorpay order
     const amountInPaise = Math.round(finalAmount * 100);
-    if (amountInPaise < 100) return res.status(400).json({ success: false, message: "Minimum ₹1 required" });
+    if (amountInPaise < 100) {
+      await session.abortTransaction();
+      return res.status(400).json({ success: false, message: "Order amount too low" });
+    }
 
     const razorpayOrder = await razorpay.orders.create({
       amount: amountInPaise,
@@ -126,9 +185,11 @@ const createOrder = async (req, res) => {
     });
 
     orderToUse.razorpayOrderId = razorpayOrder.id;
-    await orderToUse.save();
+    await orderToUse.save({ session });
 
-    res.json({
+    await session.commitTransaction();
+
+    return res.json({
       success: true,
       orderId: razorpayOrder.id,
       mongoOrderId: orderToUse._id.toString(),
@@ -138,11 +199,13 @@ const createOrder = async (req, res) => {
     });
 
   } catch (error) {
+    await session.abortTransaction();
     console.error("Create Order Error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: "Server error. Please try again." });
+  } finally {
+    session.endSession();
   }
 };
-
 
 const verifyPayment = async (req, res) => {
   const session = await mongoose.startSession();
@@ -165,7 +228,7 @@ const verifyPayment = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid payment data" });
     }
 
-    // Verify signature
+    
     const expectedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
@@ -185,7 +248,7 @@ const verifyPayment = async (req, res) => {
       return res.status(400).json({ success: false, message: "Order not found" });
     }
 
-    // DEDUCT STOCK
+  
     for (const item of order.orderItems) {
       const product = item.product;
       if (!product) continue;
@@ -202,17 +265,17 @@ const verifyPayment = async (req, res) => {
       await product.save({ session });
     }
 
-    // CONFIRM ORDER — ONLY VALID ENUM VALUES
+    
     order.razorpayPaymentId = razorpay_payment_id;
     order.razorpaySignature = razorpay_signature;
     order.paymentStatus = "Paid";
-    order.status = "Processing";           // VALID ENUM VALUE
+    order.status = "Processing";          
     order.invoiceDate = new Date();
     order.paidAt = new Date();
     order.isTemp = false;
     await order.save({ session });
 
-    // Clear cart
+    
     await Cart.deleteOne({ userId: req.session.user.id }).session(session);
 
     await session.commitTransaction();
@@ -233,13 +296,13 @@ const verifyPayment = async (req, res) => {
     session.endSession();
     console.error("Verify Payment Error:", error);
 
-    // Mark failed if possible
+    
     try {
       if (req.body.mongoOrderId || req.body.orderIds) {
         const id = req.body.mongoOrderId || (Array.isArray(req.body.orderIds) ? req.body.orderIds[0] : req.body.orderIds);
         await Order.findByIdAndUpdate(id, {
           paymentStatus: "Failed",
-          status: "Cancelled",  // VALID ENUM
+          status: "Cancelled",  
           isTemp: false
         });
       }

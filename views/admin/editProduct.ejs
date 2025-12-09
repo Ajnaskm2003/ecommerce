@@ -64,8 +64,8 @@
                            </div>
                        </div>
 
-                       <!-- Total Quantity - Read only -->
-                       <div class="row">
+                       <!-- TOTAL QUANTITY FIELD IS NOW HIDDEN -->
+                       <div class="row" style="display: none;">
                            <div class="col-lg-4">
                                <div class="mb-4">
                                    <label class="form-label">Total Quantity</label>
@@ -94,14 +94,15 @@
                            <div class="row gx-2">
                                <div class="col-sm-6 mb-3">
                                    <label class="form-label">Category</label>
-                                   <select class="form-select border" style="width: 150px;" name="category" required>
-                                        <% for(let i=0; i < category.length; i++) { %>
-                                            <option value="<%= category[i]._id %>" 
-                                                <%= product.category && product.category.toString() === category[i]._id.toString() ? 'selected' : '' %>>
-                                                <%= category[i].name %>
-                                            </option>
-                                        <% } %>   
-                                    </select>
+                                   <select class="form-select border" name="category" required>
+                                       <option value="">-- Select Category --</option>
+                                       <% categories.forEach(cat => { %>
+                                           <option value="<%= cat._id %>" 
+                                               <%= product.category && product.category._id.toString() === cat._id.toString() ? 'selected' : '' %>>
+                                               <%= cat.name %>
+                                           </option>
+                                       <% }) %>
+                                   </select>
                                    <div id="category-error" class="error-message"></div>
                                </div>
                            </div>
@@ -185,8 +186,8 @@ function removeImage(path, btn) {
     const remaining = document.querySelectorAll('#currentImagesRow .image-item').length;
     const hasCropped = !!document.getElementById('croppedImageData').value;
 
-    if (remaining === 1 && !hasCropped) {
-        Swal.fire('Warning', 'You must crop a new image first before deleting the last one.', 'warning');
+    if (remaining === 3 && !hasCropped) {
+        Swal.fire('Warning', 'You must crop a new image first before deleting the last Three.', 'warning');
         return;
     }
 

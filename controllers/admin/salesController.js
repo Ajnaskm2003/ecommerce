@@ -106,7 +106,7 @@ const downloadSalesReport = async (req, res) => {
 
     doc.pipe(res);
 
-    // Title
+    
     doc
       .fontSize(24)
       .fillColor("#2c3e50")
@@ -126,15 +126,15 @@ const downloadSalesReport = async (req, res) => {
 
     doc.moveDown(2);
 
-    // Table Headers
+    
     const tableTop = doc.y;
-    const col1 = 50;   // Date
-    const col2 = 140;  // Items
-    const col3 = 320;  // Total Amount
-    const col4 = 400;  // Discount
-    const col5 = 480;  // Revenue
+    const col1 = 50;   
+    const col2 = 140;  
+    const col3 = 320;  
+    const col4 = 400;  
+    const col5 = 480;  
 
-    // Header Background
+    
     doc
       .rect(50, tableTop, 500, 25)
       .fill("#3498db")
@@ -170,7 +170,7 @@ const downloadSalesReport = async (req, res) => {
       totalDiscount += orderDiscount;
       netRevenue += revenue;
 
-      // Alternating row background
+      
       if (index % 2 === 0) {
         doc
           .rect(50, yPosition - 3, 500, 30)
@@ -185,7 +185,7 @@ const downloadSalesReport = async (req, res) => {
 
       doc.fillColor("#2c3e50").fontSize(10).font("Helvetica");
 
-      // Date
+      
       doc.text(
         new Date(order.createdOn).toLocaleDateString("en-IN", {
           day: "2-digit",
@@ -196,13 +196,13 @@ const downloadSalesReport = async (req, res) => {
         yPosition + 5
       );
 
-      // Items
+      
       doc.text(itemsText, col2 + 5, yPosition + 5, {
         width: 170,
         lineGap: 2,
       });
 
-      // Amounts (right aligned)
+      
       doc.text(`₹${orderTotal.toFixed(2)}`, col3 + 5, yPosition + 5, {
         width: 70,
         align: "right",
@@ -217,7 +217,7 @@ const downloadSalesReport = async (req, res) => {
         align: "right",
       });
 
-      // Bottom line
+      
       doc
         .moveTo(50, yPosition + rowHeight + 5)
         .lineTo(550, yPosition + rowHeight + 5)
@@ -227,14 +227,14 @@ const downloadSalesReport = async (req, res) => {
 
       yPosition += rowHeight + 10;
 
-      // Page break if needed
+      
       if (yPosition > 750) {
         doc.addPage();
         yPosition = 50;
       }
     });
 
-    // Summary Section
+    
     doc.moveDown(3);
     doc
       .rect(50, doc.y, 500, 80)

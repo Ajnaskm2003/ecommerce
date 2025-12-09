@@ -135,7 +135,7 @@ const changePassword = async (req, res) => {
             return res.json({ success: false, message: "Current password is incorrect" });
         }
 
-        // Strong password: uppercase, lowercase, number, min 8 chars (NO ^ required)
+        
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
         if (!passwordRegex.test(newPassword)) {
             return res.json({
@@ -143,6 +143,8 @@ const changePassword = async (req, res) => {
                 message: "Password must contain at least one uppercase letter, one lowercase letter, one number, and be minimum 8 characters long."
             });
         }
+
+        
 
         user.password = await bcrypt.hash(newPassword, 10);
         await user.save();

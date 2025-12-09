@@ -63,7 +63,7 @@
 
     .sidebar ul li a:hover {
       background: #3b82f6;
-      color: #000000;
+      color: #ffffff;
       transform: translateX(5px);
     }
 
@@ -164,55 +164,13 @@
       letter-spacing: 0.5px;
     }
 
-    .wallet-actions {
-      margin-top: 12px;
-    }
-
-    .btn {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 30px;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 600;
-      text-transform: uppercase;
-      transition: all 0.3s ease;
-      background: linear-gradient(135deg, #6d28d9, #3b82f6);
-      color: #fff;
-      min-width: 160px;
-      height: 38px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
-    }
-
-    .btn:hover {
-      background: linear-gradient(135deg, #5b21b6, #2563eb);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 18px rgba(59, 130, 246, 0.45);
-    }
-
-    .wallet-container .transaction-history {
+    .transaction-history {
       margin-top: 25px;
       background: #f8fafc;
       border-radius: 12px;
       padding: 20px;
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
       border: 1px solid #bfdbfe;
-      transition: transform 0.3s ease;
-    }
-
-    .transaction-history:hover {
-      transform: translateY(-2px);
-    }
-
-    .transaction-history h3 {
-      margin-bottom: 15px;
-      color: #1f2937;
-      font-size: 1.4em;
-      font-weight: 600;
-      letter-spacing: 0.5px;
     }
 
     .transaction {
@@ -232,15 +190,10 @@
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
-    .transaction:last-child {
-      margin-bottom: 0;
-    }
-
     .transaction-info {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      width: 100%;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
     }
 
     .transaction-field {
@@ -260,100 +213,62 @@
       font-weight: 500;
     }
 
-    .transaction-amount.credit {
-      color: #10b981;
-    }
-
-    .transaction-amount.debit {
-      color: #ef4444;
-    }
+    .transaction-amount.credit { color: #10b981; }
+    .transaction-amount.debit { color: #ef4444; }
 
     .no-transactions {
       text-align: center;
       color: #6b7280;
-      padding: 20px 0;
-      font-size: 1em;
-      font-weight: 500;
+      padding: 30px 0;
+      font-size: 1.1em;
+    }
+
+    /* Pagination Styles */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-top: 25px;
+      flex-wrap: wrap;
+    }
+
+    .pagination a, .pagination span {
+      padding: 10px 16px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .pagination a {
+      background: #e0e7ff;
+      color: #4f46e5;
+    }
+
+    .pagination a:hover {
+      background: #4f46e5;
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    .pagination .current {
+      background: #4f46e5;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+    }
+
+    .pagination .disabled {
+      color: #9ca3af;
+      background: #f3f4f6;
+      cursor: not-allowed;
     }
 
     @media (max-width: 768px) {
-      .sidebar {
-        position: relative;
-        width: 100%;
-        height: auto;
-        box-shadow: none;
-        border-right: none;
-      }
-
-      .wallet-container {
-        margin: 0 auto;
-        margin-left: 0;
-        padding: 15px;
-      }
-
-      .wallet-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-      }
-
-      .wallet-card {
-        padding: 12px;
-        border-radius: 12px;
-      }
-
-      .wallet-balance {
-        font-size: 24px;
-      }
-
-      .wallet-label {
-        font-size: 13px;
-      }
-
-      .btn {
-        width: 100%;
-        min-width: 100%;
-        margin-top: 8px;
-      }
-
-      .transaction-info {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .wallet-container {
-        padding: 10px;
-      }
-
-      .wallet-card {
-        border-radius: 10px;
-      }
-
-      .wallet-balance {
-        font-size: 22px;
-      }
-
-      .wallet-label {
-        font-size: 12px;
-      }
-
-      .transaction-history {
-        padding: 12px;
-      }
-
-      .transaction {
-        padding: 8px;
-      }
-
-      .transaction-field {
-        margin-bottom: 8px;
-      }
-
-      .btn {
-        font-size: 12px;
-        height: 36px;
-      }
+      .sidebar { position: relative; width: 100%; height: auto; box-shadow: none; border-right: none; }
+      .wallet-container { margin-left: 0; padding: 15px; }
+      .transaction-info { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -363,7 +278,7 @@
     <ul>
       <li><a href="/userProfile"><span class="icon"><i class="fas fa-globe"></i></span> Overview</a></li>
       <li><a href="/orders"><span class="icon"><i class="fas fa-box"></i></span> My Orders</a></li>
-      <li><a href="/wallet"><span class="icon"><i class="fas fa-wallet"></i></span> My Wallet</a></li>
+      <li><a href="/wallet" style="background:#3b82f6;color:white;"><span class="icon"><i class="fas fa-wallet"></i></span> My Wallet</a></li>
       <li><a href="/my-address"><span class="icon"><i class="fas fa-home"></i></span> My Address</a></li>
       <li><a href="/myInfo"><span class="icon"><i class="fas fa-user"></i></span> My Profile</a></li>
       <li><a href="/logout"><span class="icon"><i class="fas fa-sign-out-alt"></i></span> Logout</a></li>
@@ -376,12 +291,7 @@
       <div class="wallet-header">
         <div>
           <div class="wallet-label">Available Balance</div>
-          <div class="wallet-balance">
-            ₹<%= user?.wallet?.toFixed(2) || '0.00' %>
-          </div>
-        </div>
-        <div class="wallet-actions">
-          <!-- Add buttons if needed -->
+          <div class="wallet-balance">₹<%= user?.wallet?.toFixed(2) || '0.00' %></div>
         </div>
       </div>
       <div style="margin-top: 10px; font-size: 0.9em; color: #d1d5db;">
@@ -389,7 +299,7 @@
       </div>
     </div>
 
-    <div class="transaction-history" id="transactionHistory">
+    <div class="transaction-history">
       <h3>Transaction History</h3>
 
       <% if (transactions && transactions.length > 0) { %>
@@ -400,9 +310,7 @@
                 <span class="transaction-label">Description</span>
                 <span class="transaction-value">
                   <%= transaction.description || 'No description' %>
-                  <% if (transaction.orderId) { %>
-                    <br><small>Order ID: <%= transaction.orderId %></small>
-                  <% } %>
+                  <% if (transaction.orderId) { %> <br><small>Order ID: <%= transaction.orderId %></small><% } %>
                 </span>
               </div>
               <div class="transaction-field">
@@ -416,28 +324,38 @@
                 <span class="transaction-value"><%= transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1) %></span>
               </div>
               <div class="transaction-field">
-                <span class="transaction-label">User ID</span>
-                <span class="transaction-value"><%= transaction.userId || 'Not available' %></span>
-              </div>
-              <div class="transaction-field">
                 <span class="transaction-label">Date</span>
-                <span class="transaction-value"><%= transaction.date || 'Not available' %></span>
-              </div>
-              <div class="transaction-field">
-                <span class="transaction-label">Created At</span>
-                <span class="transaction-value"><%= transaction.createdAt || 'Not available' %></span>
-              </div>
-              <div class="transaction-field">
-                <span class="transaction-label">Updated At</span>
-                <span class="transaction-value"><%= transaction.updatedAt || 'Not available' %></span>
+                <span class="transaction-value"><%= transaction.date %></span>
               </div>
             </div>
           </div>
         <% }); %>
+
+        <!-- Pagination -->
+        <div class="pagination">
+          <% if (pagination.hasPrev) { %>
+            <a href="/wallet?page=<%= pagination.prevPage %>">← Previous</a>
+          <% } else { %>
+            <span class="disabled">← Previous</span>
+          <% } %>
+
+          <span class="current">Page <%= pagination.currentPage %> of <%= pagination.totalPages %></span>
+
+          <% if (pagination.hasNext) { %>
+            <a href="/wallet?page=<%= pagination.nextPage %>">Next →</a>
+          <% } else { %>
+            <span class="disabled">Next →</span>
+          <% } %>
+        </div>
+
+        <div style="text-align:center; margin-top:10px; color:#6b7280; font-size:0.9em;">
+          Showing <%= ((pagination.currentPage - 1) * 10) + 1 %> - <%= Math.min(pagination.currentPage * 10, pagination.totalTransactions) %> of <%= pagination.totalTransactions %> transactions
+        </div>
+
       <% } else { %>
         <div class="no-transactions">
           <p>No transactions found in your wallet history</p>
-          <% if (typeof error !== 'undefined' && error) { %>
+          <% if (error) { %>
             <p style="color:red"><%= error %></p>
           <% } %>
         </div>

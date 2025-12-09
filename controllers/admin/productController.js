@@ -310,37 +310,30 @@ const addProducts = async (req, res) => {
 
 
 
-const getEditProduct =  async (req, res) => {
-
+const getEditProduct = async (req, res) => {
     try {
-        
         const productId = req.params.id;
-        const product = await Product.findById(productId).populate("category");
-        const category = await Category.find({});
-        const existCategory = await Category.find({_id:product.category});
-        console.log("category gettttedd",existCategory);
-        
-     
 
+        // Populate category in the product itself
+        const product = await Product.findById(productId).populate('category');
         if (!product) {
             return res.status(404).render("admin/404", { message: "Product not found" });
         }
 
-        res.render("editProduct",{
-            product,
-            category,
-            cat:existCategory
-        })
+        // Just get all categories for dropdown
+        const categories = await Category.find({}).sort({ name: 1 });
 
-    }
-     catch (error) {
-        console.error("Error editing product getting ", error);
-        req.flash("error", "An error occurred while updating the product status.");
+        res.render("editProduct", {
+            product,        // already has populated category
+            categories      // renamed for clarity
+        });
+
+    } catch (error) {
+        console.error("Error loading edit product:", error);
+        req.flash("error", "Failed to load product for editing");
         return res.redirect("/admin/products");
-        
     }
-
-}
+};
 
 
 
@@ -350,7 +343,7 @@ const editProduct = async (req, res) => {
         const id = req.params.id;
         const data = req.body;
 
-        // NEW: Get deleted images from frontend
+        
         const deletedImages = data.deletedImages ? JSON.parse(data.deletedImages) : [];
 
         console.log("Edit Request Body:", data);
@@ -360,7 +353,7 @@ const editProduct = async (req, res) => {
             return res.status(404).json({ success: false, message: "Product not found" });
         }
 
-        // === Your existing validations (unchanged) ===
+        
         const regularPrice = parseFloat(data.regularPrice);
         if (isNaN(regularPrice) || regularPrice <= 0) {
             return res.status(400).json({ success: false, message: "Invalid Regular Price" });
@@ -391,7 +384,7 @@ const editProduct = async (req, res) => {
             return res.status(400).json({ success: false, message: "Total size stock cannot exceed total stock" });
         }
 
-        // === Image Processing ===
+        
         const uploadDir = path.join(__dirname, "../../public/uploads/products");
         if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir, { recursive: true });
@@ -399,7 +392,7 @@ const editProduct = async (req, res) => {
 
         let newImages = [];
 
-        // === FIXED: Handle Cropped Image from Frontend (Base64) ===
+        
         if (data.croppedImage && data.croppedImage.trim() !== "") {
             try {
                 const base64Data = data.croppedImage.replace(/^data:image\/\w+;base64,/, "");
@@ -420,7 +413,7 @@ const editProduct = async (req, res) => {
             }
         }
 
-        // === Optional: Still support normal file upload (keep if you want fallback) ===
+        
         if (req.files && req.files.length > 0) {
             for (const file of req.files) {
                 try {
@@ -440,13 +433,13 @@ const editProduct = async (req, res) => {
             }
         }
 
-        // === FINAL IMAGE LIST ===
+        
         let finalImages = product.productImage.filter(img => !deletedImages.includes(img));
         finalImages = [...finalImages, ...newImages];
 
-        // CRITICAL FIX: Prevent 0 images
+        
         if (finalImages.length === 0) {
-            // Clean up any uploaded files if no image
+            
             newImages.forEach(imgPath => {
                 const fullPath = path.join(__dirname, "../../public", imgPath);
                 if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);

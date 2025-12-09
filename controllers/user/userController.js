@@ -91,7 +91,7 @@ const signup = async (req, res) => {
             return res.redirect('/signup');
         }
 
-        // Remove any old unverified user
+        
         await User.deleteOne({ email, isVerified: false });
 
         const existingUser = await User.findOne({ email, isVerified: true });
@@ -102,19 +102,19 @@ const signup = async (req, res) => {
 
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-        // Create unverified user in DB
+        
         const newUser = new User({
             name: name.trim(),
             email,
-            password, // will hash after OTP
+            password, 
             otp,
-            otpExpires: Date.now() + 60 * 1000, // 60 seconds only
+            otpExpires: Date.now() + 60 * 1000, 
             isVerified: false
         });
 
         await newUser.save();
 
-        // Save session
+        
         req.session.tempUserId = newUser._id;
         req.session.signupEmail = email;
 
@@ -194,7 +194,7 @@ const verifyOtp = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "Account verified successfully! Welcome to Emporium",
-            redirect: "/"
+            redirect: "/signin"
         });
 
     } catch (error) {
@@ -416,7 +416,7 @@ const resendOtp = async (req, res) => {
 
         const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
         user.otp = newOtp;
-        user.otpExpires = Date.now() + 60 * 1000; // 60 seconds
+        user.otpExpires = Date.now() + 60 * 1000; 
         await user.save();
 
         console.log(`Resend OTP → ${user.email}: ${newOtp}`);

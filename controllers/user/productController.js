@@ -95,11 +95,20 @@ const getProductDetails = async (req, res) => {
         }
 
         const product = await Product.findById(productId).populate('category');
+        
         if (!product) {
             return res.status(404).send('Product not found');
         }
 
         
+        if (product.isBlocked) {
+            return res.status(404).render('pageNotFound', { 
+                message: 'This product is currently unavailable', 
+                user: req.session.user || null 
+            });
+            
+        }
+
         const deals = await Product.find({ 
             isBlocked: false, 
             status: 'Available',
@@ -109,7 +118,7 @@ const getProductDetails = async (req, res) => {
         .limit(9)
         .populate('category');
 
-        res.render('ProductDetails', { product, deals });
+        res.render('ProductDetails', { product, deals, user: req.session.user || null });
 
     } catch (error) {
         console.error('Error fetching product details:', error);

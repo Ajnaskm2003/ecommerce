@@ -83,8 +83,6 @@ const userSchema = new Schema({
 
 userSchema.index({ googleId: 1 }, { unique: true, sparse: true });
 
-// THIS IS THE ONLY NEW LINE ADDED
-// Auto-clear expired OTP after it passes (safe & clean)
 userSchema.index(
     { otpExpires: 1 },
     { 

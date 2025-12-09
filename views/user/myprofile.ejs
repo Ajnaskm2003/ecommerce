@@ -1,4 +1,5 @@
-<%-include("../../views/partials/user/profileHeader")%>
+
+<%- include("../../views/partials/user/profileHeader") %>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -73,20 +74,39 @@
             right: -50px;
         }
 
-        .profile-img {
+        /* ────── NEW: Reliable Profile Image with CSS Fallback ────── */
+        .profile-img-wrapper {
             width: 120px;
             height: 120px;
             border-radius: 50%;
-            display: block;
             margin: 0 auto 15px;
+            overflow: hidden;
             box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+            background: url('/img/deffuuuu.png') center/cover no-repeat #e0e0e0;
+            position: relative;
             cursor: pointer;
-            transition: 0.3s ease-in-out;
+            transition: transform 0.3s ease-in-out;
         }
 
-        .profile-img:hover {
+        .profile-img-wrapper:hover {
             transform: scale(1.05);
         }
+
+        .profile-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            border-radius: 50%;
+        }
+
+        /* Hide broken image completely — background takes over */
+        .profile-img[src=""],
+        .profile-img:not([src]),
+        .profile-img[style*="data:image"]:empty {
+            opacity: 0;
+        }
+        /* ────── End of Profile Image Fix ────── */
 
         .upload-btn {
             display: block;
@@ -225,7 +245,6 @@
             max-width: 400px;
         }
 
-        /* Only this small style for error message */
         .password-error {
             color: #e74c3c;
             font-size: 12px;
@@ -234,19 +253,65 @@
             max-width: 400px;
         }
 
-        /* Modal styles - unchanged */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; }
-        .modal.active { display: flex; justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative; animation: fadeIn 0.3s ease-in-out; }
-        .close { position: absolute; top: 12px; right: 15px; font-size: 22px; cursor: pointer; color: #333; }
+        /* Modal styles */
+        .modal { 
+            display: none; 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.6); 
+            z-index: 1000; 
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.active { display: flex; }
+        .modal-content { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 12px; 
+            width: 400px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+            position: relative; 
+            animation: fadeIn 0.3s ease-in-out; 
+        }
+        .close { 
+            position: absolute; 
+            top: 12px; right: 15px; 
+            font-size: 22px; 
+            cursor: pointer; 
+            color: #333; 
+        }
         .close:hover { color: #ff4d4d; }
         .modal-content h2 { text-align: center; margin-bottom: 15px; font-size: 22px; color: #333; }
-        .modal-content input { width: 100%; padding: 12px; margin-top: 8px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; transition: border 0.3s; }
+        .modal-content input { 
+            width: 100%; 
+            padding: 12px; 
+            margin-top: 8px; 
+            border: 1px solid #ccc; 
+            border-radius: 8px; 
+            font-size: 16px; 
+        }
         .modal-content input:focus { border: 1px solid #007bff; outline: none; }
-        #otpSection { margin-top: 15px; text-align: center; }
-        button { width: 90%; background: linear-gradient(135deg, #007bff, #0056b3); color: white; padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: bold; text-transform: uppercase; transition: 0.3s; display: block; margin: 12px auto 0; }
-        button:hover { background: linear-gradient(135deg, #0056b3, #004099); transform: scale(1.04); box-shadow: 0 4px 12px rgba(0,91,187,0.35); }
-        .modal-content button { width: auto; min-width: 120px; height: 35px; padding: 8px 15px; font-size: 13px; margin: 10px auto; }
+        #otpSection { margin-top: 15px; text-align: center; display: none; }
+        .modal-content button { 
+            width: auto; 
+            min-width: 120px; 
+            height: 35px; 
+            padding: 8px 15px; 
+            background: linear-gradient(135deg, #007bff, #0056b3); 
+            color: white; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 13px; 
+            font-weight: bold; 
+            margin: 10px auto 0; 
+            display: block;
+        }
+        .modal-content button:hover { 
+            background: linear-gradient(135deg, #0056b3, #004099); 
+            transform: scale(1.04); 
+        }
         @keyframes fadeIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
 </head>
@@ -254,27 +319,41 @@
 <body>
     <div class="main-content">
         <div class="profile-container">
-            <form action="/updateInfo" method="post" id="profileForm">
-                <!-- Fixed default image -->
-                <img src="<%= (data.image && data.image.trim() !== '') ? data.image : '/img/default-profile.png' %>" 
-                     alt="Profile Picture" class="profile-img" id="profilePreview"
-                     onerror="this.src='/img/default-profile.png'">
-                <input type="file" id="imageUpload" name="image" accept="image/*" style="display: none;">
-                <span class="upload-btn" onclick="document.getElementById('imageUpload').click();">Change Profile Picture</span>
+            <form action="/updateInfo" method="post" id="profileForm" enctype="multipart/form-data">
+                <!-- PROFILE IMAGE WITH CSS FALLBACK -->
+                <div class="profile-img-wrapper">
+                    <img 
+                        src="<%= (data.image && data.image.trim() !== '') ? data.image : '/img/default-profile.png' %>"
+                        alt="<%= data.name || 'User' %>" 
+                        class="profile-img" 
+                        id="profilePreview"
+                    >
+                </div>
+
+                <input type="file" 
+                    id="imageUpload" 
+                    name="image" 
+                    accept="image/*" 
+                    style="display: none;">
+
+                <span class="upload-btn" 
+                    onclick="document.getElementById('imageUpload').click();">
+                    Change Profile Picture
+                </span>
 
                 <div class="form-group">
                     <label>Full Name</label>
-                    <input type="text" placeholder="Enter Full Name" value="<%=data.name%>" name="name" id="name">
+                    <input type="text" placeholder="Enter Full Name" value="<%= data.name %>" name="name" id="name">
                 </div>
                 <div class="form-group">
                     <label>Email</label>
                     <div class="email-group">
-                        <input type="email" placeholder="Enter Email" value="<%=data.email%>" readonly>
+                        <input type="email" placeholder="Enter Email" value="<%= data.email %>" readonly>
                     </div>
                 </div>
                 <div class="form-group">
                     <label>Phone Number</label>
-                    <input type="text" placeholder="Enter Phone Number" value="<%=data.phone || ''%>" name="phone" id="phone">
+                    <input type="text" placeholder="Enter Phone Number" value="<%= data.phone || '' %>" name="phone" id="phone">
                 </div>
                 <div class="button-group">
                     <button class="change-pass-btn" id="changePassBtn" type="button">Change Password</button>
@@ -283,37 +362,44 @@
                 </div>
             </form>
 
+            <!-- CHANGE PASSWORD SECTION -->
             <div id="changePasswordSection" class="password-section" style="display: none;">
                 <h3>Change Password</h3>
                 <form id="passwordForm">
                     <div class="form-group">
                         <label>Current Password</label>
-                        <input type="password" id="currentPassword" placeholder="Enter Current Password">
+                        <input type="password" id="currentPassword" placeholder="Enter Current Password" required>
                     </div>
                     <div class="form-group">
                         <label>New Password</label>
-                        <input type="password" id="newPassword" placeholder="Enter New Password">
-                        <!-- Updated error message - now minimum 6 characters -->
+                        <input type="password" id="newPassword" placeholder="Enter New Password" required>
                         <div class="password-error" id="passwordErrorMsg">
                             Password must contain at least one uppercase letter, one lowercase letter, one number, and be at least 6 characters long.
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm New Password</label>
+                        <input type="password" id="confirmPassword" placeholder="Confirm New Password" required>
+                        <div class="password-error" id="confirmErrorMsg">
+                            Passwords do not match.
                         </div>
                     </div>
                     <button type="submit" class="save-btn">Update Password</button>
                 </form>
             </div>
 
-            <!-- Email Modal - 100% unchanged -->
+            <!-- Email Update Modal -->
             <div id="emailUpdateModal" class="modal">
                 <div class="modal-content">
                     <span class="close" onclick="closeModal()">×</span>
                     <h2>Change Email</h2>
                     <label for="newEmail">Enter New Email:</label>
-                    <input type="email" id="newEmail">
-                    <button onclick="sendOtp()">Send OTP</button>
-                    <div id="otpSection" style="display: none;">
+                    <input type="email" id="newEmail" placeholder="example@gmail.com">
+                    <button type="button" onclick="sendOtp()">Send OTP</button>
+                    <div id="otpSection">
                         <label for="otpInput">Enter OTP:</label>
-                        <input type="text" id="otpInput">
-                        <button onclick="verifyOtp()">Verify & Update</button>
+                        <input type="text" id="otpInput" placeholder="123456" maxlength="6">
+                        <button type="button" onclick="verifyOtp()">Verify & Update</button>
                     </div>
                 </div>
             </div>
@@ -322,113 +408,132 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
     <script>
-        // Image preview
-        document.getElementById("imageUpload").addEventListener("change", function (event) {
-            const reader = new FileReader();
-            reader.onload = function () {
-                document.getElementById("profilePreview").src = reader.result;
-            };
-            reader.readAsDataURL(event.target.files[0]);
-        });
-
-        // Show password section
-        document.getElementById("changePassBtn").addEventListener("click", function () {
-            document.getElementById("changePasswordSection").style.display = "block";
-        });
-
-        // Updated validation: minimum 6 characters
-        document.getElementById("newPassword").addEventListener("input", function() {
-            const password = this.value;
-            const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;  // ← Changed from 8 to 6
-            const errorMsg = document.getElementById("passwordErrorMsg");
-            if (regex.test(password)) {
-                errorMsg.style.display = "none";
-            } else {
-                errorMsg.style.display = "block";
+        // Image preview on upload
+        document.getElementById("imageUpload").addEventListener("change", function (e) {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (ev) {
+                    document.getElementById("profilePreview").src = ev.target.result;
+                };
+                reader.readAsDataURL(e.target.files[0]);
             }
         });
 
-        // Password form submit - minimum 6 characters
-        document.getElementById("passwordForm").addEventListener("submit", async function (event) {
-            event.preventDefault();
+        // Toggle password section
+        document.getElementById("changePassBtn").addEventListener("click", () => {
+            document.getElementById("changePasswordSection").style.display = 
+                document.getElementById("changePasswordSection").style.display === "block" ? "none" : "block";
+        });
 
-            const currentPassword = document.getElementById("currentPassword").value;
-            const newPassword = document.getElementById("newPassword").value;
-            const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;  // ← Changed to 6
+        // Password validation
+        document.getElementById("newPassword").addEventListener("input", validatePasswords);
+        document.getElementById("confirmPassword").addEventListener("input", validatePasswords);
 
-            if (!regex.test(newPassword)) {
+        function validatePasswords() {
+            const newPass = document.getElementById("newPassword").value;
+            const confirmPass = document.getElementById("confirmPassword").value;
+            const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
+
+            document.getElementById("passwordErrorMsg").style.display = 
+                newPass && !regex.test(newPass) ? "block" : "none";
+            document.getElementById("confirmErrorMsg").style.display = 
+                confirmPass && newPass !== confirmPass ? "block" : "none";
+        }
+
+        // Change Password
+        document.getElementById("passwordForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const current = document.getElementById("currentPassword").value.trim();
+            const newPass = document.getElementById("newPassword").value;
+            const confirm = document.getElementById("confirmPassword").value;
+
+            if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/.test(newPass)) {
                 document.getElementById("passwordErrorMsg").style.display = "block";
                 return;
             }
+            if (newPass !== confirm) {
+                document.getElementById("confirmErrorMsg").style.display = "block";
+                return;
+            }
 
-            const response = await fetch("/changePassword", {
+            const res = await fetch("/changePassword", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ currentPassword, newPassword }),
+                body: JSON.stringify({ currentPassword: current, newPassword: newPass })
             });
+            const data = await res.json();
 
-            const result = await response.json();
-
-            if (result.success) {
-                Swal.fire({ title: "Success!", text: "Password updated successfully.", icon: "success" })
-                    .then(() => location.reload());
+            if (data.success) {
+                Swal.fire("Success", "Password updated!", "success").then(() => location.reload());
             } else {
-                Swal.fire({ title: "Error!", text: result.message, icon: "error" });
+                Swal.fire("Error", data.message || "Failed to update password", "error");
             }
         });
 
-        // Everything else remains 100% original
-        document.getElementById("profileForm").addEventListener("submit", async function (event) {
-            event.preventDefault();
+        // Update Profile Info (including image)
+        document.getElementById("profileForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
             const formData = new FormData(this);
-            const response = await fetch("/updateInfo", { method: "POST", body: formData });
-            const result = await response.json();
-            if (response.ok) {
-                Swal.fire({ title: "Success!", text: result.message, icon: "success" })
+            const res = await fetch("/updateInfo", { method: "POST", body: formData });
+            const data = await res.json();
+            if (res.ok) {
+                Swal.fire("Success", data.message || "Profile updated!", "success")
                     .then(() => location.reload());
             } else {
-                Swal.fire({ title: "Error!", text: result.message, icon: "error" });
+                Swal.fire("Error", data.message || "Update failed", "error");
             }
         });
 
-        function openModal() { document.getElementById("emailUpdateModal").classList.add('active'); }
-        function closeModal() {
-            document.getElementById("emailUpdateModal").classList.remove('active');
-            document.getElementById("newEmail").value = '';
-            document.getElementById("otpInput").value = '';
+        // Email Modal
+        function openModal() { document.getElementById("emailUpdateModal").classList.add("active"); }
+        function closeModal() { 
+            document.getElementById("emailUpdateModal").classList.remove("active");
+            document.getElementById("newEmail").value = "";
+            document.getElementById("otpInput").value = "";
             document.getElementById("otpSection").style.display = "none";
         }
-        window.onclick = function(event) { if (event.target == document.getElementById("emailUpdateModal")) closeModal(); }
-        document.addEventListener('keydown', function(event) { if (event.key === "Escape") closeModal(); });
+        window.addEventListener("click", e => { if (e.target === document.getElementById("emailUpdateModal")) closeModal(); });
+        document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
 
         function sendOtp() {
-            const email = document.getElementById("newEmail").value;
-            if (!email) return Swal.fire("Error", "Please enter an email", "error");
-            fetch("/send-email-otp", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire("Success", "OTP sent to your email", "success");
+            const email = document.getElementById("newEmail").value.trim();
+            if (!email) return Swal.fire("Error", "Enter a valid email", "error");
+
+            fetch("/send-email-otp", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email })
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    Swal.fire("OTP Sent!", "Check your email", "success");
                     document.getElementById("otpSection").style.display = "block";
                 } else {
-                    Swal.fire("Error", data.message, "error");
+                    Swal.fire("Error", d.message, "error");
                 }
             });
         }
 
         function verifyOtp() {
-            const email = document.getElementById("newEmail").value;
-            const otp = document.getElementById("otpInput").value;
-            fetch("/verify-email-otp", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, otp }) })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire("Success", "Email updated successfully", "success").then(() => window.location.reload());
+            const email = document.getElementById("newEmail").value.trim();
+            const otp = document.getElementById("otpInput").value.trim();
+
+            fetch("/verify-email-otp", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, otp })
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    Swal.fire("Success", "Email updated successfully!", "success")
+                        .then(() => location.reload());
                 } else {
-                    Swal.fire("Error", data.message, "error");
+                    Swal.fire("Error", d.message || "Invalid OTP", "error");
                 }
             });
         }
     </script>
 </body>
-</html>
+</html>  

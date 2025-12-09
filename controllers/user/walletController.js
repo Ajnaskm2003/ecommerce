@@ -10,7 +10,6 @@ const { v4: uuidv4 } = require('uuid');
 
 const getWalletPage = async (req, res) => {
     try {
-        
         console.log("Session data:", req.session);
 
         const userId = req.session.user?.id;
@@ -22,14 +21,14 @@ const getWalletPage = async (req, res) => {
                 transactions: [],
                 user: { wallet: 0, name: '', id: '' },
                 error: "Please login to view wallet",
-                title: 'My Wallet'
+                title: 'My Wallet',
+                pagination: { currentPage: 1, totalPages: 1, hasNext: false, hasPrev: false }
             });
         }
 
         const user = await User.findById(userId)
             .select('wallet name _id')
             .lean();
-        console.log("User found:", user);
 
         if (!user) {
             console.log("User not found for ID:", userId);
@@ -37,21 +36,28 @@ const getWalletPage = async (req, res) => {
                 transactions: [],
                 user: { wallet: 0, name: '', id: '' },
                 error: 'User not found',
-                title: 'My Wallet'
+                title: 'My Wallet',
+                pagination: { currentPage: 1, totalPages: 1, hasNext: false, hasPrev: false }
             });
         }
 
+        // Pagination setup
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10;
+        const skip = (page - 1) * limit;
+
+        // Get total transactions count for pagination
+        const totalTransactions = await Wallet.countDocuments({ userId });
+        const totalPages = Math.ceil(totalTransactions / limit);
+
+        // Fetch paginated transactions
         const transactions = await Wallet.find({ userId })
             .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
             .lean();
-        console.log("Fetched transactions:", transactions);
 
-        if (transactions.length === 0) {
-            console.log("No transactions found for userId:", userId);
-            console.log("Checking wallettransactions collection...");
-            const allTransactions = await Wallet.find({}).lean();
-            console.log("All transactions in wallettransactions:", allTransactions);
-        }
+        console.log(`Fetched ${transactions.length} transactions (Page ${page}/${totalPages})`);
 
         const formattedTransactions = transactions.map((tx) => {
             const createdOnDate = new Date(tx.createdAt);
@@ -83,7 +89,17 @@ const getWalletPage = async (req, res) => {
                 updatedAt: formattedUpdatedDate,
             };
         });
-        console.log("Formatted transactions:", formattedTransactions);
+
+        // Pagination info
+        const pagination = {
+            currentPage: page,
+            totalPages,
+            hasNext: page < totalPages,
+            hasPrev: page > 1,
+            nextPage: page + 1,
+            prevPage: page - 1,
+            totalTransactions
+        };
 
         res.render('mywallet', {
             transactions: formattedTransactions,
@@ -93,15 +109,18 @@ const getWalletPage = async (req, res) => {
                 id: user._id.toString(),
             },
             error: null,
-            title: 'My Wallet'
+            title: 'My Wallet',
+            pagination
         });
+
     } catch (error) {
         console.error('Wallet page error:', error);
         res.status(500).render('mywallet', {
             transactions: [],
             user: { wallet: 0, name: '', id: '' },
             error: 'Error loading wallet',
-            title: 'My Wallet'
+            title: 'My Wallet',
+            pagination: { currentPage: 1, totalPages: 1, hasNext: false, hasPrev: false }
         });
     }
 };

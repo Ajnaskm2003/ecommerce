@@ -5,7 +5,7 @@ const Wishlist = require("../../models/wishlistSchema");
 
 const getCart = async (req, res) => {
     try {
-        const userId = req.session.user?.id; 
+        const userId = req.session.user?.id;
 
         if (!userId) {
             return res.redirect('/login');
@@ -13,33 +13,49 @@ const getCart = async (req, res) => {
 
         res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
 
+        // Clear old session data
+        const blockedCartItems = req.session.blockedCartItems || [];
+        delete req.session.blockedCartItems;
+
         const cart = await Cart.findOne({ userId }).populate('items.productId');
 
-        if (!cart || !cart.items.length) {
-            return res.render('cart', { 
-                cart: { items: [] },
-                message: 'Your cart is empty'
+        let blockedItems = []; // Only for blocked products
+
+        if (cart && cart.items.length > 0) {
+            cart.items.forEach(item => {
+                const product = item.productId;
+
+                // Update price to latest salePrice
+                if (product?.salePrice !== undefined) {
+                    item.price = product.salePrice;
+                }
+
+                // Check if product is blocked
+                if (product?.isBlocked) {
+                    blockedItems.push({
+                        name: product.productName || 'Unknown Product',
+                        size: item.size,
+                        reason: 'Blocked by admin'
+                    });
+                }
             });
         }
 
-        // THIS IS THE ONLY FIX ADDED
-        // Update each item's price to the latest product price
-        cart.items.forEach(item => {
-            if (item.productId && item.productId.salePrice !== undefined) {
-                item.price = item.productId.salePrice;  // Override old price with current one
-            }
+        // Pass to view
+        res.render('cart', {
+            cart: cart || { items: [] },
+            blockedCartItems: blockedItems,
+            hasBlockedItems: blockedItems.length > 0,
+            user: req.session.user || null 
         });
-
-        res.render('cart', { 
-            cart: cart,
-            message: null
-        }); 
 
     } catch (error) {
         console.error("Error fetching cart:", error);
         res.status(500).send("Server error");
     }
 };
+
+
 
 const addToCart = async (req, res) => {
     try {
@@ -58,11 +74,14 @@ const addToCart = async (req, res) => {
             return res.json({ success: false, message: "Product not found" });
         }
 
-        if (product.blocked) {
-            return res.json({ success: false, message: "This product is currently unavailable" });
+        // FIX: Use correct field name 'isBlocked' instead of 'blocked'
+        if (product.isBlocked) {
+            return res.json({ 
+                success: false, 
+                message: "This product is currently unavailable" 
+            });
         }
 
-    
         const stockForSize = product.sizes[size];
         if (stockForSize === undefined) {
             return res.json({ success: false, message: "Selected size not available" });
@@ -99,13 +118,16 @@ const addToCart = async (req, res) => {
 
         await cart.save();
 
-        
         await Wishlist.updateOne(
             { userId }, 
             { $pull: { items: { productId } } }
         );
 
-        return res.json({ success: true,message: "Product added to cart successfully",cart: cart });
+        return res.json({ 
+            success: true,
+            message: "Product added to cart successfully",
+            cart: cart 
+        });
 
     } catch (error) {
         console.error("Add to cart error:", error);
@@ -159,8 +181,8 @@ const incrementCartItem = async (req, res) => {
             });
         }
 
-        const sizeStock = product.sizes[cartItem.size]; // Renamed for clarity
-        const maxQty = Math.min(5, sizeStock); // Enforce max of 5, but respect stock if lower
+        const sizeStock = product.sizes[cartItem.size]; 
+        const maxQty = Math.min(5, sizeStock); 
 
         if (cartItem.quantity >= maxQty) {
             return res.json({ 
