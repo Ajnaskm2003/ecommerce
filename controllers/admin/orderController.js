@@ -94,17 +94,16 @@ const updateOrderStatus = async (req, res) => {
             return res.status(400).json({ error: 'Invalid status' });
         }
 
-        
+        // Find the order
         const order = await Order.findOne({ orderId });
         if (!order) {
             return res.status(404).json({ error: 'Order not found' });
         }
 
-        
+        // Check status hierarchy
         const currentStatusValue = statusHierarchy[order.status];
         const newStatusValue = statusHierarchy[status];
 
-        
         if (
             ['Processing', 'Shipped', 'Delivered'].includes(order.status) &&
             newStatusValue < currentStatusValue
@@ -114,14 +113,27 @@ const updateOrderStatus = async (req, res) => {
             });
         }
 
+        // Store previous status
+        const previousStatus = order.status;
         
+        // Update status
         order.status = status;
+        
+        // Add to statusHistory with both previous and new status
+        order.statusHistory.push({
+            status: status,
+            date: new Date(),
+            changedBy: 'admin',
+            previousStatus: previousStatus // Add this to track what changed from what
+        });
+
         await order.save();
 
         res.json({
             success: true,
             message: 'Order status updated successfully',
-            status: order.status
+            status: order.status,
+            previousStatus: previousStatus
         });
 
     } catch (error) {

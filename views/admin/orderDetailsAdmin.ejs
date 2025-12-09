@@ -189,6 +189,27 @@
             padding: 1rem;
             margin-top: 1rem;
         }
+
+        /* Status History Styles */
+        .timeline-item {
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--primary-color);
+            background: #f8f9fa;
+            border-radius: 0 8px 8px 0;
+        }
+        .timeline-item:last-child {
+            margin-bottom: 0;
+        }
+        .status-change-info {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        .status-change-arrow {
+            color: #4361ee;
+            margin: 0 5px;
+        }
     </style>
 </head>
 <body>
@@ -249,7 +270,6 @@
                     <tr>
                         <td>
                             <%= item.product.productName %>
-                            <!-- ITEM STATUS BADGE -->
                             <% if (item.status && item.status !== 'default') { %>
                                 <% 
                                     let badgeClass = '';
@@ -323,6 +343,50 @@
             </form>
             <div id="statusMessage"></div>
         </div>
+
+        <!-- Add Status History Section -->
+        <div class="info-card mt-4">
+            <div class="section-title">
+                Status History
+            </div>
+            <div class="timeline">
+                <% if (order.statusHistory && order.statusHistory.length > 0) { %>
+                    <% const sortedHistory = order.statusHistory.sort((a, b) => new Date(b.date) - new Date(a.date)); %>
+                    <% sortedHistory.forEach((history, index) => { %>
+                        <div class="timeline-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge <%= history.status.toLowerCase().replace(/ /g, '-') %>">
+                                    <%= history.status %>
+                                </span>
+                                <span class="text-muted">
+                                    <%= new Date(history.date).toLocaleDateString('en-IN', { 
+                                        day: '2-digit', 
+                                        month: 'short', 
+                                        year: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    }) %>
+                                </span>
+                            </div>
+                            <div class="status-change-info">
+                                <% if (history.previousStatus) { %>
+                                    Changed from <strong><%= history.previousStatus %></strong> 
+                                    <i class="fas fa-arrow-right status-change-arrow"></i> 
+                                    <strong><%= history.status %></strong>
+                                <% } else if (index === sortedHistory.length - 1) { %>
+                                    Initial status set to <strong><%= history.status %></strong>
+                                <% } else { %>
+                                    Status updated to <strong><%= history.status %></strong>
+                                <% } %>
+                                <span class="float-end">by <%= history.changedBy %></span>
+                            </div>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <p class="text-muted">No status history available</p>
+                <% } %>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -369,7 +433,7 @@
                     Swal.fire({
                         icon: 'success',
                         title: 'Status Updated!',
-                        text: result.message,
+                        text: `Changed from ${result.previousStatus} to ${result.status}`,
                         showConfirmButton: false,
                         timer: 1500
                     });

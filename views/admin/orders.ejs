@@ -38,6 +38,22 @@
     .badge.return-requested,
     .badge.return-request { background-color: #6c757d; }
     .badge.returned { background-color: #6610f2; }
+    
+    /* Status date styles */
+    .status-date {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+    .status-change-info {
+        font-size: 0.8rem;
+        color: #495057;
+        background: #f8f9fa;
+        padding: 5px 10px;
+        border-radius: 4px;
+        margin-top: 8px;
+        border-left: 3px solid #007bff;
+    }
 </style>
 
 <div class="container mt-5">
@@ -67,32 +83,63 @@
                     </small>
                 </div>
 
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <div>
-                        <strong>Status:</strong> 
+                        <strong>Current Status:</strong> 
                         <span class="badge <%= order.status.toLowerCase().replace(/ /g, '-') %>">
                             <%= order.status %>
                         </span>
                     </div>
-                    <small class="text-muted d-block mt-1">
+                    
+                    <!-- Show when current status was last updated -->
+                    <div class="status-date">
+                        <% if (order.currentStatusDate) { %>
+                            <i class="fas fa-calendar-alt"></i>
+                            Last updated: 
+                            <%= new Date(order.currentStatusDate).toLocaleDateString('en-IN', { 
+                                day: '2-digit', 
+                                month: 'short', 
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            }) %>
+                        <% } %>
+                    </div>
+                    
+                    <!-- Show recent status change if available -->
+                    <% if (order.statusHistory && order.statusHistory.length > 1) { %>
                         <% 
-                            const statusDate = order.currentStatusDate || order.createdOn || order.createdAt || new Date();
+                            // Get the most recent status change (excluding the current one if it's the only one)
+                            const sortedHistory = order.statusHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+                            const recentChange = sortedHistory[0];
+                            const previousChange = sortedHistory[1];
                         %>
-                        <%= statusDate.toLocaleDateString('en-IN', { 
-                            day: '2-digit', 
-                            month: 'short', 
-                            year: 'numeric' 
-                        }) %>
-                    </small>
+                        <% if (recentChange && previousChange) { %>
+                            <div class="status-change-info">
+                                <i class="fas fa-exchange-alt"></i>
+                                <%= previousChange.status %> → <%= recentChange.status %> 
+                                on <%= new Date(recentChange.date).toLocaleDateString('en-IN', { 
+                                    day: '2-digit', 
+                                    month: 'short'
+                                }) %>
+                            </div>
+                        <% } %>
+                    <% } %>
+                    
                     <small class="d-block mt-2">
                         <strong>Total: ₹<%= order.totalAmount.toFixed(2) %></strong>
                     </small>
                 </div>
 
-                <div class="col-md-2 text-end">
+                <div class="col-md-3 text-end">
                     <a href="/admin/order-details/<%= order.orderId %>" class="view-btn">
-                        View Details
+                        <i class="fas fa-eye"></i> View Details
                     </a>
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            Items: <%= order.orderItems.length %>
+                        </small>
+                    </div>
                 </div>
             </div>
         <% }) %>

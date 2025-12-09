@@ -1,4 +1,3 @@
-
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
@@ -92,6 +91,10 @@ const orderSchema = new Schema({
         changedBy: {
             type: String,
             default: 'system'
+        },
+        previousStatus: {  // ADD THIS FIELD
+            type: String,
+            default: null
         }
     }]
 }, {
@@ -104,26 +107,9 @@ orderSchema.pre('save', function(next) {
         this.statusHistory = [{
             status: this.status,
             date: this.createdOn || new Date(),
-            changedBy: 'system'
+            changedBy: 'system',
+            previousStatus: null
         }];
-    }
-    next();
-});
-
-// Push new status to history whenever status changes
-orderSchema.pre('findOneAndUpdate', async function(next) {
-    const update = this.getUpdate();
-    if (update.status && update.status !== this.getQuery().status) {
-        const docToUpdate = await this.model.findOne(this.getQuery());
-        if (docToUpdate) {
-            docToUpdate.statusHistory.push({
-                status: update.status,
-                date: new Date(),
-                changedBy: 'admin'
-            });
-            update.$set = update.$set || {};
-            update.$set.statusHistory = docToUpdate.statusHistory;
-        }
     }
     next();
 });
@@ -131,8 +117,14 @@ orderSchema.pre('findOneAndUpdate', async function(next) {
 // Virtual to get date when current status was set
 orderSchema.virtual('currentStatusDate').get(function() {
     if (!this.statusHistory || this.statusHistory.length === 0) return this.createdOn;
-    const matches = this.statusHistory.filter(h => h.status === this.status);
-    return matches.length > 0 ? matches[matches.length - 1].date : this.createdOn;
+    
+    // Find all entries with current status
+    const matchingHistory = this.statusHistory.filter(h => h.status === this.status);
+    
+    if (matchingHistory.length === 0) return this.createdOn;
+    
+    // Get the most recent one (last one in array)
+    return matchingHistory[matchingHistory.length - 1].date;
 });
 
 orderSchema.index({ "orderItems.returnRequest": 1 });
