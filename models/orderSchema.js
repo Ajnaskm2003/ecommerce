@@ -92,7 +92,7 @@ const orderSchema = new Schema({
             type: String,
             default: 'system'
         },
-        previousStatus: {  // ADD THIS FIELD
+        previousStatus: { 
             type: String,
             default: null
         }
@@ -101,7 +101,7 @@ const orderSchema = new Schema({
     timestamps: true
 });
 
-// Add initial status to history when order is created
+
 orderSchema.pre('save', function(next) {
     if (this.isNew) {
         this.statusHistory = [{
@@ -114,16 +114,16 @@ orderSchema.pre('save', function(next) {
     next();
 });
 
-// Virtual to get date when current status was set
+
 orderSchema.virtual('currentStatusDate').get(function() {
     if (!this.statusHistory || this.statusHistory.length === 0) return this.createdOn;
     
-    // Find all entries with current status
+    
     const matchingHistory = this.statusHistory.filter(h => h.status === this.status);
     
     if (matchingHistory.length === 0) return this.createdOn;
     
-    // Get the most recent one (last one in array)
+    
     return matchingHistory[matchingHistory.length - 1].date;
 });
 

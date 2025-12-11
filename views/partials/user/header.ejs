@@ -21,9 +21,7 @@
             height: auto;
             transition: transform 0.3s ease;
         }
-        .emplogo:hover {
-            transform: scale(1.08);
-        }
+        .emplogo:hover { transform: scale(1.08); }
 
         .header_area {
             background-color: #fff;
@@ -40,16 +38,13 @@
             box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
         }
 
-        /* Reduced Width Container */
         .header-container {
             max-width: 1100px;
             margin: 0 auto;
             padding: 0 15px;
         }
 
-        .navbar-nav .nav-item {
-            margin: 0 18px;
-        }
+        .navbar-nav .nav-item { margin: 0 18px; }
         .navbar-nav .nav-link {
             font-size: 1.05rem;
             font-weight: 500;
@@ -79,12 +74,9 @@
             color: #e74c3c;
         }
 
-        /* SMALLER ICONS */
-        .navbar-right .nav-item {
-            margin-left: 20px; /* Reduced spacing */
-        }
+        .navbar-right .nav-item { margin-left: 20px; }
         .navbar-right .nav-link {
-            font-size: 1.35rem !important; /* SMALLER ICONS */
+            font-size: 1.35rem !important;
             color: #444;
             transition: all 0.3s ease;
             position: relative;
@@ -94,7 +86,6 @@
             transform: translateY(-2px) scale(1.08);
         }
 
-        /* Tooltip for Smaller Icons */
         .navbar-right .nav-link::before {
             content: attr(data-tooltip);
             position: absolute;
@@ -134,22 +125,11 @@
         }
 
         @media (max-width: 991px) {
-            .navbar-nav .nav-item {
-                margin: 10px 0;
-            }
-            .navbar-right .nav-item {
-                margin-left: 16px;
-            }
-            .navbar-right .nav-link {
-                font-size: 1.25rem !important;
-            }
-            .user-profile {
-                width: 34px;
-                height: 34px;
-            }
-            .header-container {
-                max-width: 100%;
-            }
+            .navbar-nav .nav-item { margin: 10px 0; }
+            .navbar-right .nav-item { margin-left: 16px; }
+            .navbar-right .nav-link { font-size: 1.25rem !important; }
+            .user-profile { width: 34px; height: 34px; }
+            .header-container { max-width: 100%; }
         }
     </style>
 </head>
@@ -166,19 +146,16 @@
                         <img class="emplogo" src="/img/emplogo.png" alt="Karma Shop">
                     </a>
 
-                    <!-- Toggler -->
                     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
                         aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                         <span class="navbar-toggler-icon"></span>
                     </button>
 
-                    <!-- Nav Links -->
                     <div class="collapse navbar-collapse" id="navbarSupportedContent">
                         <ul class="nav navbar-nav menu_nav mx-auto">
                             <li class="nav-item active"><a class="nav-link" href="/">HOME</a></li>
                             <li class="nav-item"><a class="nav-link" href="/shop">SHOP</a></li>
 
-                            <!-- Auth -->
                             <% if (typeof user !== 'undefined' && user) { %>
                                 <li class="nav-item"><a class="nav-link" href="/logout">LOGOUT</a></li>
                             <% } else { %>
@@ -186,7 +163,6 @@
                             <% } %>
                         </ul>
 
-                        <!-- Right Icons (SMALLER + TOOLTIPS) -->
                         <ul class="nav navbar-nav navbar-right d-flex align-items-center">
                             <li class="nav-item">
                                 <a href="/cart" class="nav-link" data-tooltip="My Cart">
@@ -210,10 +186,38 @@
         </div>
     </header>
 
+    <!-- BLOCK CHECKER SCRIPT - ONLY FOR LOGGED-IN USERS -->
+    <% if (typeof user !== 'undefined' && user) { %>
+    <script>
+        // Check every 7 seconds if user is blocked
+        const checkBlockStatus = async () => {
+            try {
+                const res = await fetch('/api/check-block-status', {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (res.status === 401 || res.status === 403) {
+                    alert('Your account has been blocked by the admin.');
+                    window.location.href = '/signin?blocked=true';
+                }
+            } catch (err) {
+                console.log('Block check failed (offline?)');
+            }
+        };
+
+        // Start checking immediately and every 7 seconds
+        checkBlockStatus();
+        setInterval(checkBlockStatus, 7000);
+    </script>
+    <% } %>
+
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
-
 </html>

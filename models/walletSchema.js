@@ -1,3 +1,4 @@
+
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
@@ -7,29 +8,32 @@ const walletSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
     },
     type: {
       type: String,
-      enum: ["Credit", "Debit"], 
+      enum: ["Credit", "Debit"],   
       required: true,
     },
     amount: {
       type: Number,
       required: true,
+      min: 0,
     },
     description: {
-      type: String, 
+      type: String,
+      required: true,
     },
     orderId: {
       type: Schema.Types.ObjectId,
-      ref: "Order", 
+      ref: "Order",
     },
-    date: {
-      type: Date,
-      default: Date.now,
-    },
+    
   },
-  { timestamps: true }
+  {
+    timestamps: true,   
+  }
 );
+
 
 module.exports = mongoose.model("WalletTransaction", walletSchema);

@@ -7,6 +7,7 @@ const PDFDocument = require("pdfkit");
 const mongoose = require("mongoose");
 const Coupon = require('../../models/coupenSchema');
 const { v4: uuidv4 } = require('uuid');
+const WalletTransaction = require('../../models/walletSchema');
 
 
 
@@ -22,14 +23,14 @@ const getCheckoutPage = async (req, res) => {
 
     const cart = await Cart.findOne({ userId }).populate({
       path: "items.productId",
-      populate: { path: "category" } // This is CRITICAL — category must be populated for virtual to work
+      populate: { path: "category" } 
     });
 
     if (!cart || !cart.items.length) {
       return res.redirect("/cart");
     }
 
-    // Blocked items check (unchanged)
+    
     const blockedItems = cart.items
       .filter(item => item.productId && item.productId.isBlocked === true)
       .map(item => ({
@@ -54,7 +55,7 @@ const getCheckoutPage = async (req, res) => {
       cartItems = cart.items.map((item) => {
         const product = item.productId;
 
-        // Use the virtual 'finalPrice' — this gives correct price with product + category offer
+        
         const currentPrice = product.finalPrice || product.salePrice || product.regularPrice;
 
         return {
@@ -251,17 +252,13 @@ const placedOrder = async (req, res) => {
       return res.status(400).json({ success: false, message: "Cart is empty" });
     }
 
-    // ────────────────────────────────
-    // 1. CALCULATE SUBTOTAL FIRST (no stock touch yet)
-    // ────────────────────────────────
+    
     let cartSubtotal = 0;
     for (let item of cart.items) {
       cartSubtotal += item.quantity * item.price;
     }
 
-    // ────────────────────────────────
-    // 2. COUPON VALIDATION — BEFORE ANY STOCK DEDUCTION
-    // ────────────────────────────────
+    
     let finalDiscount = discount || 0;
     let appliedCoupon = null;
 
@@ -312,9 +309,7 @@ const placedOrder = async (req, res) => {
 
     const finalTotal = Math.max(0, cartSubtotal - finalDiscount);
 
-    // ────────────────────────────────
-    // 3. COD & Wallet checks (before stock)
-    // ────────────────────────────────
+    
     if (paymentMethod === "Cash on Delivery" && finalTotal >= 1000) {
       await session.abortTransaction();
       return res.status(400).json({
@@ -334,9 +329,7 @@ const placedOrder = async (req, res) => {
       }
     }
 
-    // ────────────────────────────────
-    // 4. Address validation
-    // ────────────────────────────────
+    
     const addressDoc = await Address.findOne({ userId, "address._id": addressId }).session(session);
     if (!addressDoc) {
       await session.abortTransaction();
@@ -349,9 +342,7 @@ const placedOrder = async (req, res) => {
       return res.status(400).json({ success: false, message: "Address not found" });
     }
 
-    // ────────────────────────────────
-    // 5. NOW IT'S SAFE → DEDUCT STOCK
-    // ────────────────────────────────
+    
     const orderItems = [];
     const validSizes = ["6", "7", "8", "9"];
 
@@ -404,9 +395,7 @@ const placedOrder = async (req, res) => {
       });
     }
 
-    // ────────────────────────────────
-    // 6. Create Order
-    // ────────────────────────────────
+    
     const newOrder = new Order({
       userId,
       orderItems,
@@ -437,12 +426,26 @@ const placedOrder = async (req, res) => {
 
     await newOrder.save({ session });
 
-    // Deduct wallet
+  
     if (paymentMethod === "Wallet Payment") {
       await User.findByIdAndUpdate(userId, { $inc: { wallet: -finalTotal } }, { session });
+      // Create a corresponding wallet transaction (debit)
+      try {
+        const walletTx = new WalletTransaction({
+          userId: userId,
+          type: "Debit",
+          amount: finalTotal,
+          description: `Payment for order #${newOrder.orderId || newOrder._id}`,
+          orderId: newOrder._id,
+        });
+        await walletTx.save({ session });
+      } catch (walletErr) {
+        console.error('Failed to create wallet transaction for checkout:', walletErr);
+        // Non-critical but should be logged; continue flow and commit transaction
+      }
     }
 
-    // Increment coupon usage
+    
     if (appliedCoupon) {
       await Coupon.updateOne(
         { _id: appliedCoupon._id },
@@ -451,16 +454,16 @@ const placedOrder = async (req, res) => {
       );
     }
 
-    // Clear cart
+    
     await Cart.updateOne({ userId }, { $set: { items: [] } }, { session });
 
-    // For non-online payments, mark as non-temp
+    
     if (paymentMethod !== "Online Payment") {
       newOrder.isTemp = false;
       await newOrder.save({ session });
     }
 
-    // Commit everything
+    
     await session.commitTransaction();
 
     req.session.orderPlaced = true;
@@ -496,22 +499,32 @@ const placedOrder = async (req, res) => {
 const viewOrder = async (req, res) => {
   try {
     const orderId = req.params.orderId;
-    console.log("Looking for order:", orderId);
 
     const order = await Order.findById(orderId)
       .populate({
         path: "orderItems.product",
-        select: "productName productImage price",
+        select: "productName productImage", 
       })
       .populate("userId", "name email");
 
     if (!order) {
-      console.log("Order not found for ID:", orderId);
       return res.render("orderdetails", {
         order: null,
         error: "Order not found",
       });
     }
+
+    const getProductImage = (product) => {
+      if (!product) return "default-product.jpg";
+      if (product.productImage && product.productImage.length > 0) {
+        return product.productImage[0]; // Just the filename, e.g. "product-123.jpg"
+      }
+      return "default-product.jpg";
+    };
+
+    const getProductName = (product) => {
+      return product?.productName || "Product Unavailable";
+    };
 
     const formattedOrder = {
       orderId: order._id,
@@ -522,30 +535,31 @@ const viewOrder = async (req, res) => {
       totalAmount: order.totalAmount,
       orderItems: order.orderItems.map((item) => ({
         product: {
-          name: item.product?.productName || "Product Unavailable",
-          image: item.product?.productImage?.[0] || "/default-product.jpg",
+          name: getProductName(item.product),
+          image: getProductImage(item.product), // filename only
         },
-        size: item.size,
+        size: item.size || "N/A",
         quantity: item.quantity,
         price: item.price,
         subtotal: item.quantity * item.price,
       })),
     };
 
-    console.log("Formatted Order:", formattedOrder);
-
     res.render("orderdetails", {
       order: formattedOrder,
       error: null,
     });
   } catch (error) {
-    console.error("Error in viewOrder:", error);
+    console.error("Error in viewOrder:", error.message);
     res.render("orderdetails", {
       order: null,
-      error: "Error loading order details",
+      error: "Something went wrong. Please try again later.",
     });
   }
 };
+
+
+
 
 const downloadInvoice = async (req, res) => {
   try {

@@ -133,11 +133,11 @@
                 </td>
                 <td>
                     <% if (product.isBlocked === false) { %>
-                        <a href="/admin/blockProduct?id=<%= product._id %>">
+                        <a href="/admin/blockProduct?id=<%= product._id %>" class="block-unblock-link" data-action="block">
                             <button class="btn btn-danger btn-custom">Block</button>
                         </a>
                     <% } else { %>
-                        <a href="/admin/unblockProduct?id=<%= product._id %>">
+                        <a href="/admin/unblockProduct?id=<%= product._id %>" class="block-unblock-link" data-action="unblock">
                             <button class="btn btn-success btn-custom">Unblock</button>
                         </a>
                     <% } %>
@@ -188,53 +188,33 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
 <script>
-    function confirmAction(actionType) {
-        Swal.fire({
-            title: `Are you sure?`,
-            text: `You are about to ${actionType.toLowerCase()} this product.`,
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            confirmButtonText: `Yes, ${actionType.toLowerCase()} it!`
-        });
-    }
-</script>
-
-<script>
     document.addEventListener("DOMContentLoaded", function () {
-        const buttons = document.querySelectorAll(".toggleStatusBtn");
+        const blockUnblockLinks = document.querySelectorAll(".block-unblock-link");
 
-        buttons.forEach(button => {
-            button.addEventListener("click", function () {
-                const productId = this.getAttribute("data-id");
-                const newStatus = this.getAttribute("data-status");
+        blockUnblockLinks.forEach(link => {
+            link.addEventListener("click", function (e) {
+                e.preventDefault(); // Prevent immediate navigation
+                const action = this.getAttribute("data-action");
+                const actionText = action.charAt(0).toUpperCase() + action.slice(1); // "Block" or "Unblock"
+                const url = this.getAttribute("href");
 
                 Swal.fire({
-                    title: `Are you sure?`,
-                    text: `You are about to ${newStatus.toLowerCase()} this product.`,
+                    title: "Are you sure?",
+                    text: `You are about to ${action} this product.`,
                     icon: "warning",
                     showCancelButton: true,
                     confirmButtonColor: "#3085d6",
                     cancelButtonColor: "#d33",
-                    confirmButtonText: `Yes, ${newStatus.toLowerCase()} it!`
+                    confirmButtonText: `Yes, ${action} it!`
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        fetch(`/admin/product/${productId}/status`, {
-                            method: "PATCH",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ status: newStatus })
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            Swal.fire("Success!", data.message, "success").then(() => {
-                                location.reload(); 
-                            });
-                        })
-                        .catch(error => console.error("Error:", error));
+                        window.location.href = url; 
                     }
                 });
             });
         });
     });
+</script>
+
+
 </script>

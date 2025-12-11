@@ -1,6 +1,6 @@
 <%- include("../../views/partials/admin/header") %>
 <head>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css"/>
+  <link rel="stylesheet="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css"/>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     :root {
@@ -341,9 +341,13 @@
               </td>
               <td>
                 <% if(category.isListed){ %>
-                  <a href="/admin/listCategory?id=<%=category._id%>" class="btn btn-danger btn-sm">Unlist</a>
+                  <button class="btn btn-danger btn-sm" onclick="confirmUnlist('<%= category._id %>', '<%= category.name %>')">
+                    Unlist
+                  </button>
                 <% } else { %>
-                  <a href="/admin/unlistCategory?id=<%=category._id%>" class="btn btn-success btn-sm">List</a>
+                  <button class="btn btn-success btn-sm" onclick="confirmList('<%= category._id %>', '<%= category.name %>')">
+                    List
+                  </button>
                 <% } %>
                 <a href="/admin/editCategory?id=<%=category._id%>" class="btn btn-info btn-sm text-white">Edit</a>
               </td>
@@ -581,6 +585,40 @@
         }
       } catch (err) {
         Swal.fire('Error', 'Failed to remove offer', 'error');
+      }
+    }
+
+    // New: Confirm List
+    async function confirmList(categoryId, categoryName) {
+      const result = await Swal.fire({
+        title: 'List Category?',
+        text: `"${categoryName}" will be visible to customers.`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#4caf50',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, List it!'
+      });
+
+      if (result.isConfirmed) {
+        window.location.href = `/admin/unlistCategory?id=${categoryId}`;
+      }
+    }
+
+    // New: Confirm Unlist
+    async function confirmUnlist(categoryId, categoryName) {
+      const result = await Swal.fire({
+        title: 'Unlist Category?',
+        text: `"${categoryName}" will be hidden from customers.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#f72585',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, Unlist'
+      });
+
+      if (result.isConfirmed) {
+        window.location.href = `/admin/listCategory?id=${categoryId}`;
       }
     }
   </script>

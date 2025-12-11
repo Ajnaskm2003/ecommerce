@@ -314,18 +314,18 @@ const getEditProduct = async (req, res) => {
     try {
         const productId = req.params.id;
 
-        // Populate category in the product itself
+        
         const product = await Product.findById(productId).populate('category');
         if (!product) {
             return res.status(404).render("admin/404", { message: "Product not found" });
         }
 
-        // Just get all categories for dropdown
+        
         const categories = await Category.find({}).sort({ name: 1 });
 
         res.render("editProduct", {
-            product,        // already has populated category
-            categories      // renamed for clarity
+            product,        
+            categories      
         });
 
     } catch (error) {

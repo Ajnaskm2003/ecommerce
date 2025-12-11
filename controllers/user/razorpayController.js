@@ -38,7 +38,7 @@ const createOrder = async (req, res) => {
       return isNaN(num) ? 0 : num;
     };
 
-    // ─────── RETRY PAYMENT CASE ───────
+    
     if (retryOrderId) {
       orderToUse = await Order.findOne({
         _id: retryOrderId,
@@ -53,7 +53,7 @@ const createOrder = async (req, res) => {
       }
       finalAmount = orderToUse.totalAmount;
     } 
-    // ─────── NORMAL FLOW ───────
+    
     else {
       const addressDoc = await Address.findOne({ userId, 'address._id': addressId });
       if (!addressDoc) {
@@ -68,7 +68,7 @@ const createOrder = async (req, res) => {
       const unavailableItems = [];
       let hasStockIssue = false;
 
-      // ─────── STOCK VALIDATION (CRITICAL FIX) ───────
+      
       for (const item of cart.items) {
         const product = item.productId;
         if (!product || product.isBlocked || product.status === "Out of Stock") {
@@ -104,9 +104,9 @@ const createOrder = async (req, res) => {
           outOfStockItems: unavailableItems
         });
       }
-      // ─────── END OF STOCK CHECK ───────
+      
 
-      // Calculate subtotal (only after stock is confirmed)
+      
       calculatedTotal = cart.items.reduce((sum, item) => {
         const price = toSafeNumber(item.price);
         const qty = toSafeNumber(item.quantity);
@@ -117,7 +117,7 @@ const createOrder = async (req, res) => {
         return res.status(400).json({ success: false, message: "Invalid cart amount" });
       }
 
-      // Coupon logic (your existing fixed version)
+      
       if (coupon && typeof coupon === "string" && coupon.trim() !== "") {
         const couponCode = coupon.trim().toUpperCase();
         const couponDoc = await Coupon.findOne({
@@ -151,14 +151,14 @@ const createOrder = async (req, res) => {
       appliedDiscount = Number(appliedDiscount.toFixed(2));
       finalAmount = Math.max(1, Number((calculatedTotal - appliedDiscount).toFixed(2)));
 
-      // Client-side amount tampering check
+      
       const clientAmount = toSafeNumber(clientTotalAmount);
       if (Math.abs(finalAmount - clientAmount) > 1) {
         console.warn("Possible tampering", { clientAmount, finalAmount, userId });
         return res.status(400).json({ success: false, message: "Amount mismatch. Please try again." });
       }
 
-      // Create temp order only if stock is available
+      
       const customOrderId = `ORD${new Date().getFullYear().toString().slice(-2)}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}${Math.floor(1000 + Math.random() * 9000)}`;
 
       const orderItems = cart.items.map(item => ({

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -75,6 +74,11 @@
       background-color: #007bff;
       color: white;
       border: none;
+      transition: all 0.3s;
+    }
+
+    .btn-arrow:disabled {
+      cursor: not-allowed;
     }
 
     .btn-primary {
@@ -130,30 +134,54 @@
     const emailForm = document.getElementById('email-form');
     const otpForm = document.getElementById('otp-form');
     const errorMessage = document.getElementById('error-message');
+    const emailSubmitBtn = emailForm.querySelector('.btn-arrow');
 
-    function showError(message) {
+    let timerInterval = null;
+
+    function showMessage(message, isError = true) {
       errorMessage.textContent = message;
+      errorMessage.className = `alert text-center ${isError ? 'alert-danger' : 'alert-success'}`;
       errorMessage.style.display = 'block';
       setTimeout(() => {
         errorMessage.style.display = 'none';
-        errorMessage.textContent = '';
-      }, 3000);
+      }, 4000);
     }
 
-    function hideError() {
-      errorMessage.style.display = 'none';
-      errorMessage.textContent = '';
+    function startResendTimer() {
+      let timeLeft = 30;
+      emailSubmitBtn.disabled = true;
+      emailSubmitBtn.style.opacity = '0.6';
+
+      const updateButton = () => {
+        emailSubmitBtn.innerHTML = `${timeLeft}s`;
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          emailSubmitBtn.disabled = false;
+          emailSubmitBtn.style.opacity = '1';
+          emailSubmitBtn.innerHTML = '&rarr;';
+        }
+        timeLeft--;
+      };
+
+      updateButton(); // immediate first update
+      timerInterval = setInterval(updateButton, 1000);
     }
 
     emailForm.addEventListener('submit', async function(event) {
       event.preventDefault();
       const emailInput = emailForm.querySelector('input[name="email"]');
       const emailValue = emailInput.value.trim();
-      console.log('Email input value:', emailValue, 'Type:', typeof emailValue);
-      hideError();
+
+      // Clear any existing timer
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        emailSubmitBtn.disabled = false;
+        emailSubmitBtn.style.opacity = '1';
+        emailSubmitBtn.innerHTML = '&rarr;';
+      }
 
       if (!emailValue) {
-        showError(errorMessages.email);
+        showMessage(errorMessages.email, true);
         return;
       }
 
@@ -165,34 +193,31 @@
         });
 
         const data = await response.json();
+
         if (data.success) {
-          console.log('OTP sent:', data.message);
-          showError('OTP sent to your email');
+          showMessage('OTP sent successfully!', false);
           otpForm.querySelector('input[name="email"]').value = emailValue;
+          startResendTimer(); // start 30-second countdown on arrow button
         } else {
-          showError(data.message);
+          showMessage(data.message || 'Failed to send OTP', true);
         }
       } catch (error) {
-        console.error('Error sending OTP:', error.message, error.stack);
-        showError('Failed to send OTP. Please try again.');
+        console.error('Error sending OTP:', error);
+        showMessage('Something went wrong. Please try again.', true);
       }
     });
 
     otpForm.addEventListener('submit', async function(event) {
       event.preventDefault();
-      const emailInput = otpForm.querySelector('input[name="email"]');
-      const otpInput = otpForm.querySelector('input[name="otp"]');
-      const emailValue = emailInput.value.trim();
-      const otpValue = otpInput.value.trim();
-      console.log('Verify OTP - Email:', emailValue, 'OTP:', otpValue, 'Type:', typeof otpValue);
-      hideError();
+      const emailValue = otpForm.querySelector('input[name="email"]').value.trim();
+      const otpValue = otpForm.querySelector('input[name="otp"]').value.trim();
 
       if (!otpValue) {
-        showError(errorMessages.otp);
+        showMessage(errorMessages.otp, true);
         return;
       }
       if (!emailValue) {
-        showError('Email is missing. Please start over.');
+        showMessage('Email is missing. Please start over.', true);
         return;
       }
 
@@ -200,23 +225,24 @@
         const response = await fetch('/forgot-password/verify-otp', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: emailValue, otp: String(otpValue) }) // Ensure OTP is a string
+          body: JSON.stringify({ email: emailValue, otp: String(otpValue) })
         });
 
         const data = await response.json();
+
         if (data.success) {
-          console.log('OTP verified:', data.message);
-          showError('OTP verified successfully');
-          window.location.href = `/change-password?email=${encodeURIComponent(emailValue)}`;
+          showMessage('OTP verified successfully!', false);
+          setTimeout(() => {
+            window.location.href = `/change-password?email=${encodeURIComponent(emailValue)}`;
+          }, 800);
         } else {
-          showError(data.message);
+          showMessage(data.message || 'Invalid OTP', true);
         }
       } catch (error) {
-        console.error('Error verifying OTP:', error.message, error.stack);
-        showError('Failed to verify OTP. Please try again.');
+        console.error('Error verifying OTP:', error);
+        showMessage('Failed to verify OTP. Please try again.', true);
       }
     });
   </script>
 </body>
 </html>
-```

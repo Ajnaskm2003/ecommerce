@@ -82,34 +82,32 @@ const getAllProducts = async (req, res) => {
     }
 };
 
+
+
 const getProductDetails = async (req, res) => {
     try {
         const productId = req.query.id; 
 
-        if (!productId) {
-            return res.status(400).send('Product ID is required');
-        }
-
-        if (!mongoose.Types.ObjectId.isValid(productId)) {
+        if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
             return res.redirect('/pageNotFound');
         }
 
         const product = await Product.findById(productId).populate('category');
         
-        if (!product) {
-            return res.status(404).send('Product not found');
-        }
-
-        
-        if (product.isBlocked) {
-            return res.status(404).render('pageNotFound', { 
+        if (!product || product.isBlocked) {
+            return res.render('pageNotFound', { 
                 message: 'This product is currently unavailable', 
                 user: req.session.user || null 
             });
-            
         }
 
+        // Calculate total stock from sizes
+        const totalStock = Object.values(product.sizes || {}).reduce((sum, qty) => sum + (qty || 0), 0);
+
+        const isInStock = totalStock > 0;
+
         const deals = await Product.find({ 
+            category: product.category._id,
             isBlocked: false, 
             status: 'Available',
             _id: { $ne: productId } 
@@ -118,13 +116,21 @@ const getProductDetails = async (req, res) => {
         .limit(9)
         .populate('category');
 
-        res.render('ProductDetails', { product, deals, user: req.session.user || null });
+        res.render('ProductDetails', { 
+            product, 
+            deals, 
+            user: req.session.user || null,
+            isInStock,        
+            totalStock        
+        });
 
     } catch (error) {
         console.error('Error fetching product details:', error);
-        res.status(500).send('Server error occurred while fetching product details');
+        res.status(500).send('Server error');
     }
 };
+
+
 
 const downloadInvoice = async (req, res) => {
   try {

@@ -162,38 +162,44 @@ const getTopCategories = async (req, res) => {
 
 
 
-const adminSignIn  = async (req,res)=>{ 
-    
-    const {email,password} = req.body;
-    console.log(req.body)
- 
-    try { 
-       
-        
-        const admin = await Admin.findOne({email});
-    
-       
-       if (!admin) {
-        req.flash("error", "Invalid email or password");
-        return res.redirect("/admin/login"); 
+const adminSignIn = async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+        const admin = await Admin.findOne({ email });
+
+        // Check if admin exists
+        if (!admin) {
+            req.flash("error", "Invalid email or password");
+            return res.redirect("/admin/login");
         }
-    
+
+        // Check password (plain text — upgrade to bcrypt later if possible)
         if (admin.password !== password) {
-        req.flash("error", "Invalid email or password");
-        return res.redirect("/admin/login"); 
+            req.flash("error", "Invalid email or password");
+            return res.redirect("/admin/login");
         }
-    
 
+        // CORRECT WAY: Save full admin object in session
+        req.session.admin = {
+            id: admin._id,
+            name: admin.name || 'Admin',
+            email: admin.email,
+            isAdmin: true
+        };
 
+        // Optional: Make sure no user session exists
+        delete req.session.user;
 
-        req.session.admin = true;
-        console.log('admin',req.session.admin)
+        console.log('Admin logged in:', req.session.admin);
+
+        req.flash('success', 'Welcome back, Admin!');
         return res.redirect('/admin/dashboard');
 
-
     } catch (error) {
-        res.status(500).json({message: error.message});
-
+        console.error('Admin login error:', error);
+        req.flash('error', 'Server error. Please try again.');
+        return res.redirect('/admin/login');
     }
 };
 

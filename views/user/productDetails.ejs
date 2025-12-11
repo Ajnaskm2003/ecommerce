@@ -1,344 +1,327 @@
-<%-include("../../views/partials/user/header")%>
+<%- include("../../views/partials/user/header") %>
 <html lang="zxx" class="no-js">
 
 <head>
-	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	<link rel="shortcut icon" href="img/fav.png">
-	<meta name="author" content="CodePixar">
-	<meta name="description" content="">
-	<meta name="keywords" content="">
-	<meta charset="UTF-8">
-	<title>Karma Shop</title>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="shortcut icon" href="img/fav.png">
+    <title><%= product ? product.productName + ' | Karma Shop' : 'Product Not Found' %></title>
 
-	<link rel="stylesheet" href="css/linearicons.css">
-	<link rel="stylesheet" href="css/font-awesome.min.css">
-	<link rel="stylesheet" href="css/themify-icons.css">
-	<link rel="stylesheet" href="css/bootstrap.css">
-	<link rel="stylesheet" href="css/owl.carousel.css">
-	<link rel="stylesheet" href="css/nice-select.css">
-	<link rel="stylesheet" href="css/nouislider.min.css">
-	<link rel="stylesheet" href="css/ion.rangeSlider.css" />
-	<link rel="stylesheet" href="css/ion.rangeSlider.skinFlat.css" />
-	<link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/linearicons.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/themify-icons.css">
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <link rel="stylesheet" href="css/owl.carousel.css">
+    <link rel="stylesheet" href="css/nice-select.css">
+    <link rel="stylesheet" href="css/nouislider.min.css">
+    <link rel="stylesheet" href="css/ion.rangeSlider.css" />
+    <link rel="stylesheet" href="css/ion.rangeSlider.skinFlat.css" />
+    <link rel="stylesheet" href="css/main.css">
 
-	<style>
-		/* ────── IMAGE ZOOM (tiny & elegant) ────── */
-		.img-zoom-container {position:relative;overflow:hidden;border-radius:8px;box-shadow:0 3px 10px rgba(0,0,0,.09);}
-		#productImg{display:block;width:100%;transition:transform .45s ease;}
-		.img-zoom-container:hover #productImg{transform:scale(1.55);cursor:crosshair;transform-origin:var(--x) var(--y);}
+    <style>
+        /* Image Zoom */
+        .img-zoom-container {position:relative;overflow:hidden;border-radius:10px;box-shadow:0 4px 15px rgba(0,0,0,.1);}
+        #productImg{display:block;width:100%;transition:transform .5s ease;}
+        .img-zoom-container:hover #productImg{transform:scale(1.6);cursor:crosshair;transform-origin:var(--x,50%) var(--y,50%);}
 
-		/* ────── THUMBNAILS (compact) ────── */
-		.product-thumbnails{margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;}
-		.thumbnail{border:1.2px solid #ddd;border-radius:5px;overflow:hidden;cursor:pointer;transition:all .2s ease;box-shadow:0 1px 4px rgba(0,0,0,.05);}
-		.thumbnail:hover{border-color:#444;transform:translateY(-1.5px);box-shadow:0 4px 10px rgba(0,0,0,.1);}
-		.thumbnail img{width:62px;height:62px;object-fit:cover;}
+        /* Thumbnails */
+        .product-thumbnails{margin-top:15px;display:flex;gap:8px;flex-wrap:wrap;}
+        .thumbnail{border:2px solid #eee;border-radius:8px;overflow:hidden;cursor:pointer;transition:all .3s;}
+        .thumbnail:hover{border-color:#333;transform:scale(1.05);box-shadow:0 5px 15px rgba(0,0,0,.1);}
+        .thumbnail img{width:70px;height:70px;object-fit:cover;}
 
-		/* ────── SIZE BUTTONS (tiny & pretty) ────── */
-		.size-btn{width:36px;height:36px;border-radius:50%;border:1.8px solid #333;background:#fff;color:#333;font-weight:600;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;margin:0 5px 5px 0;transition:all .2s ease;box-shadow:0 2px 5px rgba(0,0,0,.07);}
-		.size-btn:hover{transform:translateY(-1.5px);box-shadow:0 4px 10px rgba(0,0,0,.13);}
-		.size-btn.selected{background:#333;color:#fff;transform:translateY(1px);box-shadow:inset 0 1.5px 3px rgba(0,0,0,.3),0 2px 5px rgba(0,0,0,.08);}
+        /* Size Buttons */
+        .size-btn{
+            width:42px;height:42px;border-radius:50%;border:2px solid #333;background:#fff;
+            color:#333;font-weight:700;font-size:14px;cursor:pointer;margin:0 8px 8px 0;
+            display:inline-flex;align-items:center;justify-content:center;
+            transition:all .3s ease;box-shadow:0 3px 8px rgba(0,0,0,.1);
+        }
+        .size-btn:hover:not(.out-of-stock){transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,.18);}
+        .size-btn.selected{background:#333;color:#fff;transform:scale(1.08);box-shadow:0 5px 15px rgba(0,0,0,.2);}
+        
+        /* ONLY RED CROSS - NO GRAY, NO DISABLE */
+        .size-btn.out-of-stock{
+            position:relative;
+        }
+        .size-btn.out-of-stock::after{
+            content:'';
+            position:absolute;
+            top:50%;
+            left:15%;
+            width:70%;
+            height:3px;
+            background:#e74c3c;
+            transform:translateY(-50%) rotate(-45deg);
+            border-radius:3px;
+        }
 
-		/* ────── ACTION BUTTONS (sleek) ────── */
-		.card_area{margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;}
-		.primary-btn{padding:9px 20px;font-weight:600;font-size:13.5px;text-transform:uppercase;letter-spacing:.7px;border-radius:25px;transition:all .25s ease;box-shadow:0 2px 7px rgba(0,0,0,.07);}
-		.primary-btn:hover{transform:translateY(-1.5px);box-shadow:0 5px 12px rgba(0,0,0,.13);}
+        /* Buttons */
+        .primary-btn{padding:10px 24px;font-weight:600;font-size:14px;border-radius:30px;transition:all .3s;}
+        .primary-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.15);}
+        .primary-btn:disabled{background:#ccc;cursor:not-allowed;opacity:0.7;}
 
-		/* ────── NO PRODUCT CARD (compact) ────── */
-		.no-product-container{min-height:55vh;display:flex;align-items:center;justify-content:center;padding:25px 15px;}
-		.no-product-container .card{max-width:420px;width:100%;padding:28px 24px;border-radius:12px;background:#fff;box-shadow:0 6px 18px rgba(0,0,0,.07);text-align:center;}
-		.no-product-container i{font-size:44px;color:#bbb;margin-bottom:12px;}
-		.no-product-container h2{font-size:22px;font-weight:700;color:#333;margin-bottom:8px;}
-		.no-product-container p{color:#777;font-size:14.5px;margin-bottom:20px;}
+        /* Offer Badge */
+        .flipkart-offer{display:inline-flex;align-items:center;gap:6px;background:#e8f5e9;color:#2e7d32;
+            font-size:13px;font-weight:600;padding:4px 9px;border:1px solid #81c784;border-radius:6px;margin-top:6px;}
+        .flipkart-offer i{color:#4caf50;}
 
-		/* ────── PRODUCT DETAILS → DEALS GAP (extra space) ────── */
-		.product_image_area{padding-bottom:70px !important;}
+        @media (max-width:768px){
+            .size-btn{width:38px;height:38px;font-size:13px;margin:0 6px 8px 0;}
+            .thumbnail img{width:60px;height:60px;}
+        }
+    </style>
 
-		/* ────── DEALS OF THE WEEK (clean & spaced) ────── */
-		.related-product-area{padding-top:60px !important;padding-bottom:55px !important;background:#fdfdfd;border-top:1px solid #eee;}
-		.related-product-area .section-title h1{font-size:28px;font-weight:700;color:#222;margin-bottom:10px;position:relative;display:inline-block;}
-		.related-product-area .section-title h1::after{content:'';position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);width:45px;height:2.5px;background:#e74c3c;border-radius:2px;}
-		.related-product-area .section-title p{color:#666;font-size:14.5px;max-width:540px;margin:0 auto;}
-
-		.single-related-product{background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 3px 9px rgba(0,0,0,.06);transition:all .25s ease;display:flex;align-items:center;padding:9px;margin-bottom:16px;}
-		.single-related-product:hover{transform:translateY(-3px);box-shadow:0 8px 18px rgba(0,0,0,.11);}
-		.single-related-product img{width:70px;height:70px;object-fit:cover;border-radius:6px;}
-		.single-related-product .desc{padding-left:10px;flex:1;}
-		.single-related-product .title{font-weight:600;color:#333;font-size:13.5px;margin-bottom:3px;display:block;}
-		.single-related-product .price h6{font-size:14.5px;font-weight:700;color:#e74c3c;margin:0;}
-		.single-related-product .price .l-through{color:#999;text-decoration:line-through;font-weight:400;margin-left:5px;font-size:12.5px;}
-
-		.ctg-right a img{border-radius:10px;box-shadow:0 5px 15px rgba(0,0,0,.08);transition:transform .3s ease;}
-		.ctg-right a:hover img{transform:scale(1.03);}
-
-		/* ────── FLIPKART-STYLE OFFER BADGE (below Availibility) ────── */
-		.flipkart-offer {
-			display: inline-flex;
-			align-items: center;
-			gap: 5px;
-			background: #fff;
-			color: #388e3c;
-			font-size: 13px;
-			font-weight: 600;
-			padding: 2px 6px;
-			border: 1px solid #4caf50;
-			border-radius: 4px;
-			margin-top: 4px;
-		}
-		.flipkart-offer .ti-tag {
-			font-size: 14px;
-			color: #4caf50;
-		}
-
-		/* ────── RESPONSIVE ────── */
-		@media (max-width:768px){
-			.size-btn{width:32px;height:32px;font-size:12px;margin:0 4px 5px 0;}
-			.primary-btn{padding:8px 18px;font-size:13px;}
-			.product_image_area{padding-bottom:50px !important;}
-			.related-product-area{padding-top:50px !important;}
-			.related-product-area .section-title h1{font-size:24px;}
-			.single-related-product{padding:8px;margin-bottom:14px;}
-			.single-related-product img{width:64px;height:64px;}
-			.flipkart-offer{font-size:12px;padding:2px 5px;}
-		}
-		@media (max-width:576px){
-			.thumbnail img{width:56px;height:56px;}
-			.card_area{justify-content:center;}
-		}
-	</style>
-
-	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
 
-	<!-- Start Banner Area -->
-	<section class="banner-area organic-breadcrumb">
-		<div class="container">
-			<div class="breadcrumb-banner d-flex flex-wrap align-items-center justify-content-end">
-				<div class="col-first">
-					<h1>Product Details Page</h1>
-					<nav class="d-flex align-items-center">
-						<a href="/">Home<span class="lnr lnr-arrow-right"></span></a>
-						<a href="/shop">Shop<span class="lnr lnr-arrow-right"></span></a>
-						<a href="single-product.html">product-details</a>
-					</nav>
-				</div>
-			</div>
-		</div>
-	</section>
-	<!-- End Banner Area -->
+    <!-- Breadcrumb -->
+    <section class="banner-area organic-breadcrumb">
+        <div class="container">
+            <div class="breadcrumb-banner d-flex flex-wrap align-items-center justify-content-end">
+                <div class="col-first">
+                    <h1>Product Details</h1>
+                    <nav class="d-flex align-items-center">
+                        <a href="/">Home<span class="lnr lnr-arrow-right"></span></a>
+                        <a href="/shop">Shop<span class="lnr lnr-arrow-right"></span></a>
+                        <a>Product Details</a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </section>
 
-	<!--================Single Product Area =================-->
-	<div class="product_image_area">
-		<div class="container">
-			<% if (product) { %>
-				<div class="row s_product_inner">
-					<div class="col-lg-6">
-						<div class="product-image-wrapper">
-							<div class="img-zoom-container">
-								<img id="productImg" class="img-fluid" src="<%= product.productImage[0] %>" alt="<%= product.productName %>">
-								<div id="img-zoom-result"></div>
-							</div>
-							
-							<% if (product.productImage.length > 1) { %>
-								<div class="product-thumbnails mt-3">
-									<% product.productImage.forEach((image, index) => { %>
-										<div class="thumbnail d-inline-block mr-2" onclick="changeImage('<%= image %>')">
-											<img src="<%= image %>" alt="<%= product.productName %> thumbnail" class="img-fluid" style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;">
-										</div>
-									<% }) %>
-								</div>
-							<% } %>
-						</div>
-					</div>
-					
-					<div class="col-lg-5 offset-lg-1">
-						<div class="s_product_text">
-							<h3><%=product.productName%></h3>
-							<!-- FIXED: Now uses finalPrice (highest of product/category offer) -->
-							<h2>₹<%= (product.finalPrice || product.salePrice).toFixed(2) %></h2>
+    <!-- Product Details -->
+    <div class="product_image_area">
+        <div class="container">
+            <% if (product) { %>
+                <% 
+                    const totalStock = Object.values(product.sizes || {}).reduce((a, b) => a + (b || 0), 0);
+                    const isInStock = totalStock > 0;
+                %>
 
-							<ul class="list">
-								<li><a class="active" href="#"><span>Category :</span><%=product.category.name%></a></li>
-								<li><a href="#"><span>Availibility</span> : In Stock</a></li>
+                <div class="row s_product_inner">
+                    <!-- Images -->
+                    <div class="col-lg-6">
+                        <div class="img-zoom-container">
+                            <img id="productImg" class="img-fluid" src="<%= product.productImage[0] %>" alt="<%= product.productName %>">
+                        </div>
+                        <% if (product.productImage.length > 1) { %>
+                            <div class="product-thumbnails mt-4">
+                                <% product.productImage.forEach(image => { %>
+                                    <div class="thumbnail" onclick="changeImage('<%= image %>')">
+                                        <img src="<%= image %>" alt="thumb">
+                                    </div>
+                                <% }) %>
+                            </div>
+                        <% } %>
+                    </div>
 
-								<!-- DYNAMIC OFFER BADGE -->
-								<% 
-									const productOffer = product.offerPercentage || 0;
-									const categoryOffer = product.category?.categoryOffer || 0;
-									const bestOffer = Math.max(productOffer, categoryOffer);
-									const offerSource = productOffer > categoryOffer ? 'Product' : (categoryOffer > 0 ? 'Category' : null);
-								%>
-								<% if (bestOffer > 0) { %>
-									<li>
-										<div class="flipkart-offer">
-											<i class="ti-tag"></i>
-											<span><%= bestOffer %>% <%= offerSource %> Offer</span>
-										</div>
-									</li>
-								<% } %>
-							</ul>
+                    <!-- Details -->
+                    <div class="col-lg-5 offset-lg-1">
+                        <div class="s_product_text">
+                            <h3><%= product.productName %></h3>
+                            <h2>₹<%= (product.finalPrice || product.salePrice).toFixed(2) %></h2>
 
-							<p><%=product.description%></p>
-							<div>
-								<button class="size-btn" onclick="selectSize(this)" data-size="6">6</button>
-								<button class="size-btn" onclick="selectSize(this)" data-size="7">7</button>
-								<button class="size-btn" onclick="selectSize(this)" data-size="8">8</button>
-								<button class="size-btn" onclick="selectSize(this)" data-size="9">9</button>
-							</div>
-							
-							<br>
-							
-							<!-- QUANTITY COUNTER REMOVED COMPLETELY -->
+                            <ul class="list">
+                                <li><a class="active"><span>Category</span> : <%= product.category.name %></a></li>
+                                <li>
+                                    <a>
+                                        <span>Availability</span> : 
+                                        <% if (isInStock) { %>
+                                            <strong style="color:#28a745;">In Stock</strong>
+                                            <% if (totalStock <= 5) { %>
+                                                <span style="color:#e74c3c;font-weight:600;"> (Only <%= totalStock %> left!)</span>
+                                            <% } %>
+                                        <% } else { %>
+                                            <strong style="color:#e74c3c;">Out of Stock</strong>
+                                        <% } %>
+                                    </a>
+                                </li>
 
-							<div class="card_area d-flex align-items-center">
-								<button class="primary-btn" onclick="addToCart('<%= product._id %>')">Add to Cart</button>
-								<button class="primary-btn" onclick="addToWishlist('<%= product._id %>')">Add to Wishlist</button>
-							</div>
-						</div>
-					</div>
-				</div>
-			<% } else { %>
-				<div class="no-product-container text-center my-5">
-					<div class="card p-5 shadow-sm">
-						<i class="fa fa-search-minus mb-3" style="font-size: 48px; color: #777;"></i>
-						<h2>No Product Found</h2>
-						<p class="text-muted">The product you're looking for is not available.</p>
-						<div class="mt-4">
-							<a href="/shop" class="primary-btn">Continue Shopping</a>
-						</div>
-					</div>
-				</div>
-			<% } %>
-		</div>
-	</div>
-	
-	<!-- Deels -->
-	<section class="related-product-area section_gap_bottom">
-		<div class="container">
-			<div class="row justify-content-center">
-				<div class="col-lg-6 text-center">
-					<div class="section-title">
-						<h1>Deals of the Week</h1>
-						<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-					</div>
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-lg-9">
-					<div class="row">
-						<% if (deals && deals.length > 0) { %>
-							<% deals.forEach(product => { %>
-								<div class="col-lg-4 col-md-4 col-sm-6 mb-20">
-									<div class="single-related-product d-flex">
-										<a href="/product?id=<%= product._id %>">
-											<img src="<%= product.productImage[0] %>" alt="<%= product.productName %>">
-										</a>
-										<div class="desc">
-											<a href="/product?id=<%= product._id %>" class="title"><%= product.productName %></a>
-											<div class="price">
-												<h6>₹<%= (product.finalPrice || product.salePrice).toFixed(2) %></h6>
-												<% if (product.regularPrice > (product.finalPrice || product.salePrice)) { %>
-													<h6 class="l-through">₹<%= product.regularPrice.toFixed(2) %></h6>
-												<% } %>
-											</div>
-										</div>
-									</div>
-								</div>
-							<% }) %>
-						<% } else { %>
-							<div class="col-12 text-center py-5">
-								<p class="text-muted">No deals available at the moment.</p>
-							</div>
-						<% } %>
-					</div>
-				</div>
-				<div class="col-lg-3">
-					<div class="ctg-right">
-						<a href="/shop" target="_blank">
-							<img class="img-fluid d-block mx-auto" src="img/category/c5.jpg" alt="Shop Now">
-						</a>
-					</div>
-				</div>
-			</div>
-		</div>
-	</section>
+                                <% 
+                                    const pOffer = product.offerPercentage || 0;
+                                    const cOffer = product.category?.categoryOffer || 0;
+                                    const best = Math.max(pOffer, cOffer);
+                                    const source = pOffer > cOffer ? 'Product' : (cOffer > 0 ? 'Category' : null);
+                                %>
+                                <% if (best > 0) { %>
+                                    <li>
+                                        <div class="flipkart-offer">
+                                            <i class="ti-tag"></i> <%= best %>% <%= source %> Offer
+                                        </div>
+                                    </li>
+                                <% } %>
+                            </ul>
 
-	<script>
-		function changeImage(imageSrc) {
-			document.getElementById('productImg').src = imageSrc;
-		}
+                            <p style="margin:20px 0;line-height:1.7;color:#555;"><%= product.description %></p>
 
-		document.addEventListener('DOMContentLoaded', function() {
-			const container = document.querySelector('.img-zoom-container');
-			const img = document.getElementById('productImg');
-			
-			if (container && img) {
-				container.addEventListener('mousemove', function(e) {
-					const rect = container.getBoundingClientRect();
-					const x = (e.clientX - rect.left) / rect.width;
-					const y = (e.clientY - rect.top) / rect.height;
-					
-					container.style.setProperty('--x', x * 100 + '%');
-					container.style.setProperty('--y', y * 100 + '%');
-				});
-			}
-		});
+                            <!-- Size Selection -->
+                            <% if (isInStock) { %>
+                                <div style="margin:30px 0;">
+                                    <strong style="font-size:16px;color:#222;">Select Size:</strong><br><br>
+                                    <% ['6','7','8','9'].forEach(size => { %>
+                                        <% const stock = product.sizes?.[size] || 0; %>
+                                        <% const available = stock > 0; %>
+                                        <button class="size-btn <%= !available ? 'out-of-stock' : '' %>"
+                                                onclick="selectSize(this, '<%= size %>', <%= available %>)"
+                                                data-size="<%= size %>">
+                                            <%= size %>
+                                        </button>
+                                    <% }) %>
+                                </div>
+                            <% } else { %>
+                                <div style="margin:30px 0;padding:15px;background:#fff5f5;border:1px solid #ffcdd2;border-radius:8px;">
+                                    <p style="color:#c62828;font-weight:600;margin:0;">
+                                        This product is currently unavailable in all sizes
+                                    </p>
+                                </div>
+                            <% } %>
 
-		function selectSize(button) {
-			document.querySelectorAll('.size-btn').forEach(btn => btn.classList.remove('selected'));
-			button.classList.add('selected');
-		}
+                            <!-- Action Buttons -->
+                            <div class="card_area d-flex align-items-center flex-wrap gap-3">
+                                <% if (isInStock) { %>
+                                    <button class="primary-btn" id="addCartBtn" onclick="addToCart('<%= product._id %>')">
+                                        Add to Cart
+                                    </button>
+                                <% } else { %>
+                                    <button class="primary-btn" disabled>Out of Stock</button>
+                                <% } %>
+                                <button class="primary-btn" style="background:#f8f9fa;color:#333;border:2px solid #ddd;"
+                                        onclick="addToWishlist('<%= product._id %>')">
+                                    Add to Wishlist
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <% } else { %>
+                <div class="text-center py-5 my-5">
+                    <i class="fa fa-box-open" style="font-size:80px;color:#ddd;"></i>
+                    <h2 class="mt-4">Product Not Found</h2>
+                    <p class="text-muted mb-4">Sorry, this product is no longer available.</p>
+                    <a href="/shop" class="primary-btn">Continue Shopping</a>
+                </div>
+            <% } %>
+        </div>
+    </div>
 
-		function addToCart(productId) {
-			const selectedSizeBtn = document.querySelector('.size-btn.selected');
-			if (!selectedSizeBtn) {
-				Swal.fire({icon:'warning',title:'Size Required',text:'Please select a size before adding to cart',confirmButtonColor:'#3085d6'});
-				return;
-			}
-			const selectedSize = selectedSizeBtn.getAttribute('data-size');
-			const quantity = 1;
+    <!-- Related Products Section (unchanged) -->
+    <section class="related-product-area section_gap_bottom" style="background:#f8f9fa;padding:70px 0;">
+        <div class="container">
+            <div class="row justify-content-center mb-5">
+                <div class="col-lg-6 text-center">
+                    <h1>Related Products</h1>
+                    <p>Explore similar items you might love</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-9">
+                    <div class="row">
+                        <% if (deals?.length > 0) { %>
+                            <% deals.forEach(p => { %>
+                                <% const rStock = Object.values(p.sizes||{}).reduce((a,b)=>a+(b||0),0); %>
+                                <div class="col-lg-4 col-md-6 mb-4">
+                                    <div class="single-related-product d-flex align-items-center p-3 rounded shadow-sm <%= rStock === 0 ? 'opacity-75' : '' %>">
+                                        <a href="/product?id=<%= p._id %>"><img src="<%= p.productImage[0] %>" width="80" class="rounded"></a>
+                                        <div class="desc ml-3">
+                                            <a href="/product?id=<%= p._id %>" class="title d-block"><%= p.productName %></a>
+                                            <div class="price mt-1">
+                                                <strong>₹<%= (p.finalPrice || p.salePrice).toFixed(2) %></strong>
+                                                <% if (p.regularPrice > p.finalPrice) { %>
+                                                    <del class="text-muted ml-2">₹<%= p.regularPrice.toFixed(2) %></del>
+                                                <% } %>
+                                                <% if (rStock === 0) { %>
+                                                    <span class="d-block text-danger mt-1"><small>Out of Stock</small></span>
+                                                <% } %>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        <% } else { %>
+                            <p class="text-center text-muted w-100">No related products found.</p>
+                        <% } %>
+                    </div>
+                </div>
+                <div class="col-lg-3">
+                    <a href="/shop"><img src="img/category/c5.jpg" class="img-fluid rounded shadow" alt="Shop"></a>
+                </div>
+            </div>
+        </div>
+    </section>
 
-			fetch("/cart/add", {
-				method: "POST",
-				headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-				body: JSON.stringify({ productId, size: selectedSize, quantity })
-			})
-			.then(r => r.json())
-			.then(data => {
-				if (data.success) {
-					Swal.fire({
-						icon:'success',title:'Added to Cart!',text:'Product has been added to your cart',
-						showConfirmButton:true,showCancelButton:true,confirmButtonText:'View Cart',cancelButtonText:'Continue Shopping',
-						confirmButtonColor:'#3085d6',cancelButtonColor:'#6c757d'
-					}).then(res => { if (res.isConfirmed) location.href='/cart'; });
-				} else throw new Error(data.message);
-			})
-			.catch(err => {
-				Swal.fire({icon:'error',title:'Oops...',text:err.message||'Failed to add item to cart',confirmButtonColor:'#3085d6'});
-			});
-		}
+    <script>
+        function changeImage(src) {
+            document.getElementById('productImg').src = src;
+        }
 
-		function addToWishlist(productId) {
-			fetch("/wishlist-add", {
-				method: "POST",
-				headers: { "Content-Type": "application/json", "Accept": "application/json" },
-				body: JSON.stringify({ productId })
-			})
-			.then(r => r.json())
-			.then(data => {
-				if (data.success) {
-					Swal.fire({
-						icon:'success',title:'Added to Wishlist!',text:data.message,
-						showConfirmButton:true,showCancelButton:true,confirmButtonText:'View Wishlist',cancelButtonText:'Continue Shopping',
-						confirmButtonColor:'#3085d6',cancelButtonColor:'#6c757d'
-					}).then(res => { if (res.isConfirmed) location.href='/wishlist'; });
-				} else throw new Error(data.message);
-			})
-			.catch(err => {
-				Swal.fire({icon:'error',title:'Oops...',text:err.message||'Failed to add to wishlist',confirmButtonColor:'#3085d6'});
-			});
-		}
-	</script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.querySelector('.img-zoom-container');
+            if (container) {
+                container.addEventListener('mousemove', e => {
+                    const r = container.getBoundingClientRect();
+                    const x = ((e.clientX - r.left) / r.width) * 100;
+                    const y = ((e.clientY - r.top) / r.height) * 100;
+                    container.style.setProperty('--x', x + '%');
+                    container.style.setProperty('--y', y + '%');
+                });
+            }
+        });
 
-<%-include("../../views/partials/user/footer")%>
+        function selectSize(btn, size, available) {
+            if (!available) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Out of Stock',
+                    text: `Size ${size} is currently not available`,
+                    timer: 2500,
+                    showConfirmButton: false
+                });
+                return;
+            }
+            document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+        }
+
+        function addToCart(id) {
+            const selected = document.querySelector('.size-btn.selected');
+            if (!selected || selected.classList.contains('out-of-stock')) {
+                Swal.fire('Oops!', 'Please select an available size', 'warning');
+                return;
+            }
+            fetch('/cart/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ productId: id, size: selected.dataset.size, quantity: 1 })
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    Swal.fire({
+                        icon: 'success', title: 'Added!', text: 'Item added to cart',
+                        showCancelButton: true, confirmButtonText: 'View Cart'
+                    }).then(r => r.isConfirmed && (location.href = '/cart'));
+                } else throw new Error(d.message);
+            })
+            .catch(() => Swal.fire('Error', 'Failed to add to cart', 'error'));
+        }
+
+        function addToWishlist(id) {
+            fetch('/wishlist-add', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ productId: id })
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    Swal.fire('Success', d.message || 'Added to wishlist!', 'success')
+                        .then(r => r.isConfirmed && (location.href = '/wishlist'));
+                } else throw new Error(d.message);
+            })
+            .catch(() => Swal.fire('Error', 'Could not add to wishlist', 'error'));
+        }
+    </script>
+
+<%- include("../../views/partials/user/footer") %>

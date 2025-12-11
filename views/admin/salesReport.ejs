@@ -134,7 +134,6 @@
 <div class="sales-container">
     <h2>Sales Report</h2>
 
-    
     <% if (summary) { %>
         <div class="summary-card">
             <div class="card">
@@ -152,9 +151,7 @@
         </div>
     <% } %>
 
-    
     <div class="filter-container">
-        
         <form method="GET" action="/admin/salesReport" style="display:flex; gap:10px; align-items:center; flex-wrap: wrap;">
             <label for="period">Period:
                 <select name="period" id="period" onchange="toggleCustomDates(this)">
@@ -167,19 +164,17 @@
 
             
             <label id="fromLabel" style="display: <%= !query.period || query.period === '' ? 'block' : 'none' %>;">
-                From: <input type="date" name="from" value="<%= query.from || '' %>">
+                From: <input type="date" name="from" value="<%= query.from || '' %>" max="<%= today %>">
             </label>
             <label id="toLabel" style="display: <%= !query.period || query.period === '' ? 'block' : 'none' %>;">
-                To: <input type="date" name="to" value="<%= query.to || '' %>">
+                To: <input type="date" name="to" value="<%= query.to || '' %>" max="<%= today %>">
             </label>
 
             <button type="submit" class="filter-btn">Apply Filter</button>
         </form>
 
-        
         <a href="/admin/salesReport"><button type="button" class="clear-btn">Clear Filters</button></a>
 
-        
         <form id="downloadForm" method="GET" action="/admin/sales-report/download">
             <input type="hidden" name="period" value="<%= query?.period || '' %>">
             <input type="hidden" name="from" value="<%= query?.from || '' %>">
@@ -187,7 +182,6 @@
             <button type="submit" class="download-btn">Download PDF</button>
         </form>
 
-    
         <form id="downloadFormExcel" method="GET" action="/admin/sales-report/download-excel">
             <input type="hidden" name="period" value="<%= query?.period || '' %>">
             <input type="hidden" name="from" value="<%= query?.from || '' %>">
@@ -196,7 +190,6 @@
         </form>
     </div>
 
-    
     <table>
         <thead>
             <tr>
@@ -235,25 +228,36 @@
     </table>
 </div>
 
-
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    
     function toggleCustomDates(select) {
         const isCustom = select.value === '';
         document.getElementById('fromLabel').style.display = isCustom ? 'block' : 'none';
         document.getElementById('toLabel').style.display   = isCustom ? 'block' : 'none';
     }
 
-    
     document.addEventListener('DOMContentLoaded', () => {
         const periodSelect = document.getElementById('period');
         if (periodSelect) {
             toggleCustomDates(periodSelect);
         }
+
+        
+        document.querySelectorAll('input[type="date"]').forEach(input => {
+            input.addEventListener('change', function() {
+                if (this.value > '<%= today %>') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Date',
+                        text: 'Future dates are not allowed. The date has been reset to today.',
+                    });
+                    this.value = '<%= today %>';
+                }
+            });
+        });
     });
 
-    
+    // Download alerts
     document.getElementById('downloadForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const form = this;
@@ -268,7 +272,6 @@
         });
     });
 
-    
     document.getElementById('downloadFormExcel').addEventListener('submit', function(e) {
         e.preventDefault();
         const form = this;

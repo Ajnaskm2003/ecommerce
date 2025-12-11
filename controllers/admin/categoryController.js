@@ -235,13 +235,13 @@ const addCategoryOffer = async (req, res) => {
             });
         }
 
-        // Set the category offer (no blocking anymore)
+        
         await Category.updateOne(
             { _id: categoryId },
             { $set: { categoryOffer: percentage } }
         );
 
-        // Update all products: use the HIGHER offer between product offer & category offer
+        
         await Product.updateMany(
             { category: categoryId },
             [
@@ -273,7 +273,7 @@ const addCategoryOffer = async (req, res) => {
                                 2
                             ]
                         },
-                        appliedOffer: {  // Optional: track which offer is active
+                        appliedOffer: {  
                             $max: [
                                 { $ifNull: ["$offerPercentage", 0] },
                                 percentage

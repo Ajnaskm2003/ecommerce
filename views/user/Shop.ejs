@@ -1,250 +1,155 @@
 <%- include("../../views/partials/user/header") %>
 <head>
-    <!-- Meta Tags and CSS Links -->
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="shortcut icon" href="img/fav.png">
-    <meta name="author" content="CodePixar">
-    <meta name="description" content="">
-    <meta name="keywords" content="">
-    <meta charset="UTF-8">
     <title>Karma Shop</title>
-    <link rel="stylesheet" href="css/linearicons.css">
-    <link rel="stylesheet" href="css/owl.carousel.css">
-    <link rel="stylesheet" href="css/font-awesome.min.css">
-    <link rel="stylesheet" href="css/themify-icons.css">
-    <link rel="stylesheet" href="css/nice-select.css">
-    <link rel="stylesheet" href="css/nouislider.min.css">
-    <link rel="stylesheet" href="css/bootstrap.css">
-    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="/css/linearicons.css">
+    <link rel="stylesheet" href="/css/owl.carousel.css">
+    <link rel="stylesheet" href="/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/css/themify-icons.css">
+    <link rel="stylesheet" href="/css/nice-select.css">
+    <link rel="stylesheet" href="/css/nouislider.min.css">
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        /* ←←← THIS IS THE ONLY CHANGE YOU ASKED FOR ←←← */
-        .col-xl-3.col-lg-4.col-md-5 {
-            padding-left: 5px !important;
-        }
-        /* ←←← END OF CHANGE ←←← */
+        .col-xl-3.col-lg-4.col-md-5 { padding-left: 5px !important; }
 
-        .category-link {
-            display: block;
-            padding: 12px 16px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            color: #555;
-            text-decoration: none;
-            background-color: #f9f9f9;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
-            margin-bottom: 8px;
+        /* === ALL YOUR ORIGINAL STYLES (SEARCH BAR FIXED) === */
+        .search-bar { position:relative; display:flex; justify-content:center; margin:20px auto; width:fit-content; padding:8px; background:rgba(255,255,255,0.15); backdrop-filter:blur(10px); border-radius:50px; box-shadow:0 4px 15px rgba(0,0,0,0.2); }
+        .search-form { position:relative; display:flex; align-items:center; }
+        .search-bar input { 
+            width:240px; 
+            padding:12px 50px 12px 48px; 
+            border:none; 
+            outline:none; 
+            border-radius:30px; 
+            background:rgba(255,255,255,0.95); 
+            font-size:15px; 
+            box-shadow:inset 3px 3px 8px rgba(0,0,0,0.1); 
+            transition:all 0.3s; 
         }
-    
-        .category-link:hover {
-            background-color: #fff;
-            color: #007bff;
-            border-color: #007bff;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        .search-bar input:focus { background:white; width:260px; }
+        .search-icon { 
+            position:absolute; 
+            left:18px; 
+            color:#666; 
+            font-size:18px; 
+            cursor:pointer; 
+            transition:0.3s; 
         }
+        .search-icon:hover { color:#007bff; }
+        .clear-search { 
+            position:absolute; 
+            right:10px; 
+            background:none; 
+            border:none; 
+            font-size:20px; 
+            color:#999; 
+            cursor:pointer; 
+            display:none; 
+            transition:0.3s; 
+        }
+        .clear-search:hover { color:#e74c3c; transform:scale(1.2); }
 
-        .pagination-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 50%;
-            margin-top: 20px;
-        }
+        .category-link { display:block; padding:12px 16px; border:1px solid #e0e0e0; border-radius:8px; color:#555; background:#f9f9f9; margin-bottom:8px; transition:all 0.3s; font-weight:500; }
+        .category-link:hover { background:white; color:#007bff; border-color:#007bff; box-shadow:0 4px 12px rgba(0,0,0,0.15); }
+        .category-link.active { background:linear-gradient(145deg,#007bff,#0056b3)!important; color:white!important; border-color:#007bff!important; box-shadow:0 5px 15px rgba(0,123,255,0.4); font-weight:600; }
 
-        .paginations {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 6px;
-            background: #f0f0f0;
-            padding: 8px 12px;
-            border-radius: 12px;
-            box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.1),
-                        inset -2px -2px 4px rgba(255, 255, 255, 0.8);
-        }
+        .filter-button { display:block; padding:14px 20px; text-align:center; margin-bottom:8px; border-radius:12px; background:linear-gradient(145deg,#f0f0f0,#ffffff); box-shadow:3px 3px 8px rgba(0,0,0,0.15), -3px -3px 8px rgba(255,255,255,0.9); color:#555; font-weight:500; transition:all 0.3s; }
+        .filter-button:hover { transform:translateY(-2px); color:#007bff; }
+        .filter-button.active { background:linear-gradient(145deg,#007bff,#0056b3)!important; color:white!important; box-shadow:0 5px 15px rgba(0,123,255,0.4); font-weight:600; }
 
-        .btn {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 32px;
-            height: 32px;
-            border: none;
-            border-radius: 8px;
-            color: #555;
-            text-decoration: none;
-            font-size: 12px;
-            font-weight: 600;
-            background: linear-gradient(145deg, #f0f0f0, #e0e0e0);
-            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2),
-                        -2px -2px 4px rgba(255, 255, 255, 0.8);
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
+        .clear-filters-btn { display:none; margin:25px auto 10px; padding:12px 32px; background:linear-gradient(145deg,#ff4757,#ff3838); color:white; border:none; border-radius:12px; font-weight:600; box-shadow:0 5px 15px rgba(255,71,87,0.4); }
+        .clear-filters-btn:hover { transform:translateY(-3px); }
+        .clear-filters-btn.show { display:block; }
 
-        .btn:hover {
-            background: linear-gradient(145deg, #e0e0e0, #f0f0f0);
-            box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2),
-                        -1px -1px 3px rgba(255, 255, 255, 0.8);
-            transform: translateY(-1px);
-        }
+        .paginations { display:inline-flex; gap:8px; background:#f0f0f0; padding:10px 18px; border-radius:16px; box-shadow:inset 3px 3px 8px rgba(0,0,0,0.1), inset -3px -3px 8px rgba(255,255,255,0.8); }
+        .btn { width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; background:linear-gradient(145deg,#f0f0f0,#e0e0e0); box-shadow:2px 2px 6px rgba(0,0,0,0.2); font-weight:600; transition:all 0.3s; }
+        .btn:hover { transform:translateY(-2px); }
+        .btn.active, .prev-btn, .next-btn { background:linear-gradient(145deg,#007bff,#0056b3); color:white; }
 
-        .btn.active {
-            background: linear-gradient(145deg, #007bff, #0056b3);
-            color: #fff;
-            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
-                        -2px -2px 4px rgba(255, 255, 255, 0.1);
-        }
-
-        .prev-btn, .next-btn {
-            width: 32px;
-            height: 32px;
-            background: linear-gradient(145deg, #007bff, #0056b3);
-            color: #fff;
-            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
-                        -2px -2px 4px rgba(255, 255, 255, 0.1);
-        }
-
-        .prev-btn:hover, .next-btn:hover {
-            background: linear-gradient(145deg, #0056b3, #007bff);
-            transform: translateY(-1px);
-        }
-
-        .prev-btn::before { content: '←'; font-size: 14px; }
-        .next-btn::after { content: '→'; font-size: 14px; }
-
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f8f9fa;
-        }
-        .shop { padding: 60px 0; }
+        /* === FIXED & COMPACT PRODUCT CARD === */
         .single-product {
-            background-color: #fff;
-            border-radius: 15px;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            background: #fff;
+            border-radius: 16px;
             overflow: hidden;
-            transition: transform 0.3s, box-shadow 0.3s;
-            margin-bottom: 30px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            transition: all 0.35s ease;
+            height: 360px;
+            display: flex;
+            flex-direction: column;
         }
         .single-product:hover {
             transform: translateY(-10px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
         }
-        .single-product img {
+        .product-img {
+            height: 210px;
+            overflow: hidden;
+            background: #f8f9fa;
+        }
+        .product-img img {
             width: 100%;
-            height: auto;
-            border-bottom: 1px solid #eee;
-            transition: transform 0.3s;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            transition: transform 0.6s ease;
         }
-        .single-product img:hover { transform: scale(1.1); }
-        .product-details { padding: 20px; }
-        .product-details h6 { font-size: 1.4em; margin-bottom: 10px; color: #333; }
-        .product-details p { font-size: 1em; color: #777; margin-bottom: 15px; }
-        .price h6 { font-size: 1.4em; color: #e74c3c; }
-        .price h6.l-through { text-decoration: line-through; color: #999; font-size: 1.2em; }
-
-        .search-bar {
+        .single-product:hover img { transform: scale(1.1); }
+        .product-details {
+            padding: 16px 16px 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            flex-grow: 1;
+        }
+        .product-details h6 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #2d3436;
+            margin: 0 0 10px 0;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .price {
             display: flex;
             justify-content: center;
-            align-items: center;
-            margin: 15px auto;
-            padding: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(8px);
-            border-radius: 40px;
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
-            width: fit-content;
+            align-items: baseline;
+            gap: 10px;
+            margin-top: 6px;
         }
-
-        .search-bar form { display: flex; align-items: center; padding: 3px; }
-        .search-bar input {
-            width: 180px; padding: 10px 15px; font-size: 14px; border: none; outline: none;
-            border-radius: 25px; background: rgba(255, 255, 255, 0.9);
-            box-shadow: inset 2px 2px 6px rgba(0,0,0,0.2), inset -2px -2px 6px rgba(255,255,255,0.6);
-            transition: all 0.3s ease-in-out;
+        .price h6 {
+            font-size: 19px;
+            font-weight: 700;
+            color: #e74c3c;
+            margin: 0;
         }
-        .search-bar input:focus { background: white; }
-        .search-bar button {
-            margin-left: 8px; padding: 10px 18px; font-size: 14px; font-weight: bold;
-            border: none; cursor: pointer; border-radius: 25px;
-            background: linear-gradient(145deg, #222, #000); color: white;
-            box-shadow: 3px 3px 6px rgba(0,0,0,0.3), -3px -3px 6px rgba(255,255,255,0.2);
-            transition: all 0.3s ease-in-out;
-        }
-        .search-bar button:hover {
-            background: linear-gradient(145deg, #000, #333);
-        }
-
-        .price-filter .common-filter {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 
-                inset 4px 4px 8px rgba(0,0,0,0.08),
-                inset -4px -4px 8px rgba(255,255,255,0.9);
-            margin-top: 20px;
-        }
-
-        .price-filter .head {
-            font-size: 1.1em;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .filter-button {
-            display: block;
-            padding: 14px 20px;
-            text-align: center;
-            text-decoration: none;
-            color: #555;
+        .price .l-through {
+            font-size: 14px;
+            color: #95a5a6;
+            text-decoration: line-through;
             font-weight: 500;
-            background: linear-gradient(145deg, #f0f0f0, #ffffff);
-            border-radius: 10px;
-            box-shadow: 
-                3px 3px 6px rgba(0,0,0,0.15),
-                -3px -3px 6px rgba(255,255,255,0.9);
-            transition: all 0.3s ease;
-            border: 1px solid #e0e0e0;
-        }
-
-        .filter-button:hover {
-            background: #ffffff;
-            box-shadow: 
-                2px 2px 5px rgba(0,0,0,0.2),
-                -2px -2px 5px rgba(255,255,255,1);
-            transform: translateY(-2px);
-            color: #007bff;
-        }
-
-        .filter-button.active {
-            background: linear-gradient(145deg, #007bff, #0056b3);
-            color: white !important;
-            box-shadow: 
-                3px 3px 8px rgba(0,123,255,0.4),
-                inset 2px 2px 5px rgba(255,255,255,0.2);
-            border-color: #007bff;
-            font-weight: 600;
         }
     </style>
-
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body id="category">
+
+    <!-- BREADCRUMB -->
     <section class="banner-area organic-breadcrumb">
         <div class="container">
             <div class="breadcrumb-banner d-flex flex-wrap align-items-center justify-content-end">
                 <div class="col-first">
-                    <h1>Shop Category page</h1>
+                    <h1>Shop</h1>
                     <nav class="d-flex align-items-center">
-                        <a href="/home">Home<span class="lnr lnr-arrow-right"></span></a>
-                        <a href="#">Shop<span class="lnr lnr-arrow-right"></span></a>
-                        <a href="category.html">Fashion Category</a>
+                        <a href="/home">Home <span class="lnr lnr-arrow-right"></span></a>
+                        <a href="/shop">Shop</a>
                     </nav>
                 </div>
             </div>
@@ -253,57 +158,59 @@
 
     <div class="container">
         <div class="row">
+            <!-- SIDEBAR -->
             <div class="col-xl-3 col-lg-4 col-md-5">
                 <div class="search-bar">
-                    <form method="get" action="/shop">
-                        <input type="text" name="search" placeholder="Search products..." value="<%= currentSearch || '' %>"/>
-                        <button type="submit">Search</button>
+                    <form method="get" action="/shop" class="search-form" id="searchForm">
+                        <i class="fas fa-search search-icon" id="searchIcon"></i>
+                        <input type="text" name="search" id="searchInput" placeholder="Search products..." value="<%= currentSearch || '' %>" autocomplete="off">
+                        <button type="button" class="clear-search" id="clearSearch">×</button>
+                        <!-- Hidden submit button for Enter key -->
+                        <button type="submit" style="display:none;"></button>
                     </form>
                 </div>
 
                 <div class="sidebar-filter mt-50">
                     <div class="top-filter-head">Product Filters</div>
+
                     <div class="common-filter">
                         <div class="head">Browse Categories</div>
-                        <form id="categoryFilterForm">
-                            <ul>
-                                <% for(let i=0; i<category.length; i++) { %>
-                                    <li class="filter-list">
-                                        <a href="/shop?category=<%= category[i]._id %>" class="category-link"><%= category[i].name %></a>
-                                    </li>
-                                <% } %>
-                            </ul>
-                        </form>
+                        <ul>
+                            <% for(let i=0; i<category.length; i++) { %>
+                                <li>
+                                    <a href="/shop?category=<%= category[i]._id %>"
+                                       class="category-link <%= currentCategory == category[i]._id ? 'active' : '' %>">
+                                        <%= category[i].name %>
+                                    </a>
+                                </li>
+                            <% } %>
+                        </ul>
                     </div>
-                </div>
 
-                <div class="price-filter">
-                    <div class="common-filter">
-                        <div class="head">Price Range</div>
-                        <div class="d-flex flex-column gap-3 mt-3">
-                            <a href="/shop?gt=0&lt=1000" 
-                               class="filter-button <%= (!currentMinPrice && !currentMaxPrice) || (currentMinPrice === 0 && currentMaxPrice === 1000) ? 'active' : '' %>">
-                                Under ₹1000
-                            </a>
-                            <a href="/shop?gt=1000&lt=2000" 
-                               class="filter-button <%= currentMinPrice === 1000 && currentMaxPrice === 2000 ? 'active' : '' %>">
-                                ₹1000 - ₹2000
-                            </a>
-                            <a href="/shop?gt=2000&lt=5000" 
-                               class="filter-button <%= currentMinPrice === 2000 && currentMaxPrice === 5000 ? 'active' : '' %>">
-                                ₹2000 - ₹5000
-                            </a>
-                            <a href="/shop?gt=5000" 
-                               class="filter-button <%= currentMinPrice === 5000 ? 'active' : '' %>">
-                                Above ₹5000
-                            </a>
+                    <div class="price-filter">
+                        <div class="common-filter">
+                            <div class="head">Price Range</div>
+                            <div class="d-flex flex-column gap-2 mt-3">
+                                <a href="/shop?gt=0&lt=1000" class="filter-button <%= (!currentMinPrice && !currentMaxPrice) || (currentMinPrice == 0 && currentMaxPrice == 1000) ? 'active' : '' %>">Under ₹1000</a>
+                                <a href="/shop?gt=1000&lt=2000" class="filter-button <%= currentMinPrice == 1000 && currentMaxPrice == 2000 ? 'active' : '' %>">₹1000 - ₹2000</a>
+                                <a href="/shop?gt=2000&lt=5000" class="filter-button <%= currentMinPrice == 2000 && currentMaxPrice == 5000 ? 'active' : '' %>">₹2000 - ₹5000</a>
+                                <a href="/shop?gt=5000" class="filter-button <%= currentMinPrice == 5000 ? 'active' : '' %>">Above ₹5000</a>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Fixed: Now shows when any price filter is active -->
+                    <% if (currentSearch || currentCategory || currentMinPrice || currentMaxPrice || currentSort !== 'newest') { %>
+                        <div class="text-center mt-4">
+                            <a href="/shop" class="clear-filters-btn show">Clear All Filters</a>
+                        </div>
+                    <% } %>
                 </div>
             </div>
-            
+
+            <!-- MAIN CONTENT -->
             <div class="col-xl-9 col-lg-8 col-md-7">
-                <div class="filter-bar d-flex flex-wrap align-items-center">
+                <div class="d-flex justify-content-between align-items-center mb-4">
                     <div class="sorting">
                         <form id="sortForm" method="get" action="/shop">
                             <select name="sort" onchange="this.form.submit()">
@@ -315,61 +222,106 @@
                             </select>
                         </form>
                     </div>
-                    <div class="pagination-container">
-                        <div class="paginations">
-                            <% if (currentPage > 1) { %>
-                                <a class="btn prev-btn" href="/shop?page=<%= currentPage - 1 %>">Prev</a>
-                            <% } %>
-                            <% for (let i = 1; i <= totalPages; i++) { %>
-                                <a class="btn page-btn <%= currentPage === i ? 'active' : '' %>" href="/shop?page=<%= i %>"><%= i %></a>
-                            <% } %>
-                            <% if (currentPage < totalPages) { %>
-                                <a class="btn next-btn" href="/shop?page=<%= currentPage + 1 %>">Next</a>
-                            <% } %>
-                        </div>
-                    </div>
                 </div>
 
-                <section class="shop">
+                <section class="shop pb-5">
                     <div class="container">
                         <div class="row">
                             <% for (let i = 0; i < products.length; i++) { %>
-                                <div class="col-lg-4 col-md-6 mb-4">
+                                <div class="col-xl-4 col-lg-6 col-md-6 mb-4">
                                     <div class="single-product">
-                                        <a href="/product?id=<%= products[i]._id %>">
-                                            <img class="img-fluid" src="<%= products[i].productImage[0] %>" alt="<%= products[i].productName %>">
-                                            <div class="product-details">
-                                                <h6><%= products[i].productName %></h6>
-                                                <div class="price">
-                                                    <h6>₹<%= (products[i].finalPrice || products[i].salePrice).toFixed(2) %></h6>
-                                                    <% if (products[i].regularPrice > (products[i].finalPrice || products[i].salePrice)) { %>
-                                                        <h6 class="l-through">₹<%= products[i].regularPrice.toFixed(2) %></h6>
-                                                    <% } %>
-                                                </div>
+                                        <div class="product-img">
+                                            <a href="/product?id=<%= products[i]._id %>">
+                                                <img src="<%= products[i].productImage[0] %>" alt="<%= products[i].productName %>">
+                                            </a>
+                                        </div>
+                                        <div class="product-details">
+                                            <h6><%= products[i].productName %></h6>
+                                            <div class="price">
+                                                <h6>₹<%= (products[i].finalPrice || products[i].salePrice).toFixed(2) %></h6>
+                                                <% if (products[i].regularPrice > (products[i].finalPrice || products[i].salePrice)) { %>
+                                                    <h6 class="l-through">₹<%= products[i].regularPrice.toFixed(2) %></h6>
+                                                <% } %>
                                             </div>
-                                        </a>
+                                        </div>
                                     </div>
                                 </div>
                             <% } %>
                         </div>
                     </div>
                 </section>
+
+                <!-- PAGINATION -->
+                <div class="text-center my-5">
+                    <div class="paginations">
+                        <% if (currentPage > 1) { %>
+                            <a class="btn prev-btn" href="/shop?page=<%= currentPage - 1 %>&search=<%= currentSearch || '' %>&category=<%= currentCategory || '' %>&gt=<%= currentMinPrice || '' %>&lt=<%= currentMaxPrice || '' %>&sort=<%= currentSort %>">Prev</a>
+                        <% } %>
+
+                        <% const maxVisible = 5;
+                           let startPage = Math.max(1, currentPage - 2);
+                           let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+                           if (endPage - startPage + 1 < maxVisible) startPage = Math.max(1, endPage - maxVisible + 1); %>
+
+                        <% if (startPage > 1) { %>
+                            <a class="btn" href="/shop?page=1&search=<%= currentSearch || '' %>&category=<%= currentCategory || '' %>&sort=<%= currentSort %>">1</a>
+                            <% if (startPage > 2) { %><span class="btn" style="box-shadow:none;cursor:default">...</span><% } %>
+                        <% } %>
+
+                        <% for (let i = startPage; i <= endPage; i++) { %>
+                            <a class="btn <%= currentPage === i ? 'active' : '' %>" 
+                               href="/shop?page=<%= i %>&search=<%= currentSearch || '' %>&category=<%= currentCategory || '' %>&gt=<%= currentMinPrice || '' %>&lt=<%= currentMaxPrice || '' %>&sort=<%= currentSort %>"><%= i %></a>
+                        <% } %>
+
+                        <% if (endPage < totalPages) { %>
+                            <% if (endPage < totalPages - 1) { %><span class="btn" style="box-shadow:none;cursor:default">...</span><% } %>
+                            <a class="btn" href="/shop?page=<%= totalPages %>&search=<%= currentSearch || '' %>&category=<%= currentCategory || '' %>&sort=<%= currentSort %>"><%= totalPages %></a>
+                        <% } %>
+
+                        <% if (currentPage < totalPages) { %>
+                            <a class="btn next-btn" href="/shop?page=<%= currentPage + 1 %>&search=<%= currentSearch || '' %>&category=<%= currentCategory || '' %>&gt=<%= currentMinPrice || '' %>&lt=<%= currentMaxPrice || '' %>&sort=<%= currentSort %>">Next</a>
+                        <% } %>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <script src="js/vendor/jquery-2.2.4.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
-    <script src="js/vendor/bootstrap.min.js"></script>
-    <script src="js/jquery.ajaxchimp.min.js"></script>
-    <script src="js/jquery.nice-select.min.js"></script>
-    <script src="js/jquery.sticky.js"></script>
-    <script src="js/nouislider.min.js"></script>
-    <script src="js/jquery.magnific-popup.min.js"></script>
-    <script src="js/owl.carousel.min.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCjCGmQ0Uq4exrzdcL6rvxywDDOvfAu6eE"></script>
-    <script src="js/gmaps.min.js"></script>
-    <script src="js/main.js"></script>
+    <%- include("../../views/partials/user/footer") %>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const clearBtn = document.getElementById('clearSearch');
+        const searchForm = document.getElementById('searchForm');
+        const searchIcon = document.getElementById('searchIcon');
+
+        
+        searchInput.addEventListener('input', function() {
+            clearBtn.style.display = this.value.trim() ? 'block' : 'none';
+        });
+
+        
+        searchIcon.addEventListener('click', function() {
+            searchForm.submit();
+        });
+
+        
+        clearBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            clearBtn.style.display = 'none';
+            searchForm.submit();
+        });
+
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                searchForm.submit();
+            }
+        });
+
+        if (searchInput.value.trim()) {
+            clearBtn.style.display = 'block';
+        }
+    </script>
 </body>
 </html>
-<%- include("../../views/partials/user/footer") %>

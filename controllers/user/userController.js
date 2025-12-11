@@ -222,60 +222,50 @@ const loadSignin = (req, res) => {
 const signin = async (req, res) => {
     try {
         let { email = '', password = '' } = req.body;
-
         email = email.trim();
 
-        
         if (!email || !password) {
             const msg = !email && !password 
                 ? 'Email and Password are required'
                 : !email ? 'Email is required' : 'Password is required';
 
             req.flash('error', msg);
-            req.flash('old', { email: req.body.email || '' });  
+            req.flash('old', { email });
             return res.redirect('/signin');
         }
 
         const user = await User.findOne({ email });
         if (!user) {
             req.flash('error', 'Invalid email or password');
-            req.flash('old', { email: req.body.email || '' });
+            req.flash('old', { email });
             return res.redirect('/signin');
         }
 
+        // BLOCKED USER CANNOT LOGIN
         if (user.isBlocked) {
-            req.flash('error', 'Your account has been blocked. Please contact support.');
-            return res.redirect('/pageNotFound');
+            req.flash('error', 'Your account has been blocked by the admin. Please contact support.');
+            return res.redirect('/signin'); // ← Changed from /pageNotFound
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             req.flash('error', 'Invalid email or password');
-            req.flash('old', { email: req.body.email || '' });  
+            req.flash('old', { email });
             return res.redirect('/signin');
         }
 
-        
+        // Login success
         req.session.user = {
             id: user._id,
             email: user.email,
             name: user.name
         };
 
-        req.session.cookie.secure = process.env.NODE_ENV === 'production';
-        req.session.cookie.httpOnly = true;
-        req.session.cookie.maxAge = 24 * 60 * 60 * 1000;
-
-        res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-        res.set('Pragma', 'no-cache');
-        res.set('Expires', '0');
-
         return res.redirect('/');
 
     } catch (err) {
         console.error('Signin error:', err);
         req.flash('error', 'Something went wrong. Please try again.');
-        req.flash('old', { email: req.body.email || '' });
         return res.redirect('/signin');
     }
 };

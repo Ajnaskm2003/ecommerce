@@ -94,13 +94,13 @@ const updateOrderStatus = async (req, res) => {
             return res.status(400).json({ error: 'Invalid status' });
         }
 
-        // Find the order
+        
         const order = await Order.findOne({ orderId });
         if (!order) {
             return res.status(404).json({ error: 'Order not found' });
         }
 
-        // Check status hierarchy
+        
         const currentStatusValue = statusHierarchy[order.status];
         const newStatusValue = statusHierarchy[status];
 
@@ -113,18 +113,18 @@ const updateOrderStatus = async (req, res) => {
             });
         }
 
-        // Store previous status
+        
         const previousStatus = order.status;
         
-        // Update status
+        
         order.status = status;
         
-        // Add to statusHistory with both previous and new status
+        
         order.statusHistory.push({
             status: status,
             date: new Date(),
             changedBy: 'admin',
-            previousStatus: previousStatus // Add this to track what changed from what
+            previousStatus: previousStatus 
         });
 
         await order.save();

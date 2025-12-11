@@ -45,7 +45,22 @@ router.get('/signin',
 );
 
 
+router.get('/api/check-block-status', async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).json({ blocked: true });
+    }
 
+    try {
+        const user = await User.findById(req.session.user.id).select('isBlocked');
+        if (user && user.isBlocked) {
+            req.session.destroy(); // Kill session
+            return res.status(401).json({ blocked: true });
+        }
+        res.json({ ok: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
 
 router.post('/signin', cacheControl, userController.signin);
 router.get('/', userController.loadHomepage);

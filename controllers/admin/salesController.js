@@ -8,11 +8,10 @@ const getSalesReport = async (req, res) => {
         const { period, from, to } = req.query;
         let filter = { status: "Delivered" };
 
-    
         if (from && to) {
             filter.createdOn = {
                 $gte: new Date(from),
-                $lte: new Date(to + "T23:59:59")
+                $lte: new Date(to + "T23:59:59.999Z")  
             };
         } else if (period) {
             const now = new Date();
@@ -29,14 +28,12 @@ const getSalesReport = async (req, res) => {
 
         console.log('filterrrr applly:', filter);
 
-        
         const orders = await Order.find(filter)
             .populate('orderItems.product', 'productName')
             .sort({ createdOn: -1 });
 
-        console.log('geting orders:', orders.length);
+        console.log('getting orders:', orders.length);
 
-        
         const sales = orders.map(order => ({
             orderId: order.orderId,
             items: order.orderItems.map(item => ({
@@ -48,18 +45,21 @@ const getSalesReport = async (req, res) => {
             date: order.createdOn
         }));
 
-    
-        const orderCount   = orders.length;
+        const orderCount = orders.length;
         const totalRevenue = orders.reduce((sum, o) => sum + o.totalAmount, 0);
         const totalDiscount = orders.reduce((sum, o) => sum + (o.discount || 0), 0);
 
         console.log('Aggregates ->', { orderCount, totalRevenue, totalDiscount });
 
+        
+        const today = new Date().toISOString().split('T')[0];  
+
         res.set('Cache-Control', 'no-store');
         res.render('salesReport', {
             sales,
             query: req.query,
-            summary: { orderCount, totalRevenue, totalDiscount }
+            summary: { orderCount, totalRevenue, totalDiscount },
+            today  
         });
 
     } catch (error) {
@@ -252,7 +252,7 @@ const downloadSalesReport = async (req, res) => {
     doc.fillColor("#e74c3c").font("Helvetica-Bold");
     doc.text(`Net Revenue:                    ₹${netRevenue.toFixed(2)}`, 60, doc.y + 90);
 
-    // Footer
+    
     doc.moveDown(5);
     doc
       .fontSize(10)

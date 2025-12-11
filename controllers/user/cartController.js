@@ -13,24 +13,24 @@ const getCart = async (req, res) => {
 
         res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
 
-        // Clear old session data
+        
         const blockedCartItems = req.session.blockedCartItems || [];
         delete req.session.blockedCartItems;
 
         const cart = await Cart.findOne({ userId }).populate('items.productId');
 
-        let blockedItems = []; // Only for blocked products
+        let blockedItems = []; 
 
         if (cart && cart.items.length > 0) {
             cart.items.forEach(item => {
                 const product = item.productId;
 
-                // Update price to latest salePrice
+                
                 if (product?.salePrice !== undefined) {
                     item.price = product.salePrice;
                 }
 
-                // Check if product is blocked
+                
                 if (product?.isBlocked) {
                     blockedItems.push({
                         name: product.productName || 'Unknown Product',
@@ -41,7 +41,7 @@ const getCart = async (req, res) => {
             });
         }
 
-        // Pass to view
+        
         res.render('cart', {
             cart: cart || { items: [] },
             blockedCartItems: blockedItems,
@@ -74,7 +74,7 @@ const addToCart = async (req, res) => {
             return res.json({ success: false, message: "Product not found" });
         }
 
-        // FIX: Use correct field name 'isBlocked' instead of 'blocked'
+        
         if (product.isBlocked) {
             return res.json({ 
                 success: false, 
